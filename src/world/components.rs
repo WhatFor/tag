@@ -1,4 +1,7 @@
 use bevy::prelude::*;
 
 #[derive(Component)]
+pub struct Area;
+
+#[derive(Component)]
 pub struct Item;

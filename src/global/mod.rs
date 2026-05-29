@@ -13,7 +13,6 @@ impl Plugin for GlobalPlugin {
     }
 }
 
-fn setup_global(mut commands: Commands, mut next_state: ResMut<NextState<GameState>>) {
+fn setup_global(mut commands: Commands) {
     commands.spawn(Camera2d);
-    next_state.set(GameState::MainMenu)
 }

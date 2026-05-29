@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+mod assets;
+mod components;
 mod global;
 mod main_menu;
 mod player;
