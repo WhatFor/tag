@@ -1,6 +1,8 @@
 use bevy::log::*;
 use bevy::{asset::LoadedFolder, prelude::*};
 
+use crate::global::PendingAssets;
+use crate::sets::PlayingSet;
 use crate::{
     assets::loader::{AreaAssetLoader, AreaData},
     state::GameState,
@@ -29,37 +31,33 @@ impl Plugin for AreaLoaderPlugin {
         app.add_systems(OnEnter(GameState::Initialising), load_areas);
 
         app.add_systems(
-            Update,
-            check_progress.run_if(in_state(GameState::Initialising)),
+            OnEnter(GameState::Playing),
+            spawn_areas.in_set(PlayingSet::SpawnWorld),
         );
-
-        app.add_systems(OnEnter(GameState::Playing), spawn_areas);
     }
 }
 
 const AREAS_ASSET_PATH: &str = "areas";
 
-fn load_areas(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn load_areas(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut asset_tracker: ResMut<PendingAssets>,
+) {
     info!("Beginning to load Area assets from folder...");
     let areas_handle = asset_server.load_folder(AREAS_ASSET_PATH);
+    asset_tracker.0.push(areas_handle.clone().untyped());
     commands.insert_resource(AreaFolder(areas_handle));
-}
-
-fn check_progress(
-    asset_server: Res<AssetServer>,
-    folder: Res<AreaFolder>,
-    mut state: ResMut<NextState<GameState>>,
-) {
-    if asset_server.is_loaded_with_dependencies(&folder.0) {
-        info!("Completed loading Areas assets!");
-        state.set(GameState::MainMenu);
-    }
 }
 
 fn spawn_areas(mut commands: Commands, areas: Res<Assets<AreaData>>) {
     for (_, area_data) in areas.iter() {
-        info!("Spawning {}...", area_data.name);
-        commands.spawn((Area, crate::components::Name(area_data.name.clone())));
+        info!("Spawning {} ({})...", area_data.name, area_data.id);
+        commands.spawn((
+            Area,
+            crate::components::Name(area_data.name.clone()),
+            crate::world::components::AreaId(area_data.id.clone()),
+        ));
     }
 
     commands.remove_resource::<AreaFolder>();
