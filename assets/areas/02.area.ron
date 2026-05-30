@@ -5,8 +5,9 @@
       lines: []
     ),
     dialogue: (
+      character_id: "chair_daddy",
       lines: [
-        (character_id: "chair_daddy", line: "Welcome!")
+        "Welcome!"
       ]
     ),
     exits: []

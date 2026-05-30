@@ -20,14 +20,10 @@ pub struct AreaNarration {
     pub lines: Vec<String>,
 }
 
-pub struct DialogueLine {
-    pub character_id: String,
-    pub line: String,
-}
-
 #[derive(Component)]
 pub struct AreaDialogue {
-    pub lines: Vec<DialogueLine>,
+    pub character_id: String,
+    pub lines: Vec<String>,
 }
 
 #[derive(Component)]

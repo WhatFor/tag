@@ -6,21 +6,17 @@ use thiserror::Error;
 use crate::world::components::AreaExit;
 
 pub type AreaId = String;
+pub type CharacterId = String;
 
 #[derive(TypePath, Deserialize)]
 pub struct AreaNarration {
     pub lines: Vec<String>,
 }
 
-#[derive(TypePath, Deserialize, Clone)]
-pub struct DialogueLine {
-    pub character_id: String,
-    pub line: String,
-}
-
 #[derive(TypePath, Deserialize)]
 pub struct AreaDialogue {
-    pub lines: Vec<DialogueLine>,
+    pub character_id: CharacterId,
+    pub lines: Vec<String>,
 }
 
 #[derive(Asset, TypePath, Deserialize)]

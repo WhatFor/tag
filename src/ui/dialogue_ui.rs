@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::assets::character_loader::CharacterStore;
 use crate::state::GameState;
 use crate::ui::FontAssets;
 use crate::ui::events::DialogueComplete;
@@ -67,6 +68,7 @@ fn on_player_enter_area(
     event: On<PlayerEnteredArea>,
     mut commands: Commands,
     all_area_dialogue: Query<&AreaDialogue, With<Area>>,
+    character_store: Res<CharacterStore>,
     container: Single<Entity, With<ContainerNode>>,
     fonts: Res<FontAssets>,
 ) {
@@ -74,7 +76,7 @@ fn on_player_enter_area(
     commands.entity(*container).despawn_related::<Children>();
 
     // If we have no dialogue for the Area, skip.
-    let Ok(all_dialogue) = all_area_dialogue.get(event.0) else {
+    let Ok(dialogue) = all_area_dialogue.get(event.0) else {
         return;
     };
 
@@ -83,7 +85,7 @@ fn on_player_enter_area(
     let mut first_char_animated = false;
     let mut last_char_of_prev_line: Option<Entity> = None;
 
-    for dialogue in all_dialogue.lines.iter() {
+    for line in dialogue.lines.iter() {
         let line_node = commands
             .spawn((
                 LineNode,
@@ -98,8 +100,7 @@ fn on_player_enter_area(
             .id();
 
         // Pass 1: spawn in forward order
-        let char_entities: Vec<Entity> = dialogue
-            .line
+        let char_entities: Vec<Entity> = line
             .chars()
             .map(|ch| {
                 commands
@@ -148,7 +149,7 @@ fn on_player_enter_area(
         line_nodes.push(line_node);
 
         // Last char needs a marker
-        if line_nodes.len() == all_dialogue.lines.len() {
+        if line_nodes.len() == dialogue.lines.len() {
             let last_char = char_entities.last().expect("Unable to read last char.");
             commands.entity(*last_char).insert(LastInChain);
         }
@@ -157,6 +158,27 @@ fn on_player_enter_area(
     }
 
     commands.entity(*container).replace_children(&line_nodes);
+
+    // Draw the speaker
+    let speaker = character_store
+        .0
+        .get(&dialogue.character_id)
+        .expect("Character not found!");
+
+    let speaker_name_text = commands
+        .spawn((
+            Text::new(speaker.display_name.clone()),
+            fonts.dialogue_font.clone(),
+            fonts.dialogue_color,
+            Node {
+                position_type: PositionType::Relative,
+                bottom: Val::Px(CHAR_Y_OFFSET),
+                ..default()
+            },
+        ))
+        .id();
+
+    commands.entity(*container).add_child(speaker_name_text);
 }
 
 fn animate(
