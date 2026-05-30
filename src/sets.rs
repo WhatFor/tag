@@ -4,4 +4,5 @@ use bevy::prelude::*;
 pub enum PlayingSet {
     SpawnWorld,
     SpawnPlayer,
+    SpawnCharacters,
 }

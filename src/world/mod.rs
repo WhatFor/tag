@@ -1,7 +1,7 @@
 use bevy::log::*;
 use bevy::prelude::*;
 
-use crate::assets::AreaLoaderPlugin;
+use crate::assets::AssetsPlugin;
 use crate::components::Health;
 use crate::player::components::{CurrentArea, Inventory, Player};
 use crate::sets::PlayingSet;
@@ -22,7 +22,7 @@ impl Plugin for WorldPlugin {
             spawn_player.in_set(PlayingSet::SpawnPlayer),
         );
 
-        app.add_plugins(AreaLoaderPlugin);
+        app.add_plugins(AssetsPlugin);
     }
 }
 

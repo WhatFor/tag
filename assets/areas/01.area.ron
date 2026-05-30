@@ -1,0 +1,16 @@
+(
+    id: "start_01",
+    name: "Chair Daddy's Castle",
+    narration: (
+      lines: [
+        "Line 1",
+        "Line 2",
+        "Line 3",
+      ]
+    ),
+    dialogue: (
+      lines: [
+        (character_id: "chair_daddy", line: "Welcome!")
+      ]
+    ),
+)

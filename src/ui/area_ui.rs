@@ -34,7 +34,7 @@ fn spawn(mut commands: Commands, fonts: Res<FontAssets>) {
 
 fn update(
     event: On<PlayerEnteredArea>,
-    all_areas: Query<&crate::components::Name, With<Area>>,
+    all_areas: Query<&crate::components::DisplayName, With<Area>>,
     mut area_name_text: Single<&mut Text, With<AreaNameText>>,
 ) {
     let Ok(current_area_name) = all_areas.get(event.0) else {

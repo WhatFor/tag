@@ -4,27 +4,27 @@ use serde::Deserialize;
 use thiserror::Error;
 
 #[derive(Asset, TypePath, Deserialize)]
-pub struct AreaData {
+pub struct CharacterData {
     pub id: String,
-    pub name: String,
+    pub display_name: String,
 }
 
 #[derive(Default, TypePath)]
-pub struct AreaAssetLoader;
+pub struct CharacterAssetLoader;
 
 #[non_exhaustive]
 #[derive(Debug, Error)]
-pub enum AreaAssetLoaderError {
-    #[error("Could not load asset: {0}")]
+pub enum CharacterAssetLoaderError {
+    #[error("Could not load character: {0}")]
     Io(#[from] std::io::Error),
-    #[error("Could not parse RON: {0}")]
+    #[error("Could not parse character RON: {0}")]
     Ron(#[from] ron::error::SpannedError),
 }
 
-impl AssetLoader for AreaAssetLoader {
-    type Asset = AreaData;
+impl AssetLoader for CharacterAssetLoader {
+    type Asset = CharacterData;
     type Settings = ();
-    type Error = AreaAssetLoaderError;
+    type Error = CharacterAssetLoaderError;
 
     async fn load(
         &self,
@@ -38,6 +38,6 @@ impl AssetLoader for AreaAssetLoader {
     }
 
     fn extensions(&self) -> &[&str] {
-        &["ron"]
+        &["char.ron"]
     }
 }
