@@ -19,6 +19,9 @@ pub struct FontAssets {
 
     pub narration_font: TextFont,
     pub narration_color: TextColor,
+
+    pub ui_font: TextFont,
+    pub ui_color: TextColor,
 }
 
 pub struct UIPlugin;
@@ -64,10 +67,24 @@ fn setup_fonts(
 
     let narration_color = TextColor(Color::srgb(1.0, 0.95, 1.0));
 
+    // Load UI Font
+    let ui_font = asset_server.load("fonts/gentium.ttf");
+    asset_tracker.0.push(ui_font.clone().untyped());
+
+    let ui_font = TextFont {
+        font: ui_font.clone(),
+        font_size: 30.0,
+        ..default()
+    };
+
+    let ui_color = TextColor(Color::srgb(1.0, 0.95, 1.0));
+
     commands.insert_resource(FontAssets {
         title_font,
         title_color,
         narration_font,
         narration_color,
+        ui_font,
+        ui_color,
     });
 }

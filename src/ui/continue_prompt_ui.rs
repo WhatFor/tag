@@ -24,8 +24,8 @@ fn show_continue_prompt(mut commands: Commands, fonts: Res<FontAssets>) {
     commands.spawn((
         ContinuePrompt,
         Text::new("~ Click or Spacebar to continue ~"),
-        fonts.narration_font.clone().with_font_size(30.0),
-        fonts.narration_color,
+        fonts.ui_font.clone(),
+        fonts.ui_color,
         TextLayout::new_with_justify(Justify::Center),
         Node {
             position_type: PositionType::Absolute,
