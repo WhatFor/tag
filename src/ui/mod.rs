@@ -68,7 +68,7 @@ fn setup_fonts(
     let narration_color = TextColor(Color::srgb(1.0, 0.95, 1.0));
 
     // Load UI Font
-    let ui_font = asset_server.load("fonts/gentium.ttf");
+    let ui_font = asset_server.load("fonts/bebas.otf");
     asset_tracker.0.push(ui_font.clone().untyped());
 
     let ui_font = TextFont {
@@ -77,7 +77,7 @@ fn setup_fonts(
         ..default()
     };
 
-    let ui_color = TextColor(Color::srgb(1.0, 0.95, 1.0));
+    let ui_color = TextColor(Color::srgb(0.6, 0.65, 0.6));
 
     commands.insert_resource(FontAssets {
         title_font,
