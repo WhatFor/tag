@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{game::events::PlayerContinued, state::ExploringState};
+use crate::{game::events::PlayerContinued, global::PausableSystems, state::ExploringState};
 
 pub mod components;
 
@@ -10,7 +10,9 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            wait_for_continue_input.run_if(in_state(ExploringState::AwaitingContinue)),
+            wait_for_continue_input
+                .run_if(in_state(ExploringState::AwaitingContinue))
+                .in_set(PausableSystems),
         );
     }
 }
