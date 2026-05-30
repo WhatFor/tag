@@ -12,12 +12,12 @@ pub struct AreaUIPlugin;
 
 impl Plugin for AreaUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Playing), spawn);
-        app.add_observer(update);
+        app.add_systems(OnEnter(GameState::Playing), init);
+        app.add_observer(on_player_enter_area);
     }
 }
 
-fn spawn(mut commands: Commands, fonts: Res<FontAssets>) {
+fn init(mut commands: Commands, fonts: Res<FontAssets>) {
     commands.spawn((
         AreaNameText,
         Text::new(""),
@@ -32,7 +32,7 @@ fn spawn(mut commands: Commands, fonts: Res<FontAssets>) {
     ));
 }
 
-fn update(
+fn on_player_enter_area(
     event: On<PlayerEnteredArea>,
     all_areas: Query<&crate::components::DisplayName, With<Area>>,
     mut area_name_text: Single<&mut Text, With<AreaNameText>>,
