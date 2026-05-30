@@ -7,6 +7,7 @@ mod components;
 mod game;
 mod global;
 mod main_menu;
+mod pause_menu;
 mod player;
 mod sets;
 mod ui;
@@ -15,6 +16,7 @@ mod world;
 use crate::game::GameplayPlugin;
 use crate::global::GlobalPlugin;
 use crate::main_menu::MainMenuPlugin;
+use crate::pause_menu::PauseMenuPlugin;
 use crate::player::PlayerPlugin;
 use crate::ui::UIPlugin;
 use crate::world::WorldPlugin;
@@ -25,6 +27,7 @@ fn main() {
         .add_plugins(GameplayPlugin)
         .add_plugins(GlobalPlugin)
         .add_plugins(MainMenuPlugin)
+        .add_plugins(PauseMenuPlugin)
         .add_plugins(WorldPlugin)
         .add_plugins(UIPlugin)
         .add_plugins(PlayerPlugin)

@@ -14,7 +14,7 @@ impl Plugin for GameplayPlugin {
 
         app.add_systems(
             Update,
-            pause.run_if(
+            (pause, spawn_pause_overlay).run_if(
                 in_state(Pause(false))
                     .and(in_state(GameState::Playing))
                     .and(input_just_pressed(KeyCode::Escape)),
@@ -38,4 +38,17 @@ fn unpause(mut next_pause_state: ResMut<NextState<Pause>>) {
 
 fn pause(mut next_pause_state: ResMut<NextState<Pause>>) {
     next_pause_state.set(Pause(true));
+}
+
+fn spawn_pause_overlay(mut commands: Commands) {
+    commands.spawn((
+        Node {
+            width: percent(100),
+            height: percent(100),
+            ..default()
+        },
+        GlobalZIndex(1),
+        BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.8)),
+        DespawnOnExit(Pause(true)),
+    ));
 }

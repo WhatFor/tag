@@ -120,6 +120,7 @@ fn on_player_enter_area(
                 align_items: AlignItems::Center,
                 ..default()
             },
+            DespawnOnExit(GameState::Playing),
         ))
         .id();
 

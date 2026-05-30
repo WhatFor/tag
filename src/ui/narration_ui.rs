@@ -73,6 +73,7 @@ fn init(mut commands: Commands) {
             align_items: AlignItems::Center,
             ..default()
         },
+        DespawnOnExit(GameState::Playing),
     ));
 }
 

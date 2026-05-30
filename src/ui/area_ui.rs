@@ -29,6 +29,7 @@ fn init(mut commands: Commands, fonts: Res<FontAssets>) {
             left: Val::Percent(3.0),
             ..Default::default()
         },
+        DespawnOnExit(GameState::Playing),
     ));
 }
 

@@ -44,6 +44,7 @@ fn spawn_player(mut commands: Commands, areas: Query<(Entity, &AreaId), With<Are
             Health(100),
             Inventory(vec![]),
             CurrentArea(start_area),
+            DespawnOnExit(GameState::Playing),
         ))
         .id();
 
