@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::state::ExploringState;
+use crate::{state::ExploringState, ui::FontAssets};
 
 #[derive(Component)]
 struct ContinuePrompt;
@@ -23,14 +23,14 @@ impl Plugin for ContinuePromptUIPlugin {
 fn show_continue_prompt(mut commands: Commands, fonts: Res<FontAssets>) {
     commands.spawn((
         ContinuePrompt,
-        Text::new("Press Space to continue..."),
-        fonts.narration_font.clone(),
+        Text::new("~ Click or Spacebar to continue ~"),
+        fonts.narration_font.clone().with_font_size(30.0),
         fonts.narration_color,
+        TextLayout::new_with_justify(Justify::Center),
         Node {
             position_type: PositionType::Absolute,
-            bottom: Val::Percent(5.0),
+            top: Val::Percent(2.0),
             width: Val::Percent(100.0),
-            justify_content: JustifyContent::Center,
             ..default()
         },
     ));

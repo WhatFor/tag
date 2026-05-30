@@ -15,8 +15,12 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn wait_for_continue_input(mut commands: Commands, input: Res<ButtonInput<KeyCode>>) {
-    if input.just_pressed(KeyCode::Space) {
+fn wait_for_continue_input(
+    mut commands: Commands,
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mouse: Res<ButtonInput<MouseButton>>,
+) {
+    if keyboard.just_pressed(KeyCode::Space) || mouse.just_pressed(MouseButton::Left) {
         commands.trigger(PlayerContinued);
     }
 }

@@ -2,6 +2,7 @@ use bevy::log::*;
 use bevy::prelude::*;
 
 use crate::ui::area_ui::AreaUIPlugin;
+use crate::ui::continue_prompt_ui::ContinuePromptUIPlugin;
 use crate::ui::dialogue_ui::DialogueUIPlugin;
 use crate::{global::PendingAssets, state::GameState};
 
@@ -26,6 +27,7 @@ impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(AreaUIPlugin);
         app.add_plugins(DialogueUIPlugin);
+        app.add_plugins(ContinuePromptUIPlugin);
 
         app.add_systems(OnEnter(GameState::Initialising), setup_fonts);
     }
