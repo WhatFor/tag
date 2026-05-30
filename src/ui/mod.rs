@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use crate::ui::area_ui::AreaUIPlugin;
 use crate::ui::continue_prompt_ui::ContinuePromptUIPlugin;
 use crate::ui::dialogue_ui::DialogueUIPlugin;
+use crate::ui::narration_ui::NarrationUIPlugin;
 use crate::{global::PendingAssets, state::GameState};
 
 pub mod events;
@@ -11,6 +12,7 @@ pub mod events;
 mod area_ui;
 mod continue_prompt_ui;
 mod dialogue_ui;
+mod narration_ui;
 
 #[derive(Resource)]
 pub struct FontAssets {
@@ -19,6 +21,9 @@ pub struct FontAssets {
 
     pub narration_font: TextFont,
     pub narration_color: TextColor,
+
+    pub dialogue_font: TextFont,
+    pub dialogue_color: TextColor,
 
     pub ui_font: TextFont,
     pub ui_color: TextColor,
@@ -29,6 +34,7 @@ pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(AreaUIPlugin);
+        app.add_plugins(NarrationUIPlugin);
         app.add_plugins(DialogueUIPlugin);
         app.add_plugins(ContinuePromptUIPlugin);
 
@@ -67,6 +73,18 @@ fn setup_fonts(
 
     let narration_color = TextColor(Color::srgb(1.0, 0.95, 1.0));
 
+    // Load Dialogue Font
+    let dialogue_font = asset_server.load("fonts/gentium_italic.ttf");
+    asset_tracker.0.push(dialogue_font.clone().untyped());
+
+    let dialogue_font = TextFont {
+        font: dialogue_font.clone(),
+        font_size: 45.0,
+        ..default()
+    };
+
+    let dialogue_color = TextColor(Color::srgb(0.9, 0.475, 0.425));
+
     // Load UI Font
     let ui_font = asset_server.load("fonts/bebas.otf");
     asset_tracker.0.push(ui_font.clone().untyped());
@@ -84,6 +102,8 @@ fn setup_fonts(
         title_color,
         narration_font,
         narration_color,
+        dialogue_font,
+        dialogue_color,
         ui_font,
         ui_color,
     });

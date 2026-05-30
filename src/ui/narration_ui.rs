@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use crate::state::GameState;
 use crate::ui::FontAssets;
-use crate::ui::events::DialogueComplete;
-use crate::world::components::{Area, AreaDialogue};
+use crate::ui::events::NarrationComplete;
+use crate::world::components::{Area, AreaNarration};
 use crate::world::events::PlayerEnteredArea;
 
 #[derive(Component)]
@@ -30,9 +30,9 @@ struct AnimationProgress(pub f32);
 #[derive(Component)]
 struct AnimationComplete;
 
-pub struct DialogueUIPlugin;
+pub struct NarrationUIPlugin;
 
-impl Plugin for DialogueUIPlugin {
+impl Plugin for NarrationUIPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::Playing), init);
 
@@ -66,15 +66,15 @@ const LINE_DELAY_SECS: f32 = 1.0;
 fn on_player_enter_area(
     event: On<PlayerEnteredArea>,
     mut commands: Commands,
-    all_area_dialogue: Query<&AreaDialogue, With<Area>>,
+    all_area_narration: Query<&AreaNarration, With<Area>>,
     container: Single<Entity, With<ContainerNode>>,
     fonts: Res<FontAssets>,
 ) {
     // Clean up old content
     commands.entity(*container).despawn_related::<Children>();
 
-    // If we have no dialogue for the Area, skip.
-    let Ok(all_dialogue) = all_area_dialogue.get(event.0) else {
+    // If we have no narration for the Area, skip.
+    let Ok(narration) = all_area_narration.get(event.0) else {
         return;
     };
 
@@ -83,7 +83,7 @@ fn on_player_enter_area(
     let mut first_char_animated = false;
     let mut last_char_of_prev_line: Option<Entity> = None;
 
-    for dialogue in all_dialogue.lines.iter() {
+    for line in narration.lines.iter() {
         let line_node = commands
             .spawn((
                 LineNode,
@@ -98,15 +98,14 @@ fn on_player_enter_area(
             .id();
 
         // Pass 1: spawn in forward order
-        let char_entities: Vec<Entity> = dialogue
-            .line
+        let char_entities: Vec<Entity> = line
             .chars()
             .map(|ch| {
                 commands
                     .spawn((
                         Text::new(ch.to_string()),
-                        fonts.dialogue_font.clone(),
-                        TextColor(fonts.dialogue_color.0.with_alpha(0.0)),
+                        fonts.narration_font.clone(),
+                        TextColor(fonts.narration_color.0.with_alpha(0.0)),
                         Node {
                             position_type: PositionType::Relative,
                             bottom: Val::Px(CHAR_Y_OFFSET),
@@ -148,7 +147,7 @@ fn on_player_enter_area(
         line_nodes.push(line_node);
 
         // Last char needs a marker
-        if line_nodes.len() == all_dialogue.lines.len() {
+        if line_nodes.len() == narration.lines.len() {
             let last_char = char_entities.last().expect("Unable to read last char.");
             commands.entity(*last_char).insert(LastInChain);
         }
@@ -222,7 +221,7 @@ fn on_char_done(
     query: Query<Entity, (Added<AnimationComplete>, With<LastInChain>)>,
 ) {
     for _ in query {
-        info!("Dialogue animation completed!");
-        commands.trigger(DialogueComplete);
+        info!("Narration animation completed!");
+        commands.trigger(NarrationComplete);
     }
 }
