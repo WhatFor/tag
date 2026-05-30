@@ -14,6 +14,15 @@ struct NarrationReveal {
     pub timer: Timer,
 }
 
+#[derive(Component)]
+struct NextChar(pub Option<Entity>);
+
+#[derive(Component)]
+struct AnimatingOpacity(f32);
+
+#[derive(Component)]
+struct AnimationComplete;
+
 impl Default for NarrationReveal {
     fn default() -> Self {
         let mut timer = Timer::from_seconds(1.0, TimerMode::Repeating);
@@ -31,7 +40,8 @@ pub struct DialogueUIPlugin;
 impl Plugin for DialogueUIPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::Playing), init);
-        app.add_systems(Update, reveal_lines.run_if(in_state(GameState::Playing)));
+        //app.add_systems(Update, reveal_lines.run_if(in_state(GameState::Playing)));
+        app.add_systems(Update, on_char_done.run_if(in_state(GameState::Playing)));
         app.add_observer(on_player_enter_area);
     }
 }
@@ -74,8 +84,7 @@ fn on_player_enter_area(
                 .spawn((
                     Text::new(l.clone()),
                     fonts.narration_font.clone(),
-                    fonts.narration_color,
-                    Visibility::Hidden, // Reserve space in the flow, but don't show yet.
+                    TextColor(fonts.narration_color.with_alpha(0.0)),
                 ))
                 .id()
         })
@@ -88,7 +97,16 @@ fn on_player_enter_area(
     reveal_info.timer.unpause();
 }
 
-fn reveal_lines(
+// When the AnimationComplete is finished on a char, kick off the next one.
+fn on_char_done(mut commands: Commands, query: Query<&NextChar, Added<AnimationComplete>>) {
+    for next in &query {
+        if let Some(next_entity) = next.0 {
+            commands.entity(next_entity).insert(AnimatingOpacity(0.0));
+        }
+    }
+}
+
+/*fn reveal_lines(
     time: Res<Time>,
     mut dialogue: Query<(Entity, &mut NarrationReveal), With<DialogueNode>>,
     children_query: Query<&Children>,
@@ -115,4 +133,4 @@ fn reveal_lines(
     }
 
     reveal_info.next_index += 1;
-}
+}*/
