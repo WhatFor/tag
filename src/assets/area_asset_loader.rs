@@ -3,6 +3,10 @@ use bevy::prelude::*;
 use serde::Deserialize;
 use thiserror::Error;
 
+use crate::world::components::AreaExit;
+
+pub type AreaId = String;
+
 #[derive(TypePath, Deserialize)]
 pub struct AreaNarration {
     pub lines: Vec<String>,
@@ -21,10 +25,11 @@ pub struct AreaDialogue {
 
 #[derive(Asset, TypePath, Deserialize)]
 pub struct AreaData {
-    pub id: String,
+    pub id: AreaId,
     pub name: String,
     pub narration: AreaNarration,
     pub dialogue: AreaDialogue,
+    pub exits: Vec<AreaExit>,
 }
 
 #[derive(Default, TypePath)]

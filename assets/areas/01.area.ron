@@ -1,6 +1,6 @@
 (
     id: "start_01",
-    name: "Chair Daddy's Castle",
+    name: "Chair Daddy's Castle 1",
     narration: (
       lines: [
         "You gaze around the neglected dining hall...",
@@ -9,8 +9,9 @@
       ]
     ),
     dialogue: (
-      lines: [
-        (character_id: "chair_daddy", line: "Welcome!")
-      ]
+      lines: []
     ),
+    exits: [
+        Continue("start_02")
+    ]
 )

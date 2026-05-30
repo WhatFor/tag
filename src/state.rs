@@ -16,3 +16,12 @@ pub enum PlayState {
     Exploring,
     InCombat,
 }
+
+#[derive(SubStates, Debug, Clone, Copy, Default, Eq, PartialEq, Hash)]
+#[source(PlayState = PlayState::Exploring)]
+pub enum ExploringState {
+    #[default]
+    Narrating,
+    AwaitingContinue,
+    AwaitingChoice,
+}

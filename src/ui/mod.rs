@@ -7,6 +7,7 @@ use crate::{global::PendingAssets, state::GameState};
 
 mod area_ui;
 mod dialogue_ui;
+pub mod events;
 
 #[derive(Resource)]
 pub struct FontAssets {

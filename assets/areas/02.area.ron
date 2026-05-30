@@ -1,10 +1,13 @@
 (
     id: "start_02",
-    name: "Chair Daddy's Courtyard",
+    name: "Chair Daddy's Castle 2",
     narration: (
       lines: []
     ),
     dialogue: (
-      lines: []
+      lines: [
+        (character_id: "chair_daddy", line: "Welcome!")
+      ]
     ),
+    exits: []
 )

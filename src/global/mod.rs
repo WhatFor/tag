@@ -1,10 +1,9 @@
 use bevy::log::*;
 use bevy::prelude::*;
 
-use crate::{
-    sets::PlayingSet,
-    state::{GameState, PlayState},
-};
+use crate::sets::PlayingSet;
+use crate::state::ExploringState;
+use crate::state::{GameState, PlayState};
 
 #[derive(Resource, Default)]
 pub struct PendingAssets(pub Vec<UntypedHandle>);
@@ -16,6 +15,7 @@ impl Plugin for GlobalPlugin {
         app.init_resource::<PendingAssets>();
         app.init_state::<GameState>();
         app.add_sub_state::<PlayState>();
+        app.add_sub_state::<ExploringState>();
 
         app.add_systems(Startup, setup_global);
 

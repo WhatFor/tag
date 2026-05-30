@@ -3,7 +3,7 @@ use bevy::{asset::LoadedFolder, prelude::*};
 
 use crate::global::PendingAssets;
 use crate::sets::PlayingSet;
-use crate::world::components::{AreaDialogue, AreaNarration, DialogueLine};
+use crate::world::components::{AreaDialogue, AreaExit, AreaExits, AreaNarration, DialogueLine};
 use crate::{
     assets::area_asset_loader::{AreaAssetLoader, AreaData},
     state::GameState,
@@ -54,6 +54,7 @@ fn spawn_areas(mut commands: Commands, areas: Res<Assets<AreaData>>) {
 
         commands.spawn((
             Area,
+            AreaExits(area_data.exits.clone()),
             AreaNarration {
                 lines: area_data.narration.lines.clone(),
             },
