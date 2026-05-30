@@ -5,9 +5,11 @@ use crate::ui::area_ui::AreaUIPlugin;
 use crate::ui::dialogue_ui::DialogueUIPlugin;
 use crate::{global::PendingAssets, state::GameState};
 
-mod area_ui;
-mod dialogue_ui;
 pub mod events;
+
+mod area_ui;
+mod continue_prompt_ui;
+mod dialogue_ui;
 
 #[derive(Resource)]
 pub struct FontAssets {

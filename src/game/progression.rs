@@ -18,11 +18,6 @@ impl Plugin for ProgressionPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(on_narration_completed);
         app.add_observer(on_player_continued);
-
-        app.add_systems(
-            OnEnter(ExploringState::AwaitingContinue),
-            on_awaiting_continue,
-        );
     }
 }
 
@@ -74,8 +69,4 @@ fn on_player_continued(
     current_area.0 = next_entity;
     commands.trigger(PlayerEnteredArea(next_entity));
     next_exploring_state.set(ExploringState::Narrating);
-}
-
-fn on_awaiting_continue() {
-    // show prompt!
 }
