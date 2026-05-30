@@ -61,7 +61,7 @@ fn init(mut commands: Commands) {
 const CHAR_ENTER_SPEED: f32 = 15.0;
 const CHAR_Y_OFFSET: f32 = 30.0;
 const NEXT_CHAR_THRESHOLD: f32 = 0.3;
-const LINE_DELAY_SECS: f32 = 1.0;
+const LINE_DELAY_SECS: f32 = 0.6;
 
 fn on_player_enter_area(
     event: On<PlayerEnteredArea>,
@@ -77,6 +77,10 @@ fn on_player_enter_area(
     let Ok(narration) = all_area_narration.get(event.0) else {
         return;
     };
+
+    if narration.lines.len() == 0 {
+        return;
+    }
 
     let mut line_nodes: Vec<Entity> = vec![];
 

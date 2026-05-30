@@ -11,11 +11,12 @@ use crate::state::GameState;
 #[derive(Resource)]
 pub struct CharacterFolder(pub Handle<LoadedFolder>);
 
+#[derive(Debug)]
 pub struct NarrativeCharacter {
     pub display_name: String,
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Debug)]
 pub struct CharacterStore(pub HashMap<String, NarrativeCharacter>);
 
 pub struct CharacterLoaderPlugin;

@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::ui::FlexWrap::NoWrap;
 
 use crate::assets::character_loader::CharacterStore;
 use crate::state::GameState;
@@ -9,6 +10,9 @@ use crate::world::events::PlayerEnteredArea;
 
 #[derive(Component)]
 struct ContainerNode;
+
+#[derive(Component)]
+struct DialogueWrapperNode;
 
 #[derive(Component)]
 struct LineNode;
@@ -62,7 +66,7 @@ fn init(mut commands: Commands) {
 const CHAR_ENTER_SPEED: f32 = 15.0;
 const CHAR_Y_OFFSET: f32 = 30.0;
 const NEXT_CHAR_THRESHOLD: f32 = 0.3;
-const LINE_DELAY_SECS: f32 = 1.0;
+const LINE_DELAY_SECS: f32 = 0.6;
 
 fn on_player_enter_area(
     event: On<PlayerEnteredArea>,
@@ -80,10 +84,26 @@ fn on_player_enter_area(
         return;
     };
 
+    if dialogue.lines.len() == 0 {
+        return;
+    }
+
     let mut line_nodes: Vec<Entity> = vec![];
 
     let mut first_char_animated = false;
     let mut last_char_of_prev_line: Option<Entity> = None;
+
+    // Spawn a wrapper to hold the dialogue lines to make it easy to position other elements
+    let dialogue_wrapper = commands
+        .spawn((
+            DialogueWrapperNode,
+            Node {
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+        ))
+        .id();
 
     for line in dialogue.lines.iter() {
         let line_node = commands
@@ -157,9 +177,10 @@ fn on_player_enter_area(
         last_char_of_prev_line = char_entities.last().copied();
     }
 
-    commands.entity(*container).replace_children(&line_nodes);
+    // Draw all the lines onto the wrapper
+    commands.entity(dialogue_wrapper).add_children(&line_nodes);
 
-    // Draw the speaker
+    // Draw the speaker name
     let speaker = character_store
         .0
         .get(&dialogue.character_id)
@@ -167,18 +188,30 @@ fn on_player_enter_area(
 
     let speaker_name_text = commands
         .spawn((
-            Text::new(speaker.display_name.clone()),
+            Text::new("- ".to_owned() + &speaker.display_name.clone()),
+            TextLayout {
+                linebreak: LineBreak::NoWrap,
+                ..default()
+            },
             fonts.dialogue_font.clone(),
             fonts.dialogue_color,
             Node {
-                position_type: PositionType::Relative,
-                bottom: Val::Px(CHAR_Y_OFFSET),
+                position_type: PositionType::Absolute,
+                bottom: Val::Px(-50.0),
+                right: Val::Px(-150.0),
                 ..default()
             },
         ))
         .id();
 
-    commands.entity(*container).add_child(speaker_name_text);
+    commands
+        .entity(dialogue_wrapper)
+        .add_child(speaker_name_text);
+
+    // Finally, draw everything
+    commands
+        .entity(*container)
+        .replace_children(&[dialogue_wrapper]);
 }
 
 fn animate(

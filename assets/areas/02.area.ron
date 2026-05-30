@@ -7,7 +7,10 @@
     dialogue: (
       character_id: "chair_daddy",
       lines: [
-        "Welcome!"
+        "Welcome...",
+        "to my piss lair!",
+        "Please! Make yourself at home!",
+        "Piss whereever you like."
       ]
     ),
     exits: []
