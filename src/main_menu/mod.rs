@@ -2,6 +2,9 @@ use bevy::prelude::*;
 
 use crate::state::GameState;
 
+#[derive(Component)]
+struct MainMenuPlayButton;
+
 pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
@@ -29,6 +32,7 @@ fn setup_menu(mut commands: Commands) {
         DespawnOnExit(GameState::MainMenu),
         children![(
             Button,
+            MainMenuPlayButton,
             Node {
                 width: px(150),
                 height: px(65),
@@ -56,7 +60,7 @@ fn setup_menu(mut commands: Commands) {
 fn menu(
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor),
-        (Changed<Interaction>, With<Button>),
+        (Changed<Interaction>, With<MainMenuPlayButton>),
     >,
     mut next_state: ResMut<NextState<GameState>>,
 ) {

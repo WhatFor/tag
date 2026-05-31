@@ -2,6 +2,9 @@ use bevy::prelude::*;
 
 use crate::state::{GameState, Pause};
 
+#[derive(Component)]
+struct PauseMainMenuButton;
+
 pub struct PauseMenuPlugin;
 
 impl Plugin for PauseMenuPlugin {
@@ -30,6 +33,7 @@ fn spawn_pause_menu(mut commands: Commands) {
         },
         children![(
             Button,
+            PauseMainMenuButton,
             Name::new("Main Menu Button"),
             Node {
                 width: px(200),
@@ -61,7 +65,7 @@ fn spawn_pause_menu(mut commands: Commands) {
 fn pause_menu(
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor),
-        (Changed<Interaction>, With<Button>),
+        (Changed<Interaction>, With<PauseMainMenuButton>),
     >,
     mut next_game_state: ResMut<NextState<GameState>>,
     mut next_pause_state: ResMut<NextState<Pause>>,
