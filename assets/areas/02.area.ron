@@ -5,7 +5,7 @@
       lines: []
     ),
     dialogue: (
-      character_id: "chair_daddy",
+      character_id: Some("chair_daddy"),
       lines: [
         "Welcome...",
         "to my piss lair!",

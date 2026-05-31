@@ -13,6 +13,7 @@ mod sets;
 mod ui;
 mod world;
 
+use crate::assets::AssetsPlugin;
 use crate::game::GameplayPlugin;
 use crate::global::GlobalPlugin;
 use crate::main_menu::MainMenuPlugin;
@@ -24,6 +25,7 @@ use crate::world::WorldPlugin;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(AssetsPlugin)
         .add_plugins(GameplayPlugin)
         .add_plugins(GlobalPlugin)
         .add_plugins(MainMenuPlugin)

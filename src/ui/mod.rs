@@ -2,17 +2,17 @@ use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
 use crate::state::GameState;
-use crate::ui::area_ui::AreaUIPlugin;
-use crate::ui::continue_prompt_ui::ContinuePromptUIPlugin;
-use crate::ui::dialogue_ui::DialogueUIPlugin;
-use crate::ui::narration_ui::NarrationUIPlugin;
+use crate::ui::area::AreaUIPlugin;
+use crate::ui::continue_prompt::ContinuePromptUIPlugin;
+use crate::ui::dialogue::DialogueUIPlugin;
+use crate::ui::narration::NarrationUIPlugin;
 
 pub mod events;
 
-mod area_ui;
-mod continue_prompt_ui;
-mod dialogue_ui;
-mod narration_ui;
+mod area;
+mod continue_prompt;
+mod dialogue;
+mod narration;
 
 #[derive(AssetCollection, Resource)]
 pub struct FontHandles {

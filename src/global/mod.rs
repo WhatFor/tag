@@ -1,12 +1,8 @@
 use bevy::prelude::*;
 
 use crate::sets::PlayingSet;
-use crate::state::ExploringState;
+use crate::state::{ExploringState, Pause};
 use crate::state::{GameState, PlayState};
-
-/// Whether or not the game is paused.
-#[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-pub struct Pause(pub bool);
 
 /// A system set for systems that shouldn't run while the game is paused
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]

@@ -15,7 +15,7 @@ pub struct AreaNarration {
 
 #[derive(TypePath, Deserialize)]
 pub struct AreaDialogue {
-    pub character_id: CharacterId,
+    pub character_id: Option<CharacterId>,
     pub lines: Vec<String>,
 }
 

@@ -1,9 +1,6 @@
 use bevy::prelude::*;
 
 use crate::state::GameState;
-use resources::MenuData;
-
-mod resources;
 
 pub struct MainMenuPlugin;
 
@@ -11,7 +8,6 @@ impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::MainMenu), setup_menu);
         app.add_systems(Update, menu.run_if(in_state(GameState::MainMenu)));
-        app.add_systems(OnExit(GameState::MainMenu), cleanup_menu);
     }
 }
 
@@ -20,41 +16,38 @@ const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
 fn setup_menu(mut commands: Commands) {
-    let button_entity = commands
-        .spawn((
+    commands.spawn((
+        Node {
+            // center button
+            width: percent(100),
+            height: percent(100),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        DespawnOnExit(GameState::MainMenu),
+        children![(
+            Button,
             Node {
-                // center button
-                width: percent(100),
-                height: percent(100),
+                width: px(150),
+                height: px(65),
+                // horizontally center child text
                 justify_content: JustifyContent::Center,
+                // vertically center child text
                 align_items: AlignItems::Center,
                 ..default()
             },
+            BackgroundColor(NORMAL_BUTTON),
             children![(
-                Button,
-                Node {
-                    width: px(150),
-                    height: px(65),
-                    // horizontally center child text
-                    justify_content: JustifyContent::Center,
-                    // vertically center child text
-                    align_items: AlignItems::Center,
+                Text::new("Play"),
+                TextFont {
+                    font_size: 33.0,
                     ..default()
                 },
-                BackgroundColor(NORMAL_BUTTON),
-                children![(
-                    Text::new("Play"),
-                    TextFont {
-                        font_size: 33.0,
-                        ..default()
-                    },
-                    TextColor(Color::srgb(0.9, 0.9, 0.9)),
-                )],
+                TextColor(Color::srgb(0.9, 0.9, 0.9)),
             )],
-        ))
-        .id();
-
-    commands.insert_resource(MenuData { button_entity });
+        )],
+    ));
 }
 
 fn menu(
@@ -74,9 +67,4 @@ fn menu(
             }
         }
     }
-}
-
-fn cleanup_menu(mut commands: Commands, menu_data: Res<MenuData>) {
-    commands.entity(menu_data.button_entity).despawn();
-    commands.remove_resource::<MenuData>();
 }

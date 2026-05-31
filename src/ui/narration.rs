@@ -247,7 +247,7 @@ fn on_char_done(
     mut commands: Commands,
     query: Query<Entity, (Added<AnimationComplete>, With<LastInChain>)>,
 ) {
-    for _ in query {
+    if !query.is_empty() {
         info!("Narration animation completed!");
         commands.trigger(NarrationComplete);
     }

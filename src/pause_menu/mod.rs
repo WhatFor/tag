@@ -1,8 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{global::Pause, pause_menu::resources::MenuData, state::GameState};
-
-mod resources;
+use crate::state::{GameState, Pause};
 
 pub struct PauseMenuPlugin;
 
@@ -18,47 +16,43 @@ const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
 fn spawn_pause_menu(mut commands: Commands) {
-    let button_entity = commands
-        .spawn((
-            GlobalZIndex(2),
-            DespawnOnExit(Pause(true)),
+    commands.spawn((
+        GlobalZIndex(2),
+        DespawnOnExit(Pause(true)),
+        Node {
+            // center button
+            width: percent(100),
+            height: percent(100),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        children![(
+            Button,
             Node {
-                // center button
-                width: percent(100),
-                height: percent(100),
+                width: px(200),
+                height: px(65),
+                // horizontally center child text
                 justify_content: JustifyContent::Center,
+                // vertically center child text
                 align_items: AlignItems::Center,
                 ..default()
             },
+            BackgroundColor(NORMAL_BUTTON),
             children![(
-                Button,
-                Node {
-                    width: px(200),
-                    height: px(65),
-                    // horizontally center child text
-                    justify_content: JustifyContent::Center,
-                    // vertically center child text
-                    align_items: AlignItems::Center,
+                Text::new("Main Menu"),
+                TextLayout {
+                    linebreak: LineBreak::NoWrap,
                     ..default()
                 },
-                BackgroundColor(NORMAL_BUTTON),
-                children![(
-                    Text::new("Main Menu"),
-                    TextLayout {
-                        linebreak: LineBreak::NoWrap,
-                        ..default()
-                    },
-                    TextFont {
-                        font_size: 33.0,
-                        ..default()
-                    },
-                    TextColor(Color::srgb(0.9, 0.9, 0.9)),
-                )],
+                TextFont {
+                    font_size: 33.0,
+                    ..default()
+                },
+                TextColor(Color::srgb(0.9, 0.9, 0.9)),
             )],
-        ))
-        .id();
-
-    commands.insert_resource(MenuData { button_entity });
+        )],
+    ));
 }
 
 fn pause_menu(

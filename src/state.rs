@@ -1,5 +1,9 @@
 use bevy::prelude::*;
 
+/// Whether or not the game is paused.
+#[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
+pub struct Pause(pub bool);
+
 #[derive(States, Debug, Clone, Copy, Default, Eq, PartialEq, Hash)]
 pub enum GameState {
     #[default]

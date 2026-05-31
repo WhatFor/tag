@@ -4,7 +4,7 @@ use serde::Deserialize;
 #[derive(Component)]
 pub struct Area;
 
-#[derive(Asset, TypePath, Deserialize, Clone)]
+#[derive(TypePath, Deserialize, Clone)]
 pub enum AreaExit {
     Continue(String),
 }
@@ -22,7 +22,7 @@ pub struct AreaNarration {
 
 #[derive(Component)]
 pub struct AreaDialogue {
-    pub character_id: String,
+    pub character_id: Option<String>,
     pub lines: Vec<String>,
 }
 

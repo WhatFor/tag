@@ -1,4 +1,3 @@
-use bevy::log::*;
 use bevy::prelude::*;
 
 use crate::game::events::PlayerContinued;

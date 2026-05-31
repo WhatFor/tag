@@ -9,7 +9,7 @@
       ]
     ),
     dialogue: (
-      character_id: "",
+      character_id: None,
       lines: []
     ),
     exits: [

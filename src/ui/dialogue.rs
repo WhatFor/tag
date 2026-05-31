@@ -81,6 +81,7 @@ fn init(mut commands: Commands) {
             align_items: AlignItems::Center,
             ..default()
         },
+        DespawnOnExit(GameState::Playing),
     ));
 }
 
@@ -205,7 +206,7 @@ fn on_player_enter_area(
     // Draw the speaker name
     let speaker = character_store
         .0
-        .get(&dialogue.character_id)
+        .get(&dialogue.character_id.clone().unwrap_or(String::from("")))
         .expect("Character not found!");
 
     let speaker_name_text = commands
@@ -298,7 +299,7 @@ fn on_char_done(
     mut commands: Commands,
     query: Query<Entity, (Added<AnimationComplete>, With<LastInChain>)>,
 ) {
-    for _ in query {
+    if !query.is_empty() {
         info!("Dialogue animation completed!");
         commands.trigger(DialogueComplete);
     }

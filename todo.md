@@ -9,6 +9,9 @@
 - add an inventory!
 - figure out input - typing, buttons? i dunno.
 
+# Cleanup
+De-duplicate buttons between menus (both define their own)
+
 ---
 
 - define characters.ron:
