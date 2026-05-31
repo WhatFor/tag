@@ -5,6 +5,7 @@ use crate::state::GameState;
 use crate::ui::area::AreaUIPlugin;
 use crate::ui::continue_prompt::ContinuePromptUIPlugin;
 use crate::ui::dialogue::DialogueUIPlugin;
+use crate::ui::inventory::InventoryUIPlugin;
 use crate::ui::narration::NarrationUIPlugin;
 
 pub mod events;
@@ -12,6 +13,7 @@ pub mod events;
 mod area;
 mod continue_prompt;
 mod dialogue;
+mod inventory;
 mod narration;
 
 #[derive(AssetCollection, Resource)]
@@ -49,12 +51,13 @@ impl Plugin for UIPlugin {
         app.add_plugins(NarrationUIPlugin);
         app.add_plugins(DialogueUIPlugin);
         app.add_plugins(ContinuePromptUIPlugin);
+        app.add_plugins(InventoryUIPlugin);
 
         app.configure_loading_state(
             LoadingStateConfig::new(GameState::Initialising).load_collection::<FontHandles>(),
         );
 
-        app.add_systems(OnEnter(GameState::MainMenu), setup_fonts);
+        app.add_systems(OnExit(GameState::Initialising), setup_fonts);
     }
 }
 

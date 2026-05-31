@@ -16,8 +16,10 @@ mod sets;
 mod ui;
 mod world;
 
-use crate::assets::AssetsPlugin;
+#[cfg(feature = "dev")]
 use crate::debug_tools::DebugToolsPlugin;
+
+use crate::assets::AssetsPlugin;
 use crate::game::GameplayPlugin;
 use crate::global::GlobalPlugin;
 use crate::main_menu::MainMenuPlugin;
