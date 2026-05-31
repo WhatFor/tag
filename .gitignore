@@ -1,7 +1,7 @@
 target/
 debug/
 
-/.diren/
+.direnv/
 
 .idea/
 .vscode/
