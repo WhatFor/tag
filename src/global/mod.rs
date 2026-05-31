@@ -28,7 +28,9 @@ impl Plugin for GlobalPlugin {
             OnEnter(GameState::Playing),
             (
                 PlayingSet::InitialiseUI,
-                PlayingSet::SpawnWorld,
+                PlayingSet::SpawnCharacters,
+                PlayingSet::SpawnItems,
+                PlayingSet::SpawnAreas,
                 PlayingSet::SpawnPlayer,
             )
                 .chain(),

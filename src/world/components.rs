@@ -26,8 +26,18 @@ pub struct AreaDialogue {
     pub lines: Vec<String>,
 }
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct Item;
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct ItemId(pub String);
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct ItemStack(pub u32);
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct Inventory(pub Vec<Entity>);

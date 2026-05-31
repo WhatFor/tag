@@ -8,7 +8,7 @@ This project uses a Nix flake for its dev shell — always work inside it.
 
 ## System
 
-This is a text-based adventure game (hence the name TAG). While 99% of it will be 2D, do not rule out the use of 3D.
+This is a text-based adventure game (hence the name TAG). While 99% of it will be 2D, do not rule out the use of 3D. The game targets only Web (via WASM).
 
 ## Commands
 

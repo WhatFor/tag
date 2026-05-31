@@ -41,7 +41,7 @@ impl Plugin for CharacterLoaderPlugin {
         );
 
         app.add_systems(
-            OnEnter(GameState::Playing),
+            OnExit(GameState::Initialising),
             add_character_resource.in_set(PlayingSet::SpawnCharacters),
         );
     }

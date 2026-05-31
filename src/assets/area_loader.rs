@@ -33,8 +33,8 @@ impl Plugin for AreaLoaderPlugin {
         );
 
         app.add_systems(
-            OnEnter(GameState::Playing),
-            spawn_areas.in_set(PlayingSet::SpawnWorld),
+            OnExit(GameState::Initialising),
+            spawn_areas.in_set(PlayingSet::SpawnAreas),
         );
     }
 }

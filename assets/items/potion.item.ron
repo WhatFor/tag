@@ -1,4 +1,6 @@
 (
+    id: "potion",
     name: "Potion",
     description: "Looks healthy. Maybe.",
+    stackable: true,
 )

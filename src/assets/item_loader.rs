@@ -16,10 +16,12 @@ pub struct ItemAssets {
     handles: Vec<Handle<ItemData>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ItemDef {
+    pub id: String,
     pub name: String,
     pub description: String,
+    pub stackable: bool,
 }
 
 #[derive(Resource, Default, Debug)]
@@ -39,8 +41,8 @@ impl Plugin for ItemLoaderPlugin {
         );
 
         app.add_systems(
-            OnEnter(GameState::Playing),
-            add_item_store.in_set(PlayingSet::SpawnCharacters),
+            OnExit(GameState::Initialising),
+            add_item_store.in_set(PlayingSet::SpawnItems),
         );
     }
 }
@@ -58,10 +60,12 @@ fn add_item_store(
         info!("Parsed Item {}...", data.name);
 
         item_store.0.insert(
-            data.name.clone(),
+            data.id.clone(),
             ItemDef {
+                id: data.id.clone(),
                 name: data.name.clone(),
                 description: data.description.clone(),
+                stackable: data.stackable,
             },
         );
     }

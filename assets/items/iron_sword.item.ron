@@ -1,4 +1,6 @@
 (
+    id: "iron_sword",
     name: "Iron sword",
     description: "A beat-up, old iron sword. I wonder who it belonged to?",
+    stackable: false,
 )

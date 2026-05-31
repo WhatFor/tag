@@ -1,15 +1,18 @@
 use bevy::prelude::*;
 
-use crate::components::Health;
-use crate::player::components::{CurrentArea, Player};
+use crate::player::components::CurrentArea;
 use crate::sets::PlayingSet;
 use crate::state::GameState;
+use crate::world::bundles::default_player;
+use crate::world::components::Area;
 use crate::world::components::AreaId;
-use crate::world::components::{Area, Inventory};
 use crate::world::events::PlayerEnteredArea;
+use crate::world::inventory::GiveItemExt;
 
+pub mod bundles;
 pub mod components;
 pub mod events;
+pub mod inventory;
 
 pub struct WorldPlugin;
 
@@ -33,16 +36,10 @@ fn spawn_player(mut commands: Commands, areas: Query<(Entity, &AreaId), With<Are
         .map(|(entity, _)| entity)
         .expect("Unable to find start area");
 
-    let _player_entity: Entity = commands
-        .spawn((
-            Player,
-            Name::new("Player"),
-            Health(100),
-            Inventory(vec![]),
-            CurrentArea(start_area),
-            DespawnOnExit(GameState::Playing),
-        ))
-        .id();
+    commands
+        .spawn((default_player(), CurrentArea(start_area)))
+        .give("potion", 3)
+        .give("iron_sword", 1);
 
     commands.trigger(PlayerEnteredArea(start_area));
 }
