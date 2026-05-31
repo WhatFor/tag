@@ -28,8 +28,12 @@
           mkShell {
             buildInputs = [
               # Rust dependencies
-              (rust-bin.stable.latest.default.override { extensions = [ "rust-src" ]; })
+              (rust-bin.stable.latest.default.override {
+                extensions = [ "rust-src" ];
+                targets = [ "wasm32-unknown-unknown" ];
+              })
               pkg-config
+              pkgs.wasm-bindgen-cli_0_2_121
               bevy_cli.packages.${system}.default
             ]
             ++ lib.optionals (lib.strings.hasInfix "linux" system) [
