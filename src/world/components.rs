@@ -27,4 +27,5 @@ pub struct AreaDialogue {
 }
 
 #[derive(Component)]
+#[allow(dead_code)]
 pub struct Item;

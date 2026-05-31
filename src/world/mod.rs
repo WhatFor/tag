@@ -37,7 +37,7 @@ fn spawn_player(mut commands: Commands, areas: Query<(Entity, &AreaId), With<Are
         .map(|(entity, _)| entity)
         .expect("Unable to find start area");
 
-    let player_entity: Entity = commands
+    let _player_entity: Entity = commands
         .spawn((
             Player,
             //NameComponent(None),

@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy::ui::FlexWrap::NoWrap;
 
 use crate::assets::character_loader::CharacterStore;
 use crate::global::PausableSystems;
