@@ -27,5 +27,7 @@ pub struct AreaDialogue {
 }
 
 #[derive(Component)]
-#[allow(dead_code)]
 pub struct Item;
+
+#[derive(Component)]
+pub struct Inventory(pub Vec<Entity>);

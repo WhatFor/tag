@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 
 use crate::components::Health;
-use crate::player::components::{CurrentArea, Inventory, Player};
+use crate::player::components::{CurrentArea, Player};
 use crate::sets::PlayingSet;
 use crate::state::GameState;
-use crate::world::components::Area;
 use crate::world::components::AreaId;
+use crate::world::components::{Area, Inventory};
 use crate::world::events::PlayerEnteredArea;
 
 pub mod components;

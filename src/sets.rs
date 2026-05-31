@@ -6,4 +6,5 @@ pub enum PlayingSet {
     SpawnWorld,
     SpawnPlayer,
     SpawnCharacters,
+    SpawnItems,
 }
