@@ -3,6 +3,7 @@ use bevy::ui::FlexWrap::NoWrap;
 
 use crate::assets::character_loader::CharacterStore;
 use crate::global::PausableSystems;
+use crate::sets::PlayingSet;
 use crate::state::GameState;
 use crate::ui::FontAssets;
 use crate::ui::events::DialogueComplete;
@@ -40,7 +41,10 @@ pub struct DialogueUIPlugin;
 
 impl Plugin for DialogueUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Playing), init);
+        app.add_systems(
+            OnEnter(GameState::Playing),
+            init.in_set(PlayingSet::InitialiseUI),
+        );
 
         app.add_systems(
             Update,

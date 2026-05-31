@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{state::ExploringState, ui::FontAssets};
+use crate::{sets::PlayingSet, state::ExploringState, ui::FontAssets};
 
 #[derive(Component)]
 struct ContinuePrompt;
@@ -11,11 +11,11 @@ impl Plugin for ContinuePromptUIPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             OnEnter(ExploringState::AwaitingContinue),
-            show_continue_prompt,
+            show_continue_prompt.in_set(PlayingSet::InitialiseUI),
         );
         app.add_systems(
             OnExit(ExploringState::AwaitingContinue),
-            hide_continue_prompt,
+            hide_continue_prompt.in_set(PlayingSet::InitialiseUI),
         );
     }
 }

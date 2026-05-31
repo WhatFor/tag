@@ -25,12 +25,17 @@ impl Plugin for GlobalPlugin {
 
         app.add_systems(Startup, setup_global);
 
-        // Ensure the World is spawned before the Player
+        // Ensure the World and UI is spawned before the Player
         // to allow setting the CurrentArea component on the Player (which
         // holds a ref to an Area Entity).
         app.configure_sets(
             OnEnter(GameState::Playing),
-            PlayingSet::SpawnWorld.before(PlayingSet::SpawnPlayer),
+            (
+                PlayingSet::InitialiseUI,
+                PlayingSet::SpawnWorld,
+                PlayingSet::SpawnPlayer,
+            )
+                .chain(),
         );
     }
 }

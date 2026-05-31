@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PlayingSet {
+    InitialiseUI,
     SpawnWorld,
     SpawnPlayer,
     SpawnCharacters,

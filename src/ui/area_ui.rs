@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::sets::PlayingSet;
 use crate::state::GameState;
 use crate::ui::FontAssets;
 use crate::world::components::Area;
@@ -12,7 +13,11 @@ pub struct AreaUIPlugin;
 
 impl Plugin for AreaUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Playing), init);
+        app.add_systems(
+            OnEnter(GameState::Playing),
+            init.in_set(PlayingSet::InitialiseUI),
+        );
+
         app.add_observer(on_player_enter_area);
     }
 }

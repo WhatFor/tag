@@ -57,6 +57,8 @@ fn add_character_resource(
             continue;
         };
 
+        info!("Spawning Character {}...", data.id);
+
         char_store.0.insert(
             data.id.clone(),
             NarrativeCharacter {

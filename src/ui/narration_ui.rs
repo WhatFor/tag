@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::global::PausableSystems;
+use crate::sets::PlayingSet;
 use crate::state::GameState;
 use crate::ui::FontAssets;
 use crate::ui::events::NarrationComplete;
@@ -35,7 +36,10 @@ pub struct NarrationUIPlugin;
 
 impl Plugin for NarrationUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Playing), init);
+        app.add_systems(
+            OnEnter(GameState::Playing),
+            init.in_set(PlayingSet::InitialiseUI),
+        );
 
         app.add_systems(
             Update,

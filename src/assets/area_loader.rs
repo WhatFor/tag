@@ -45,6 +45,8 @@ fn spawn_areas(mut commands: Commands, areas: Res<AreaAssets>, area_data: Res<As
             continue;
         };
 
+        info!("Spawning Area {}...", data.id);
+
         commands.spawn((
             Area,
             AreaExits(data.exits.clone()),
