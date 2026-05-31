@@ -1,13 +1,10 @@
 # TODO List
 
-- How do we track global state? just something on the player?
-- pause menu? settings
-- change Name component to identifier or something, use bevy's built in Name for tagging stuff
-- add debug overlay panel thing
+- add an inventory!
+- Add `Name` component to stuff we spawn
 - try doing a web build
 - how to play sounds? loops? one-shots?
-- add an inventory!
-- figure out input - typing, buttons? i dunno.
+- pause menu settings
 
 # Cleanup
 De-duplicate buttons between menus (both define their own)
