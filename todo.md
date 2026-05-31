@@ -1,9 +1,7 @@
 # TODO List
 
-- figure out 'items' - from a ron file?
-- add an inventory!
+- add an inventory UI
 - multi-path exits
-- Add `Name` component to stuff we spawn
 - how to play sounds? loops? one-shots?
 - pause menu settings
 
