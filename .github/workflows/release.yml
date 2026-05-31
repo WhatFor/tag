@@ -35,7 +35,11 @@ jobs:
       - name: Determine version number
         id: version
         run: |
-          echo "version=$(cargo pkgid | sed 's/.*#//')" >> "${GITHUB_OUTPUT}"
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "version=${{ github.ref_name }}" >> "${GITHUB_OUTPUT}"
+          else
+            echo "version=$(cargo pkgid | sed 's/.*#//')" >> "${GITHUB_OUTPUT}"
+          fi
 
   # Build and package a release for each platform.
   build:
