@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+use bevy_inspector_egui::bevy_egui::EguiPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 pub mod state;
 
@@ -42,15 +44,20 @@ fn main() {
                 .into(),
                 ..default()
             }),
-    )
-    .add_plugins(AssetsPlugin)
-    .add_plugins(GameplayPlugin)
-    .add_plugins(GlobalPlugin)
-    .add_plugins(MainMenuPlugin)
-    .add_plugins(PauseMenuPlugin)
-    .add_plugins(WorldPlugin)
-    .add_plugins(UIPlugin)
-    .add_plugins(PlayerPlugin);
+    );
+
+    #[cfg(feature = "dev")]
+    app.add_plugins(EguiPlugin::default())
+        .add_plugins(WorldInspectorPlugin::new());
+
+    app.add_plugins(AssetsPlugin)
+        .add_plugins(GameplayPlugin)
+        .add_plugins(GlobalPlugin)
+        .add_plugins(MainMenuPlugin)
+        .add_plugins(PauseMenuPlugin)
+        .add_plugins(WorldPlugin)
+        .add_plugins(UIPlugin)
+        .add_plugins(PlayerPlugin);
 
     #[cfg(feature = "dev")]
     app.add_plugins(DebugToolsPlugin);
