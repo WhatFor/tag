@@ -1,11 +1,11 @@
-use bevy::log::*;
 use bevy::prelude::*;
+use bevy_asset_loader::prelude::*;
 
+use crate::state::GameState;
 use crate::ui::area_ui::AreaUIPlugin;
 use crate::ui::continue_prompt_ui::ContinuePromptUIPlugin;
 use crate::ui::dialogue_ui::DialogueUIPlugin;
 use crate::ui::narration_ui::NarrationUIPlugin;
-use crate::{global::PendingAssets, state::GameState};
 
 pub mod events;
 
@@ -13,6 +13,18 @@ mod area_ui;
 mod continue_prompt_ui;
 mod dialogue_ui;
 mod narration_ui;
+
+#[derive(AssetCollection, Resource)]
+pub struct FontHandles {
+    #[asset(path = "fonts/iglesia.otf")]
+    pub title: Handle<Font>,
+    #[asset(path = "fonts/gentium.ttf")]
+    pub narration: Handle<Font>,
+    #[asset(path = "fonts/gentium_italic.ttf")]
+    pub dialogue: Handle<Font>,
+    #[asset(path = "fonts/bebas.otf")]
+    pub ui: Handle<Font>,
+}
 
 #[derive(Resource)]
 pub struct FontAssets {
@@ -38,73 +50,42 @@ impl Plugin for UIPlugin {
         app.add_plugins(DialogueUIPlugin);
         app.add_plugins(ContinuePromptUIPlugin);
 
-        app.add_systems(OnEnter(GameState::Initialising), setup_fonts);
+        app.configure_loading_state(
+            LoadingStateConfig::new(GameState::Initialising).load_collection::<FontHandles>(),
+        );
+
+        app.add_systems(OnEnter(GameState::MainMenu), setup_fonts);
     }
 }
 
-fn setup_fonts(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut asset_tracker: ResMut<PendingAssets>,
-) {
-    info!("Beginning to load Font assets...");
-
-    // Load Title Font
-    let title_font = asset_server.load("fonts/iglesia.otf");
-    asset_tracker.0.push(title_font.clone().untyped());
-
-    let title_font = TextFont {
-        font: title_font.clone(),
-        font_size: 90.0,
-        ..default()
-    };
-
-    let title_color = TextColor(Color::srgb(0.8, 0.9, 1.0));
-
-    // Load Narration Font
-    let narration_font = asset_server.load("fonts/gentium.ttf");
-    asset_tracker.0.push(narration_font.clone().untyped());
-
-    let narration_font = TextFont {
-        font: narration_font.clone(),
-        font_size: 45.0,
-        ..default()
-    };
-
-    let narration_color = TextColor(Color::srgb(1.0, 0.95, 1.0));
-
-    // Load Dialogue Font
-    let dialogue_font = asset_server.load("fonts/gentium_italic.ttf");
-    asset_tracker.0.push(dialogue_font.clone().untyped());
-
-    let dialogue_font = TextFont {
-        font: dialogue_font.clone(),
-        font_size: 45.0,
-        ..default()
-    };
-
-    let dialogue_color = TextColor(Color::srgb(0.9, 0.475, 0.425));
-
-    // Load UI Font
-    let ui_font = asset_server.load("fonts/bebas.otf");
-    asset_tracker.0.push(ui_font.clone().untyped());
-
-    let ui_font = TextFont {
-        font: ui_font.clone(),
-        font_size: 30.0,
-        ..default()
-    };
-
-    let ui_color = TextColor(Color::srgb(0.6, 0.65, 0.6));
-
+fn setup_fonts(mut commands: Commands, fonts: Res<FontHandles>) {
     commands.insert_resource(FontAssets {
-        title_font,
-        title_color,
-        narration_font,
-        narration_color,
-        dialogue_font,
-        dialogue_color,
-        ui_font,
-        ui_color,
+        title_font: TextFont {
+            font: fonts.title.clone(),
+            font_size: 90.0,
+            ..default()
+        },
+        title_color: TextColor(Color::srgb(0.8, 0.9, 1.0)),
+
+        narration_font: TextFont {
+            font: fonts.narration.clone(),
+            font_size: 45.0,
+            ..default()
+        },
+        narration_color: TextColor(Color::srgb(1.0, 0.95, 1.0)),
+
+        dialogue_font: TextFont {
+            font: fonts.dialogue.clone(),
+            font_size: 45.0,
+            ..default()
+        },
+        dialogue_color: TextColor(Color::srgb(0.9, 0.475, 0.425)),
+
+        ui_font: TextFont {
+            font: fonts.ui.clone(),
+            font_size: 30.0,
+            ..default()
+        },
+        ui_color: TextColor(Color::srgb(0.6, 0.65, 0.6)),
     });
 }

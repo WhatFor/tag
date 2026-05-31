@@ -1,15 +1,17 @@
 use std::collections::HashMap;
 
-use bevy::log::*;
-use bevy::{asset::LoadedFolder, prelude::*};
+use bevy::prelude::*;
+use bevy_asset_loader::prelude::*;
 
 use crate::assets::character_asset_loader::{CharacterAssetLoader, CharacterData};
-use crate::global::PendingAssets;
 use crate::sets::PlayingSet;
 use crate::state::GameState;
 
-#[derive(Resource)]
-pub struct CharacterFolder(pub Handle<LoadedFolder>);
+#[derive(AssetCollection, Resource)]
+pub struct CharacterAssets {
+    #[asset(paths("characters/chair_daddy.char.ron"), collection(typed))]
+    handles: Vec<Handle<CharacterData>>,
+}
 
 #[derive(Debug)]
 pub struct NarrativeCharacter {
@@ -34,7 +36,9 @@ impl Plugin for CharacterLoaderPlugin {
         app.init_asset_loader::<CharacterAssetLoader>();
         app.init_resource::<CharacterStore>();
 
-        app.add_systems(OnEnter(GameState::Initialising), load_characters);
+        app.configure_loading_state(
+            LoadingStateConfig::new(GameState::Initialising).load_collection::<CharacterAssets>(),
+        );
 
         app.add_systems(
             OnEnter(GameState::Playing),
@@ -43,34 +47,21 @@ impl Plugin for CharacterLoaderPlugin {
     }
 }
 
-const CHARACTERS_ASSET_PATH: &str = "characters";
-
-fn load_characters(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut asset_tracker: ResMut<PendingAssets>,
-) {
-    info!("Beginning to load Character assets from folder...");
-    let chars_handle = asset_server.load_folder(CHARACTERS_ASSET_PATH);
-    asset_tracker.0.push(chars_handle.clone().untyped());
-    commands.insert_resource(CharacterFolder(chars_handle));
-}
-
 fn add_character_resource(
-    mut commands: Commands,
+    chars: Res<CharacterAssets>,
     char_data: Res<Assets<CharacterData>>,
     mut char_store: ResMut<CharacterStore>,
 ) {
-    for (_, char_data) in char_data.iter() {
-        info!("Storing Character {}...", char_data.id);
+    for handle in &chars.handles {
+        let Some(data) = char_data.get(handle) else {
+            continue;
+        };
 
         char_store.0.insert(
-            char_data.id.clone(),
+            data.id.clone(),
             NarrativeCharacter {
-                display_name: char_data.display_name.clone(),
+                display_name: data.display_name.clone(),
             },
         );
     }
-
-    commands.remove_resource::<CharacterFolder>();
 }

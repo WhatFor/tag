@@ -1,7 +1,6 @@
-use bevy::log::*;
-use bevy::{asset::LoadedFolder, prelude::*};
+use bevy::prelude::*;
+use bevy_asset_loader::prelude::*;
 
-use crate::global::PendingAssets;
 use crate::sets::PlayingSet;
 use crate::world::components::{AreaDialogue, AreaExits, AreaNarration};
 use crate::{
@@ -10,8 +9,11 @@ use crate::{
     world::components::Area,
 };
 
-#[derive(Resource)]
-pub struct AreaFolder(pub Handle<LoadedFolder>);
+#[derive(AssetCollection, Resource)]
+pub struct AreaAssets {
+    #[asset(paths("areas/01.area.ron", "areas/02.area.ron"), collection(typed))]
+    handles: Vec<Handle<AreaData>>,
+}
 
 pub struct AreaLoaderPlugin;
 
@@ -26,7 +28,9 @@ impl Plugin for AreaLoaderPlugin {
         app.init_asset::<AreaData>();
         app.init_asset_loader::<AreaAssetLoader>();
 
-        app.add_systems(OnEnter(GameState::Initialising), load_areas);
+        app.configure_loading_state(
+            LoadingStateConfig::new(GameState::Initialising).load_collection::<AreaAssets>(),
+        );
 
         app.add_systems(
             OnEnter(GameState::Playing),
@@ -35,37 +39,24 @@ impl Plugin for AreaLoaderPlugin {
     }
 }
 
-const AREAS_ASSET_PATH: &str = "areas";
-
-fn load_areas(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut asset_tracker: ResMut<PendingAssets>,
-) {
-    info!("Beginning to load Area assets from folder...");
-    let areas_handle = asset_server.load_folder(AREAS_ASSET_PATH);
-    asset_tracker.0.push(areas_handle.clone().untyped());
-    commands.insert_resource(AreaFolder(areas_handle));
-}
-
-fn spawn_areas(mut commands: Commands, areas: Res<Assets<AreaData>>) {
-    for (_, area_data) in areas.iter() {
-        info!("Spawning Area {}...", area_data.id);
+fn spawn_areas(mut commands: Commands, areas: Res<AreaAssets>, area_data: Res<Assets<AreaData>>) {
+    for handle in &areas.handles {
+        let Some(data) = area_data.get(handle) else {
+            continue;
+        };
 
         commands.spawn((
             Area,
-            AreaExits(area_data.exits.clone()),
+            AreaExits(data.exits.clone()),
             AreaNarration {
-                lines: area_data.narration.lines.clone(),
+                lines: data.narration.lines.clone(),
             },
             AreaDialogue {
-                character_id: area_data.dialogue.character_id.clone(),
-                lines: area_data.dialogue.lines.clone(),
+                character_id: data.dialogue.character_id.clone(),
+                lines: data.dialogue.lines.clone(),
             },
-            crate::components::DisplayName(area_data.name.clone()),
-            crate::world::components::AreaId(area_data.id.clone()),
+            crate::components::DisplayName(data.name.clone()),
+            crate::world::components::AreaId(data.id.clone()),
         ));
     }
-
-    commands.remove_resource::<AreaFolder>();
 }
