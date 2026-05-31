@@ -4,54 +4,61 @@
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
     flake-utils.url = "github:numtide/flake-utils";
+    bevy_cli.url = "github:TheBevyFlock/bevy_cli";
   };
   outputs =
-    { self, nixpkgs, rust-overlay, flake-utils }:
+    {
+      self,
+      nixpkgs,
+      rust-overlay,
+      flake-utils,
+      bevy_cli,
+    }:
     flake-utils.lib.eachDefaultSystem (
-          system:
-          let
-            overlays = [ (import rust-overlay) ];
-            pkgs = import nixpkgs {
-              inherit system overlays;
-            };
-          in
-          {
-            devShells.default =
-              with pkgs;
-              mkShell {
-                buildInputs =
-                  [
-                    # Rust dependencies
-                    (rust-bin.stable.latest.default.override { extensions = [ "rust-src" ]; })
-                    pkg-config
-                  ]
-                  ++ lib.optionals (lib.strings.hasInfix "linux" system) [
-                    # for Linux
-                    # Audio (Linux only)
-                    alsa-lib
-                    # Cross Platform 3D Graphics API
-                    vulkan-loader
-                    # For debugging around vulkan
-                    vulkan-tools
-                    # Other dependencies
-                    libudev-zero
-                    xorg.libX11
-                    xorg.libXcursor
-                    xorg.libXi
-                    xorg.libXrandr
-                    libxkbcommon
-                    wayland
-                  ];
-                RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
-                LD_LIBRARY_PATH = lib.makeLibraryPath [
-                  vulkan-loader
-                  xorg.libX11
-                  xorg.libXi
-                  xorg.libXcursor
-                  libxkbcommon
-                  wayland
-                ];
-              };
-          }
-        );
+      system:
+      let
+        overlays = [ (import rust-overlay) ];
+        pkgs = import nixpkgs {
+          inherit system overlays;
+        };
+      in
+      {
+        devShells.default =
+          with pkgs;
+          mkShell {
+            buildInputs = [
+              # Rust dependencies
+              (rust-bin.stable.latest.default.override { extensions = [ "rust-src" ]; })
+              pkg-config
+              bevy_cli.packages.${system}.default
+            ]
+            ++ lib.optionals (lib.strings.hasInfix "linux" system) [
+              # for Linux
+              # Audio (Linux only)
+              alsa-lib
+              # Cross Platform 3D Graphics API
+              vulkan-loader
+              # For debugging around vulkan
+              vulkan-tools
+              # Other dependencies
+              libudev-zero
+              xorg.libX11
+              xorg.libXcursor
+              xorg.libXi
+              xorg.libXrandr
+              libxkbcommon
+              wayland
+            ];
+            RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+            LD_LIBRARY_PATH = lib.makeLibraryPath [
+              vulkan-loader
+              xorg.libX11
+              xorg.libXi
+              xorg.libXcursor
+              libxkbcommon
+              wayland
+            ];
+          };
+      }
+    );
 }

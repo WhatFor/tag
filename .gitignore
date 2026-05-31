@@ -1,1 +1,9 @@
-/target
+target/
+debug/
+
+/.diren/
+
+.idea/
+.vscode/
+
+.DS_Store
