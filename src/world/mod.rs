@@ -36,7 +36,7 @@ fn spawn_player(mut commands: Commands, areas: Query<(Entity, &AreaId), With<Are
     let _player_entity: Entity = commands
         .spawn((
             Player,
-            //NameComponent(None),
+            Name::new("Player"),
             Health(100),
             Inventory(vec![]),
             CurrentArea(start_area),

@@ -37,5 +37,5 @@ impl Plugin for GlobalPlugin {
 }
 
 fn setup_global(mut commands: Commands) {
-    commands.spawn(Camera2d);
+    commands.spawn((Camera2d, Name::new("2D Camera")));
 }

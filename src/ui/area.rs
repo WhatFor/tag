@@ -25,6 +25,7 @@ impl Plugin for AreaUIPlugin {
 fn init(mut commands: Commands, fonts: Res<FontAssets>) {
     commands.spawn((
         AreaNameText,
+        Name::new("Area Name Text"),
         Text::new(""),
         fonts.title_font.clone(),
         fonts.title_color,

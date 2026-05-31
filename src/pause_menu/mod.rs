@@ -19,6 +19,7 @@ fn spawn_pause_menu(mut commands: Commands) {
     commands.spawn((
         GlobalZIndex(2),
         DespawnOnExit(Pause(true)),
+        Name::new("Pause Menu Container"),
         Node {
             // center button
             width: percent(100),
@@ -29,6 +30,7 @@ fn spawn_pause_menu(mut commands: Commands) {
         },
         children![(
             Button,
+            Name::new("Main Menu Button"),
             Node {
                 width: px(200),
                 height: px(65),
@@ -41,6 +43,7 @@ fn spawn_pause_menu(mut commands: Commands) {
             BackgroundColor(NORMAL_BUTTON),
             children![(
                 Text::new("Main Menu"),
+                Name::new("Main Menu Button Text"),
                 TextLayout {
                     linebreak: LineBreak::NoWrap,
                     ..default()

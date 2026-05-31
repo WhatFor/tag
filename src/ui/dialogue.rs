@@ -73,6 +73,7 @@ impl Plugin for DialogueUIPlugin {
 fn init(mut commands: Commands) {
     commands.spawn((
         ContainerNode,
+        Name::new("Dialogue Container"),
         Node {
             width: Val::Percent(100.),
             height: Val::Percent(100.),
@@ -119,6 +120,7 @@ fn on_player_enter_area(
     let dialogue_wrapper = commands
         .spawn((
             DialogueWrapperNode,
+            Name::new("Dialogue Wrapper"),
             Node {
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Center,
@@ -132,6 +134,7 @@ fn on_player_enter_area(
         let line_node = commands
             .spawn((
                 LineNode,
+                Name::new("Dialogue Line"),
                 Node {
                     width: Val::Percent(100.),
                     flex_direction: FlexDirection::Row,
@@ -149,6 +152,7 @@ fn on_player_enter_area(
                 commands
                     .spawn((
                         Text::new(ch.to_string()),
+                        Name::new("Dialogue Line Character"),
                         fonts.dialogue_font.clone(),
                         TextColor(fonts.dialogue_color.0.with_alpha(0.0)),
                         Node {
@@ -212,6 +216,7 @@ fn on_player_enter_area(
     let speaker_name_text = commands
         .spawn((
             Text::new("- ".to_owned() + &speaker.display_name.clone()),
+            Name::new("Dialogue Speaker Text"),
             TextLayout {
                 linebreak: LineBreak::NoWrap,
                 ..default()

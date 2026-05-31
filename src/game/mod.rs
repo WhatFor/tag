@@ -50,6 +50,7 @@ fn spawn_pause_overlay(mut commands: Commands) {
             height: percent(100),
             ..default()
         },
+        Name::new("Pause Overlay"),
         GlobalZIndex(1),
         BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.8)),
         DespawnOnExit(Pause(true)),

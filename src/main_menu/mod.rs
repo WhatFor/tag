@@ -25,6 +25,7 @@ fn setup_menu(mut commands: Commands) {
             align_items: AlignItems::Center,
             ..default()
         },
+        Name::new("Main Menu Container"),
         DespawnOnExit(GameState::MainMenu),
         children![(
             Button,
@@ -37,9 +38,11 @@ fn setup_menu(mut commands: Commands) {
                 align_items: AlignItems::Center,
                 ..default()
             },
+            Name::new("Play Button"),
             BackgroundColor(NORMAL_BUTTON),
             children![(
                 Text::new("Play"),
+                Name::new("Play Button Text"),
                 TextFont {
                     font_size: 33.0,
                     ..default()

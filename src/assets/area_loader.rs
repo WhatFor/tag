@@ -49,6 +49,7 @@ fn spawn_areas(mut commands: Commands, areas: Res<AreaAssets>, area_data: Res<As
 
         commands.spawn((
             Area,
+            Name::new(format!("Area {}", data.id)),
             AreaExits(data.exits.clone()),
             AreaNarration {
                 lines: data.narration.lines.clone(),

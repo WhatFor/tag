@@ -69,6 +69,7 @@ impl Plugin for NarrationUIPlugin {
 fn init(mut commands: Commands) {
     commands.spawn((
         ContainerNode,
+        Name::new("Narration Container"),
         Node {
             width: Val::Percent(100.),
             height: Val::Percent(100.),
@@ -114,6 +115,7 @@ fn on_player_enter_area(
         let line_node = commands
             .spawn((
                 LineNode,
+                Name::new("Narration Line"),
                 Node {
                     width: Val::Percent(100.),
                     flex_direction: FlexDirection::Row,
@@ -131,6 +133,7 @@ fn on_player_enter_area(
                 commands
                     .spawn((
                         Text::new(ch.to_string()),
+                        Name::new("Narration Line Char"),
                         fonts.narration_font.clone(),
                         TextColor(fonts.narration_color.0.with_alpha(0.0)),
                         Node {

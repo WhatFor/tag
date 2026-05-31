@@ -23,6 +23,7 @@ impl Plugin for ContinuePromptUIPlugin {
 fn show_continue_prompt(mut commands: Commands, fonts: Res<FontAssets>) {
     commands.spawn((
         ContinuePrompt,
+        Name::new("Continue Prompt"),
         Text::new("~ Click or Spacebar to continue ~"),
         fonts.ui_font.clone(),
         fonts.ui_color,
