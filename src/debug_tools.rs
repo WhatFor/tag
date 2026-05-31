@@ -1,7 +1,9 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
+#[cfg(feature = "dev")]
 pub struct DebugToolsPlugin;
 
+#[cfg(feature = "dev")]
 impl Plugin for DebugToolsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
@@ -11,6 +13,7 @@ impl Plugin for DebugToolsPlugin {
     }
 }
 
+#[cfg(feature = "dev")]
 fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>) {
     options.toggle();
 }
