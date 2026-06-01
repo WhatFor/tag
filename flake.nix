@@ -32,6 +32,7 @@
                 extensions = [ "rust-src" ];
                 targets = [ "wasm32-unknown-unknown" ];
               })
+              pkgs.rust-analyzer
               pkg-config
               pkgs.wasm-bindgen-cli_0_2_121
               bevy_cli.packages.${system}.default
