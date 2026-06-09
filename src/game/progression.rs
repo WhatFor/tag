@@ -36,12 +36,12 @@ fn on_narration_completed(
 fn on_dialogue_completed(
     _: On<DialogueComplete>,
     current_area: Single<&CurrentArea, With<Player>>,
-    areas: Query<&AreaExits, With<Area>>,
+    areas: Query<(&AreaId, &AreaExits), With<Area>>,
     mut next_exploring_state: ResMut<NextState<ExploringState>>,
 ) {
     info!("Progression handling DialogueComplete event...");
 
-    let Ok(current_area_exits) = areas.get(current_area.0) else {
+    let Ok((area_id, current_area_exits)) = areas.get(current_area.0) else {
         return;
     };
 
@@ -51,7 +51,9 @@ fn on_dialogue_completed(
 
             next_exploring_state.set(ExploringState::AwaitingContinue);
         }
-        None => panic!("No exits!"),
+        None => {
+            warn!("on_dialogue_completed: area '{}' has no exits", area_id.0);
+        }
     }
 }
 

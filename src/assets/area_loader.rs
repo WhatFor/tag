@@ -6,7 +6,10 @@ use crate::assets::area_asset_loader::{AreaAssetLoader, AreaData};
 
 #[derive(AssetCollection, Resource)]
 pub struct AreaAssets {
-    #[asset(paths("areas/01.area.ron", "areas/02.area.ron"), collection(typed))]
+    #[asset(
+        paths("areas/01.area.ron", "areas/02.area.ron", "areas/03.area.ron"),
+        collection(typed)
+    )]
     handles: Vec<Handle<AreaData>>,
 }
 
