@@ -3,7 +3,6 @@ use bevy_asset_loader::prelude::*;
 
 use crate::state::GameState;
 use crate::ui::area::AreaUIPlugin;
-use crate::ui::continue_prompt::ContinuePromptUIPlugin;
 use crate::ui::dialogue::DialogueUIPlugin;
 use crate::ui::inventory::InventoryUIPlugin;
 use crate::ui::narration::NarrationUIPlugin;
@@ -13,7 +12,6 @@ pub mod events;
 pub mod widgets;
 
 mod area;
-mod continue_prompt;
 mod dialogue;
 mod inventory;
 mod narration;
@@ -41,8 +39,8 @@ pub struct FontAssets {
     pub dialogue_font: TextFont,
     pub dialogue_color: TextColor,
 
-    pub ui_font: TextFont,
-    pub ui_color: TextColor,
+    pub _ui_font: TextFont,
+    pub _ui_color: TextColor,
 }
 
 pub struct UIPlugin;
@@ -53,7 +51,6 @@ impl Plugin for UIPlugin {
         app.add_plugins(AreaUIPlugin);
         app.add_plugins(NarrationUIPlugin);
         app.add_plugins(DialogueUIPlugin);
-        app.add_plugins(ContinuePromptUIPlugin);
         app.add_plugins(InventoryUIPlugin);
 
         app.configure_loading_state(
@@ -87,11 +84,11 @@ fn setup_fonts(mut commands: Commands, fonts: Res<FontHandles>) {
         },
         dialogue_color: TextColor(Color::srgb(0.9, 0.475, 0.425)),
 
-        ui_font: TextFont {
+        _ui_font: TextFont {
             font: fonts.ui.clone(),
             font_size: 30.0,
             ..default()
         },
-        ui_color: TextColor(Color::srgb(0.6, 0.65, 0.6)),
+        _ui_color: TextColor(Color::srgb(0.6, 0.65, 0.6)),
     });
 }
