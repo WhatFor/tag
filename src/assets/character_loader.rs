@@ -21,13 +21,6 @@ pub struct CharacterStore(pub HashMap<String, NarrativeCharacter>);
 
 pub struct CharacterLoaderPlugin;
 
-///Loads Character.ron assets.
-///
-/// When the game launches, its's first in GameState::Initialising.
-/// This triggers the 'load_characters' system.
-/// On each Update, we run 'check_progress' to wait until all assets are loaded.
-/// Once complete, the CharacterStore will be populated with all the NarrativeCharacters,
-/// ready for use.
 impl Plugin for CharacterLoaderPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<CharacterData>();
@@ -38,10 +31,7 @@ impl Plugin for CharacterLoaderPlugin {
             LoadingStateConfig::new(GameState::Initialising).load_collection::<CharacterAssets>(),
         );
 
-        app.add_systems(
-            OnExit(GameState::Initialising),
-            add_character_resource.in_set(PlayingSet::SpawnCharacters),
-        );
+        app.add_systems(OnExit(GameState::Initialising), add_character_resource);
     }
 }
 
@@ -55,7 +45,7 @@ fn add_character_resource(
             continue;
         };
 
-        info!("Spawning Character {}...", data.id);
+        info!("Parsed Character {}...", data.id);
 
         char_store.0.insert(
             data.id.clone(),

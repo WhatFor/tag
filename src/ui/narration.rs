@@ -51,7 +51,7 @@ fn on_player_enter_area(
         return;
     };
 
-    if narration.lines.len() == 0 {
+    if narration.lines.is_empty() {
         return;
     }
 

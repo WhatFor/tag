@@ -12,12 +12,6 @@ pub struct AreaAssets {
 
 pub struct AreaLoaderPlugin;
 
-///Loads Area .ron assets.
-///
-/// When the game launches, its's first in GameState::Initialising.
-/// This triggers the 'load_areas' system.
-/// On each Update, we run 'check_progress' to wait until all assets are loaded.
-/// Eventually, when we enter GameState::Playing, we spawn the Area assets.
 impl Plugin for AreaLoaderPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<AreaData>();

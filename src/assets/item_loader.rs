@@ -27,7 +27,6 @@ pub struct ItemStore(pub HashMap<String, ItemDef>);
 
 pub struct ItemLoaderPlugin;
 
-///Loads item.ron assets.
 impl Plugin for ItemLoaderPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<ItemData>();
@@ -38,10 +37,7 @@ impl Plugin for ItemLoaderPlugin {
             LoadingStateConfig::new(GameState::Initialising).load_collection::<ItemAssets>(),
         );
 
-        app.add_systems(
-            OnExit(GameState::Initialising),
-            add_item_store.in_set(PlayingSet::SpawnItems),
-        );
+        app.add_systems(OnExit(GameState::Initialising), add_item_store);
     }
 }
 

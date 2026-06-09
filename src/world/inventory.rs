@@ -29,7 +29,6 @@ impl Command for GiveItem {
                     return;
                 }
             };
-            // find inventory for target recipient, check if they already have items, and merge
         }
 
         // Spawn the items
@@ -55,20 +54,11 @@ impl Command for GiveItem {
 }
 
 fn find_item_stack(world: &World, recipient: Entity, item: &ItemDef) -> Option<Entity> {
-    // Find the item definition
-    let def = match world.resource::<ItemStore>().0.get(&item.id) {
-        Some(def) => def,
-        None => {
-            warn!("Find item failed to find item. ID: {}", item.id);
-            return None;
-        }
-    };
-
     // Check that the given Item is in the inventory and that it's stackable. If so, return it.
     match world.get::<Inventory>(recipient) {
-        Some(invent) => invent.0.iter().copied().find(|&item| {
-            let is_match = world.get::<ItemId>(item).is_some_and(|id| id.0 == def.id);
-            let stackable = world.get::<ItemStack>(item).is_some();
+        Some(invent) => invent.0.iter().copied().find(|&e| {
+            let is_match = world.get::<ItemId>(e).is_some_and(|id| id.0 == item.id);
+            let stackable = world.get::<ItemStack>(e).is_some();
             is_match && stackable
         }),
         None => None,

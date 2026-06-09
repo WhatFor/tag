@@ -5,6 +5,4 @@ pub enum PlayingSet {
     InitialiseUI,
     SpawnAreas,
     SpawnPlayer,
-    SpawnCharacters,
-    SpawnItems,
 }

@@ -4,7 +4,7 @@ use serde::Deserialize;
 #[derive(Component)]
 pub struct Area;
 
-#[derive(TypePath, Deserialize, Clone)]
+#[derive(Deserialize, Clone)]
 pub enum AreaExit {
     Continue(String),
 }

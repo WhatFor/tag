@@ -54,7 +54,7 @@ fn on_player_enter_area(
         return;
     };
 
-    if dialogue.lines.len() == 0 {
+    if dialogue.lines.is_empty() {
         return;
     }
 
