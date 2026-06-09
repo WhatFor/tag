@@ -1,15 +1,5 @@
+use crate::prelude::*;
 use bevy::prelude::*;
-
-use crate::game::events::PlayerContinued;
-use crate::player::components::CurrentArea;
-use crate::player::components::Player;
-use crate::state::ExploringState;
-use crate::ui::events::NarrationComplete;
-use crate::world::components::Area;
-use crate::world::components::AreaExit;
-use crate::world::components::AreaExits;
-use crate::world::components::AreaId;
-use crate::world::events::PlayerEnteredArea;
 
 pub struct ProgressionPlugin;
 

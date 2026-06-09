@@ -1,6 +1,5 @@
+use crate::prelude::*;
 use bevy::prelude::*;
-
-use crate::{global::PausableSystems, state::GameState};
 
 #[derive(Component)]
 #[require(Node)]

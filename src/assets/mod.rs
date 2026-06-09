@@ -1,10 +1,10 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
 use crate::assets::area_loader::AreaLoaderPlugin;
 use crate::assets::character_loader::CharacterLoaderPlugin;
 use crate::assets::item_loader::ItemLoaderPlugin;
-use crate::state::GameState;
 
 pub mod area_asset_loader;
 pub mod area_loader;

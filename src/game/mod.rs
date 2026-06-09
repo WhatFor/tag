@@ -1,9 +1,8 @@
-use bevy::{input::common_conditions::input_just_pressed, prelude::*};
+use crate::prelude::*;
+use bevy::prelude::*;
 
-use crate::{
-    game::progression::ProgressionPlugin,
-    state::{GameState, Pause},
-};
+use crate::game::progression::ProgressionPlugin;
+use bevy::input::common_conditions::input_just_pressed;
 
 pub mod events;
 

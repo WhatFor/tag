@@ -1,12 +1,5 @@
+use crate::prelude::*;
 use bevy::prelude::*;
-
-use crate::{
-    assets::item_loader::ItemDef,
-    components::{Description, DisplayName, Health},
-    player::components::Player,
-    state::GameState,
-    world::components::{Inventory, Item, ItemId, ItemStack},
-};
 
 pub fn default_player() -> impl Bundle {
     (

@@ -1,4 +1,5 @@
-use bevy::{input::common_conditions::input_just_pressed, prelude::*};
+use bevy::input::common_conditions::input_just_pressed;
+use bevy::prelude::*;
 
 #[cfg(feature = "dev")]
 pub struct DebugToolsPlugin;

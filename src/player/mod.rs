@@ -1,9 +1,7 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
-use crate::{
-    game::events::PlayerContinued, global::PausableSystems, state::ExploringState,
-    ui::widgets::button::button,
-};
+use crate::ui::widgets::button::button;
 
 pub mod components;
 

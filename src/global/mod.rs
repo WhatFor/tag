@@ -1,8 +1,5 @@
+use crate::prelude::*;
 use bevy::prelude::*;
-
-use crate::sets::PlayingSet;
-use crate::state::{ExploringState, Pause};
-use crate::state::{GameState, PlayState};
 
 /// A system set for systems that shouldn't run while the game is paused
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]

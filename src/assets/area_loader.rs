@@ -1,13 +1,8 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
-use crate::sets::PlayingSet;
-use crate::world::components::{AreaDialogue, AreaExits, AreaNarration};
-use crate::{
-    assets::area_asset_loader::{AreaAssetLoader, AreaData},
-    state::GameState,
-    world::components::Area,
-};
+use crate::assets::area_asset_loader::{AreaAssetLoader, AreaData};
 
 #[derive(AssetCollection, Resource)]
 pub struct AreaAssets {

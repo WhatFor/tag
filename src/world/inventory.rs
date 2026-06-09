@@ -1,12 +1,5 @@
+use crate::prelude::*;
 use bevy::prelude::*;
-
-use crate::{
-    assets::item_loader::{ItemDef, ItemStore},
-    world::{
-        bundles::{item, item_stack},
-        components::{Inventory, ItemId, ItemStack},
-    },
-};
 
 pub struct GiveItem {
     pub recipient: Entity,

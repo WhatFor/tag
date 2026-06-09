@@ -1,7 +1,7 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
-use crate::state::GameState;
 use crate::ui::area::AreaUIPlugin;
 use crate::ui::dialogue::DialogueUIPlugin;
 use crate::ui::inventory::InventoryUIPlugin;

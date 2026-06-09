@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
+pub mod prelude;
 pub mod state;
 
 mod assets;

@@ -1,9 +1,8 @@
+use crate::prelude::*;
 use bevy::asset::{AssetLoader, LoadContext, io::Reader};
 use bevy::prelude::*;
 use serde::Deserialize;
 use thiserror::Error;
-
-use crate::world::components::AreaExit;
 
 pub type AreaId = String;
 pub type CharacterId = String;

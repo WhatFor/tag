@@ -1,9 +1,7 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
-use crate::{
-    state::{GameState, Pause},
-    ui::widgets::button::button,
-};
+use crate::ui::widgets::button::button;
 
 pub struct PauseMenuPlugin;
 

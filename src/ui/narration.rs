@@ -1,12 +1,8 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
-use crate::sets::PlayingSet;
-use crate::state::GameState;
-use crate::ui::FontAssets;
-use crate::ui::events::NarrationComplete;
-use crate::ui::widgets::animation::text_fall::{AnimateTextFall, AnimateTextFallComplete};
-use crate::world::components::{Area, AreaNarration};
-use crate::world::events::PlayerEnteredArea;
+use crate::ui::widgets::animation::text_fall::AnimateTextFall;
+use crate::ui::widgets::animation::text_fall::AnimateTextFallComplete;
 
 #[derive(Component)]
 struct ContainerNode;

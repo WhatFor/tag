@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
-use crate::ui::widgets::{animation::AnimationWidgetsPlugin, button::ButtonWidgetPlugin};
+use crate::ui::widgets::animation::AnimationWidgetsPlugin;
+use crate::ui::widgets::button::ButtonWidgetPlugin;
 
 pub mod animation;
 pub mod button;

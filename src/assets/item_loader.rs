@@ -1,11 +1,9 @@
-use std::collections::HashMap;
-
+use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
 use crate::assets::item_asset_loader::{ItemAssetLoader, ItemData};
-use crate::sets::PlayingSet;
-use crate::state::GameState;
+use std::collections::HashMap;
 
 #[derive(AssetCollection, Resource)]
 pub struct ItemAssets {

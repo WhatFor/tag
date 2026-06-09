@@ -1,6 +1,7 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
-use crate::{state::GameState, ui::widgets::button::button};
+use crate::ui::widgets::button::button;
 
 pub struct InventoryUIPlugin;
 

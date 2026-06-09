@@ -1,10 +1,5 @@
+use crate::prelude::*;
 use bevy::prelude::*;
-
-use crate::sets::PlayingSet;
-use crate::state::GameState;
-use crate::ui::FontAssets;
-use crate::world::components::Area;
-use crate::world::events::PlayerEnteredArea;
 
 #[derive(Component)]
 struct AreaNameText;
