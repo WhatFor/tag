@@ -5,9 +5,6 @@
 - how to play sounds? loops? one-shots?
 - pause menu settings
 
-# Cleanup
-De-duplicate buttons between menus (both define their own)
-
 ---
 
 - define characters.ron:
