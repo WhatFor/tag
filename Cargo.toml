@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 bevy = { version = "0.18.1", default-features = false, features = ["2d"] }
-bevy_asset_loader = "0.26.0"
+bevy_asset_loader = { version = "0.26.0", features = ["standard_dynamic_assets", "2d"] }
 bevy-inspector-egui = "0.36.0"
 ron = "0.12.1"
 serde = { version = "1.0.228", features = ["derive"] }

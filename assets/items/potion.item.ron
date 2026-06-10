@@ -3,4 +3,5 @@
     name: "Potion",
     description: "Looks healthy. Maybe.",
     stackable: true,
+    icon: "icons/item_placeholder.png"
 )

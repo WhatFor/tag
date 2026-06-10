@@ -3,4 +3,5 @@
     name: "Iron sword",
     description: "A beat-up, old iron sword. I wonder who it belonged to?",
     stackable: false,
+    icon: "icons/item_placeholder.png"
 )
