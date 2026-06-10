@@ -9,6 +9,7 @@ pub struct ItemData {
     pub name: String,
     pub description: String,
     pub stackable: bool,
+    #[allow(dead_code)]
     pub icon: String,
 }
 
