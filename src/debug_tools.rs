@@ -1,6 +1,8 @@
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
 
+pub const GLOBAL_ANIMATION_SPEED: f32 = 1.0;
+
 #[cfg(feature = "dev")]
 pub struct DebugToolsPlugin;
 

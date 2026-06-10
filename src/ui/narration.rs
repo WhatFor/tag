@@ -23,6 +23,7 @@ impl Plugin for NarrationUIPlugin {
 fn init(mut commands: Commands) {
     commands.spawn((
         ContainerNode,
+        GlobalZIndex(LAYER_GAME),
         Name::new("Narration Container"),
         Node {
             width: Val::Percent(100.),

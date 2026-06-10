@@ -16,6 +16,10 @@ fn button_init(mut commands: Commands) {
         .spawn(button("Inventory"))
         .insert((
             DespawnOnExit(GameState::Playing),
+            GlobalZIndex(LAYER_HUD),
+            Tooltip {
+                text: String::from("What might you find?"),
+            },
             Node {
                 position_type: PositionType::Absolute,
                 bottom: Val::Px(50.0),

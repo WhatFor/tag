@@ -25,6 +25,7 @@ pub use crate::world::components::ItemId;
 pub use crate::world::components::ItemStack;
 
 // Global
+pub use crate::debug_tools::GLOBAL_ANIMATION_SPEED;
 pub use crate::global::PausableSystems;
 
 // State
@@ -42,3 +43,5 @@ pub use crate::world::events::PlayerEnteredArea;
 
 // UI
 pub use crate::ui::FontAssets;
+pub use crate::ui::layers::*;
+pub use crate::ui::widgets::tooltip::Tooltip;

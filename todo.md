@@ -1,6 +1,13 @@
 # TODO List
 
 - add an inventory UI
+  - UI panels to contain the invent, make em reusable
+  - Scrollable layout, reusable
+  - grid
+  - pull items from invent and put into grid, with tooltips
+  - extend tooltip to accept generic content: title, desc, icon, count, etc.
+  - esc closes invent if open, not opens pause menu
+  - invent button changes when invent is open (hides, or changes text?)
 - multi-path exits
 - how to play sounds? loops? one-shots?
 - pause menu settings

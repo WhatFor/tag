@@ -35,10 +35,10 @@ pub struct AnimateTextFallComplete {
     entity: Entity,
 }
 
-const CHAR_ENTER_SPEED: f32 = 15.0;
+const CHAR_ENTER_SPEED: f32 = 15.0 * GLOBAL_ANIMATION_SPEED;
 const CHAR_Y_OFFSET: f32 = 30.0;
 const NEXT_CHAR_THRESHOLD: f32 = 0.3;
-const LINE_DELAY_SECS: f32 = 0.6;
+const LINE_DELAY_SECS: f32 = 0.6 * GLOBAL_ANIMATION_SPEED;
 
 pub struct TextFallAnimationPlugin;
 

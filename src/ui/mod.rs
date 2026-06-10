@@ -9,6 +9,7 @@ use crate::ui::narration::NarrationUIPlugin;
 use crate::ui::widgets::WidgetsPlugin;
 
 pub mod events;
+pub mod layers;
 pub mod widgets;
 
 mod area;

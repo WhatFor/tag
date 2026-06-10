@@ -25,6 +25,7 @@ impl Plugin for DialogueUIPlugin {
 fn init(mut commands: Commands) {
     commands.spawn((
         ContainerNode,
+        GlobalZIndex(LAYER_GAME),
         Name::new("Dialogue Container"),
         Node {
             width: Val::Percent(100.),
