@@ -1,28 +1,45 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::window::PrimaryWindow;
+use std::sync::Arc;
 
-const FONT_SIZE: f32 = 20.0;
 const FADE_SECONDS: f32 = 0.15 * GLOBAL_ANIMATION_SPEED;
 
 const BG_COLOUR: Color = Color::srgb(0.15, 0.15, 0.15);
 const BORDER_COLOUR: Color = Color::srgb(0.25, 0.25, 0.25);
 
-const PADDING: f32 = 10.0;
+const PADDING_X: f32 = 20.0;
+const PADDING_Y: f32 = 10.0;
 const MAX_WIDTH: f32 = 280.0;
 const OFFSET: f32 = 20.0;
 
-#[derive(Component, Reflect)]
-#[reflect(Component)]
+#[derive(Component)]
 pub struct Tooltip {
-    // todo: make more flexible
-    pub text: String,
+    pub max_width_override: Option<f32>,
+    pub child_spawner: Arc<dyn Fn(&mut RelatedSpawnerCommands<ChildOf>) + Send + Sync + 'static>,
 }
 
 impl Tooltip {
-    pub fn new(text: impl Into<String>) -> Self {
-        Self { text: text.into() }
+    pub fn new<F>(child_spawner: F) -> Self
+    where
+        F: Fn(&mut RelatedSpawnerCommands<ChildOf>) + Send + Sync + 'static,
+    {
+        Self {
+            child_spawner: Arc::new(child_spawner),
+            max_width_override: None,
+        }
+    }
+
+    pub fn new_sized<F>(child_spawner: F, max_width: f32) -> Self
+    where
+        F: Fn(&mut RelatedSpawnerCommands<ChildOf>) + Send + Sync + 'static,
+    {
+        Self {
+            child_spawner: Arc::new(child_spawner),
+            max_width_override: Some(max_width),
+        }
     }
 }
 
@@ -147,33 +164,33 @@ fn on_mouse_over(
 
     let pos = trigger.pointer_location.position;
 
-    commands.spawn((
-        TooltipElement,
-        TooltipFadeIn(Timer::from_seconds(FADE_SECONDS, TimerMode::Once)),
-        Name::new("Tooltip"),
-        Pickable::IGNORE,
-        GlobalZIndex(LAYER_TOOLTIP),
-        Node {
-            position_type: PositionType::Absolute,
-            left: Val::Px(pos.x),
-            top: Val::Px(pos.y),
-            max_width: Val::Px(MAX_WIDTH),
-            padding: UiRect::all(Val::Px(PADDING)),
-            border: UiRect::all(Val::Px(1.)),
-            ..default()
-        },
-        BackgroundColor(BG_COLOUR.with_alpha(0.0)),
-        BorderColor::all(BORDER_COLOUR.with_alpha(0.0)),
-        children![(
-            Text::new(tooltip.text.clone()),
+    commands
+        .spawn((
+            TooltipElement,
+            TooltipFadeIn(Timer::from_seconds(FADE_SECONDS, TimerMode::Once)),
+            Name::new("Tooltip"),
             Pickable::IGNORE,
-            TextFont {
-                font_size: FONT_SIZE,
+            GlobalZIndex(LAYER_TOOLTIP),
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Px(pos.x),
+                top: Val::Px(pos.y),
+                max_width: Val::Px(MAX_WIDTH.max(tooltip.max_width_override.unwrap_or(0.))),
+                padding: UiRect::new(
+                    Val::Px(PADDING_X), // Left
+                    Val::Px(PADDING_X), // Right
+                    Val::Px(PADDING_Y), // Top
+                    Val::Px(PADDING_Y), // Bottom
+                ),
+                border: UiRect::all(Val::Px(1.)),
                 ..default()
             },
-            TextColor(Color::srgba(0.9, 0.9, 0.9, 0.0)),
-        )],
-    ));
+            BackgroundColor(BG_COLOUR.with_alpha(0.0)),
+            BorderColor::all(BORDER_COLOUR.with_alpha(0.0)),
+        ))
+        .with_children(|p| {
+            (tooltip.child_spawner)(p);
+        });
 }
 
 fn on_mouse_out(
