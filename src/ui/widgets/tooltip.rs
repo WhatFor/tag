@@ -20,6 +20,12 @@ pub struct Tooltip {
     pub text: String,
 }
 
+impl Tooltip {
+    pub fn new(text: impl Into<String>) -> Self {
+        Self { text: text.into() }
+    }
+}
+
 #[derive(Component)]
 struct TooltipElement;
 
@@ -153,6 +159,7 @@ fn on_mouse_over(
             top: Val::Px(pos.y),
             max_width: Val::Px(MAX_WIDTH),
             padding: UiRect::all(Val::Px(PADDING)),
+            border: UiRect::all(Val::Px(1.)),
             ..default()
         },
         BackgroundColor(BG_COLOUR.with_alpha(0.0)),
