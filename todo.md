@@ -1,7 +1,6 @@
 # TODO List
 
 - add an inventory UI
-  - UI panels to contain the invent, make em reusable
   - Scrollable layout, reusable
   - grid
   - pull items from invent and put into grid, with tooltips

@@ -40,8 +40,8 @@ pub struct FontAssets {
     pub dialogue_font: TextFont,
     pub dialogue_color: TextColor,
 
-    pub _ui_font: TextFont,
-    pub _ui_color: TextColor,
+    pub ui_font: TextFont,
+    pub ui_color: TextColor,
 }
 
 pub struct UIPlugin;
@@ -55,41 +55,45 @@ impl Plugin for UIPlugin {
         app.add_plugins(InventoryUIPlugin);
 
         app.configure_loading_state(
-            LoadingStateConfig::new(GameState::Initialising).load_collection::<FontHandles>(),
+            LoadingStateConfig::new(GameState::Initialising)
+                .load_collection::<FontHandles>()
+                .finally_init_resource::<FontAssets>(),
         );
-
-        app.add_systems(OnExit(GameState::Initialising), setup_fonts);
     }
 }
 
-fn setup_fonts(mut commands: Commands, fonts: Res<FontHandles>) {
-    commands.insert_resource(FontAssets {
-        title_font: TextFont {
-            font: fonts.title.clone(),
-            font_size: 90.0,
-            ..default()
-        },
-        title_color: TextColor(Color::srgb(0.8, 0.9, 1.0)),
+impl FromWorld for FontAssets {
+    fn from_world(world: &mut World) -> Self {
+        let fonts = world.resource::<FontHandles>();
 
-        narration_font: TextFont {
-            font: fonts.narration.clone(),
-            font_size: 45.0,
-            ..default()
-        },
-        narration_color: TextColor(Color::srgb(1.0, 0.95, 1.0)),
+        Self {
+            title_font: TextFont {
+                font: fonts.title.clone(),
+                font_size: 90.0,
+                ..default()
+            },
+            title_color: TextColor(Color::srgb(0.8, 0.9, 1.0)),
 
-        dialogue_font: TextFont {
-            font: fonts.dialogue.clone(),
-            font_size: 45.0,
-            ..default()
-        },
-        dialogue_color: TextColor(Color::srgb(0.9, 0.475, 0.425)),
+            narration_font: TextFont {
+                font: fonts.narration.clone(),
+                font_size: 45.0,
+                ..default()
+            },
+            narration_color: TextColor(Color::srgb(1.0, 0.95, 1.0)),
 
-        _ui_font: TextFont {
-            font: fonts.ui.clone(),
-            font_size: 30.0,
-            ..default()
-        },
-        _ui_color: TextColor(Color::srgb(0.6, 0.65, 0.6)),
-    });
+            dialogue_font: TextFont {
+                font: fonts.dialogue.clone(),
+                font_size: 45.0,
+                ..default()
+            },
+            dialogue_color: TextColor(Color::srgb(0.9, 0.475, 0.425)),
+
+            ui_font: TextFont {
+                font: fonts.ui.clone(),
+                font_size: 30.0,
+                ..default()
+            },
+            ui_color: TextColor(Color::srgb(0.6, 0.65, 0.6)),
+        }
+    }
 }

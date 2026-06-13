@@ -44,4 +44,5 @@ pub use crate::world::events::PlayerEnteredArea;
 // UI
 pub use crate::ui::FontAssets;
 pub use crate::ui::layers::*;
+pub use crate::ui::widgets::panel::Panel;
 pub use crate::ui::widgets::tooltip::Tooltip;
