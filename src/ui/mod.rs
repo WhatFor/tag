@@ -9,12 +9,12 @@ use crate::ui::narration::NarrationUIPlugin;
 use crate::ui::widgets::WidgetsPlugin;
 
 pub mod events;
+pub mod inventory;
 pub mod layers;
 pub mod widgets;
 
 mod area;
 mod dialogue;
-mod inventory;
 mod narration;
 
 #[derive(AssetCollection, Resource)]

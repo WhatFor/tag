@@ -2,6 +2,7 @@ use crate::prelude::*;
 use bevy::prelude::*;
 
 use crate::ui::widgets::panel::DespawnPanel;
+use bevy::input::common_conditions::input_just_pressed;
 
 pub struct InventoryUIPlugin;
 
@@ -20,7 +21,7 @@ const TOOLTIP_DESC_FONT_SIZE: f32 = 18.;
 pub struct InventoryPanel;
 
 #[derive(States, Copy, Clone, PartialEq, Eq, Debug, Hash, Default)]
-enum InventoryState {
+pub enum InventoryState {
     #[default]
     Closed,
     Open,
@@ -32,6 +33,25 @@ impl Plugin for InventoryUIPlugin {
         app.add_systems(OnEnter(GameState::Playing), button_init);
         app.add_systems(OnEnter(InventoryState::Open), spawn_inventory);
         app.add_systems(OnEnter(InventoryState::Closed), despawn_inventory);
+
+        app.add_systems(
+            Update,
+            on_keybind_open_inventory.run_if(
+                in_state(Pause(false))
+                    .and(in_state(GameState::Playing))
+                    .and(input_just_pressed(KeyCode::KeyI)),
+            ),
+        );
+
+        app.add_systems(
+            Update,
+            despawn_inventory.run_if(
+                in_state(Pause(false))
+                    .and(in_state(GameState::Playing))
+                    .and(in_state(InventoryState::Open))
+                    .and(input_just_pressed(KeyCode::Escape)),
+            ),
+        );
     }
 }
 
@@ -64,10 +84,32 @@ fn button_init(mut commands: Commands) {
         );
 }
 
-fn despawn_inventory(mut commands: Commands, panel: Single<Entity, With<InventoryPanel>>) {
-    commands
-        .entity(*panel)
-        .trigger(|p| DespawnPanel { entity: p });
+fn despawn_inventory(
+    mut commands: Commands,
+    panel: Single<Entity, With<InventoryPanel>>,
+    state: Res<State<InventoryState>>,
+    mut next: ResMut<NextState<InventoryState>>,
+) {
+    match state.get() {
+        InventoryState::Closed => {}
+        InventoryState::Open => {
+            commands
+                .entity(*panel)
+                .trigger(|p| DespawnPanel { entity: p });
+
+            next.set(InventoryState::Closed);
+        }
+    }
+}
+
+fn on_keybind_open_inventory(
+    state: Res<State<InventoryState>>,
+    mut next: ResMut<NextState<InventoryState>>,
+) {
+    match state.get() {
+        InventoryState::Closed => next.set(InventoryState::Open),
+        InventoryState::Open => {}
+    };
 }
 
 fn spawn_inventory(

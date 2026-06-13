@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::ui::inventory::InventoryState;
 use crate::ui::widgets::button::button;
 use bevy::input::common_conditions::input_just_pressed;
 
@@ -15,6 +16,7 @@ impl Plugin for PauseMenuPlugin {
             (pause, spawn_pause_overlay).run_if(
                 in_state(Pause(false))
                     .and(in_state(GameState::Playing))
+                    .and(in_state(InventoryState::Closed))
                     .and(input_just_pressed(KeyCode::Escape)),
             ),
         );
@@ -24,6 +26,7 @@ impl Plugin for PauseMenuPlugin {
             unpause.run_if(
                 in_state(Pause(true))
                     .and(in_state(GameState::Playing))
+                    .and(in_state(InventoryState::Closed))
                     .and(input_just_pressed(KeyCode::Escape)),
             ),
         );
