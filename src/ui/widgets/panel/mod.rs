@@ -42,10 +42,10 @@ impl Plugin for PanelWidgetPlugin {
 
 const BG_COLOUR: Color = Color::srgb(0.15, 0.15, 0.15);
 const BACKDROP_COLOUR: Color = Color::srgba(0.05, 0.05, 0.05, 0.45);
-const BORDER_COLOUR: Color = Color::srgb(0.25, 0.25, 0.25);
+const BORDER_COLOUR: Color = Color::srgb(0.4, 0.4, 0.4);
 const PADDING: f32 = 30.0;
 
-const DEFAULT_SIZE: f32 = 90.0;
+const DEFAULT_SIZE: f32 = 60.0;
 
 pub fn init(
     mut commands: Commands,
@@ -57,6 +57,7 @@ pub fn init(
             .spawn((
                 Name::new("Panel Backdrop"),
                 BackgroundColor(BACKDROP_COLOUR),
+                GlobalZIndex(LAYER_MENU - 1),
                 Node {
                     position_type: PositionType::Absolute,
                     left: Val::Px(0.),
@@ -89,6 +90,7 @@ pub fn init(
                     flex_direction: FlexDirection::Column,
                     align_items: AlignItems::Center,
                     padding: UiRect::all(Val::Px(PADDING)),
+                    border: UiRect::all(Val::Px(1.0)),
                     ..default()
                 },
                 BackgroundColor(BG_COLOUR),

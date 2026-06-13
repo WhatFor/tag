@@ -4,11 +4,18 @@ const NORMAL: Color = Color::srgb(0.15, 0.15, 0.15);
 const HOVERED: Color = Color::srgb(0.25, 0.25, 0.25);
 const PRESSED: Color = Color::srgb(0.35, 0.75, 0.35);
 
+#[derive(Component)]
+pub struct StyledButton;
+
 pub struct ButtonWidgetPlugin;
 
 impl Plugin for ButtonWidgetPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, styled_button_interaction);
+        app.add_observer(on_mouse_hover);
+        app.add_observer(on_mouse_unhover);
+
+        app.add_observer(on_mouse_down);
+        app.add_observer(on_mouse_up);
     }
 }
 
@@ -17,7 +24,7 @@ pub fn button(label: impl Into<String>) -> impl Bundle {
     (
         Button,
         StyledButton,
-        Name::new(label.clone()),
+        Name::new(format!("{} Button", label.clone())),
         BackgroundColor(NORMAL),
         Node {
             // Size
@@ -29,6 +36,7 @@ pub fn button(label: impl Into<String>) -> impl Bundle {
             ..default()
         },
         children![(
+            Name::new(format!("{} Button Text", label.clone())),
             Text::new(label),
             TextLayout {
                 linebreak: LineBreak::NoWrap,
@@ -43,17 +51,38 @@ pub fn button(label: impl Into<String>) -> impl Bundle {
     )
 }
 
-fn styled_button_interaction(
-    mut q: Query<(&Interaction, &mut BackgroundColor), (Changed<Interaction>, With<StyledButton>)>,
+fn on_mouse_hover(
+    trigger: On<Pointer<Over>>,
+    mut query: Query<&mut BackgroundColor, With<StyledButton>>,
 ) {
-    for (interaction, mut bg) in &mut q {
-        *bg = BackgroundColor(match *interaction {
-            Interaction::None => NORMAL,
-            Interaction::Hovered => HOVERED,
-            Interaction::Pressed => PRESSED,
-        });
+    if let Ok(mut background_colour) = query.get_mut(trigger.event_target()) {
+        *background_colour = BackgroundColor(HOVERED);
     }
 }
 
-#[derive(Component)]
-pub struct StyledButton;
+fn on_mouse_unhover(
+    trigger: On<Pointer<Out>>,
+    mut query: Query<&mut BackgroundColor, With<StyledButton>>,
+) {
+    if let Ok(mut background_colour) = query.get_mut(trigger.event_target()) {
+        *background_colour = BackgroundColor(NORMAL);
+    }
+}
+
+fn on_mouse_down(
+    trigger: On<Pointer<Press>>,
+    mut query: Query<&mut BackgroundColor, With<StyledButton>>,
+) {
+    if let Ok(mut background_colour) = query.get_mut(trigger.event_target()) {
+        *background_colour = BackgroundColor(PRESSED);
+    }
+}
+
+fn on_mouse_up(
+    trigger: On<Pointer<Release>>,
+    mut query: Query<&mut BackgroundColor, With<StyledButton>>,
+) {
+    if let Ok(mut background_colour) = query.get_mut(trigger.event_target()) {
+        *background_colour = BackgroundColor(HOVERED);
+    }
+}

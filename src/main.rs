@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+
+use bevy::ui_widgets::ScrollbarPlugin;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
@@ -20,6 +22,9 @@ mod world;
 #[cfg(feature = "dev")]
 use crate::debug_tools::DebugToolsPlugin;
 
+#[cfg(feature = "dev")]
+use bevy::dev_tools::picking_debug::{DebugPickingMode, DebugPickingPlugin};
+
 use crate::assets::AssetsPlugin;
 use crate::game::GameplayPlugin;
 use crate::global::GlobalPlugin;
@@ -32,7 +37,7 @@ use crate::world::WorldPlugin;
 fn main() {
     let mut app = App::new();
 
-    app.add_plugins(
+    app.add_plugins((
         DefaultPlugins
             .set(ImagePlugin::default_nearest())
             .set(AssetPlugin {
@@ -48,11 +53,16 @@ fn main() {
                 .into(),
                 ..default()
             }),
-    );
+        ScrollbarPlugin,
+    ));
 
     #[cfg(feature = "dev")]
     app.add_plugins(EguiPlugin::default())
-        .add_plugins(WorldInspectorPlugin::new());
+        .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins(DebugPickingPlugin);
+
+    #[cfg(feature = "dev")]
+    app.insert_resource(DebugPickingMode::Normal);
 
     app.add_plugins(AssetsPlugin)
         .add_plugins(GameplayPlugin)

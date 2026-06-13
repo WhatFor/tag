@@ -1,7 +1,6 @@
 # TODO List
 
 - add an inventory UI
-  - Scrollable layout, reusable
   - grid
   - pull items from invent and put into grid, with tooltips
   - extend tooltip to accept generic content: title, desc, icon, count, etc.
@@ -20,3 +19,9 @@
   - speech_effect?
   - text_color?
   - text_font?
+
+---
+
+### Bugs
+
+- Scrollbar isn't fully pickable on the right-hand side; a few pixels of dead area.

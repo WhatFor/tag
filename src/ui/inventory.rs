@@ -1,7 +1,7 @@
-use crate::{prelude::*, ui::widgets::panel::DespawnPanel};
+use crate::prelude::*;
 use bevy::prelude::*;
 
-use crate::ui::widgets::button::button;
+use crate::ui::widgets::panel::DespawnPanel;
 
 pub struct InventoryUIPlugin;
 
@@ -59,7 +59,27 @@ fn despawn_inventory(mut commands: Commands, panel: Single<Entity, With<Inventor
         .trigger(|p| DespawnPanel { entity: p });
 }
 
-fn spawn_inventory(mut commands: Commands) {
+fn spawn_inventory(
+    mut commands: Commands,
+    inventory: Single<&Inventory, With<Player>>,
+    items: Query<(&DisplayName, &Description, Option<&ItemStack>)>,
+) {
+    if inventory.0.is_empty() {
+        return;
+    }
+
+    let rows: Vec<String> = inventory
+        .0
+        .iter()
+        .filter_map(|&item_entity| {
+            let (name, _desc, stack) = items.get(item_entity).ok()?;
+            Some(match stack {
+                Some(ItemStack(count)) => format!("{} ({})", name.0, count),
+                None => name.0.clone(),
+            })
+        })
+        .collect();
+
     commands
         .spawn((
             Panel::default("Inventory".into()),
@@ -67,6 +87,10 @@ fn spawn_inventory(mut commands: Commands) {
             Name::new("Inventory Panel"),
         ))
         .with_children(|p| {
-            p.spawn(Text::new("Placeholder"));
+            p.spawn(scroll_area(move |p| {
+                for label in rows {
+                    p.spawn(Text::new(label));
+                }
+            }));
         });
 }

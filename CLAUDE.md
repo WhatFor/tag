@@ -10,6 +10,8 @@ This project uses a Nix flake for its dev shell — always work inside it.
 
 This is a text-based adventure game (hence the name TAG). While 99% of it will be 2D, do not rule out the use of 3D. The game targets only Web (via WASM).
 
+The game is built using Bevy 0.18.
+
 ## Commands
 
 ```bash
@@ -20,6 +22,10 @@ cargo clippy         # lint
 cargo test           # run tests
 ```
 
-## Usage
+## Guidance
 
 This is a **learning** project. When prompted, provide explanation and suggest code but **do not do any edits yourself**. Prefer 'real-world' solutions and avoid 'hacks' - strive to build a system that is idiomatic and follows best practices.
+
+Try to read more context than you think you need. Don't guess, check.
+
+Check for documentation when unsure of the Bevy API.
