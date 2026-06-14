@@ -1,8 +1,6 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
-use crate::ui::widgets::button::button;
-
 pub mod components;
 
 pub struct PlayerPlugin;
@@ -12,6 +10,11 @@ impl Plugin for PlayerPlugin {
         app.add_systems(
             OnEnter(ExploringState::AwaitingContinue),
             show_continue_prompt.in_set(PausableSystems),
+        );
+
+        app.add_systems(
+            OnEnter(ExploringState::AwaitingChoice),
+            show_choice_prompt.in_set(PausableSystems),
         );
 
         app.add_systems(
@@ -27,7 +30,7 @@ fn show_continue_prompt(mut commands: Commands) {
     commands
         .spawn((
             DespawnOnExit(ExploringState::AwaitingContinue),
-            GlobalZIndex(10),
+            GlobalZIndex(LAYER_HUD),
             Node {
                 position_type: PositionType::Absolute,
                 bottom: Val::Px(250.0),
@@ -48,4 +51,58 @@ fn wait_for_continue_input(mut commands: Commands, keyboard: Res<ButtonInput<Key
     if keyboard.just_pressed(KeyCode::Space) {
         commands.trigger(PlayerContinued);
     }
+}
+
+fn show_choice_prompt(
+    mut commands: Commands,
+    current_area: Single<&mut CurrentArea, With<Player>>,
+    areas: Query<&AreaExits, With<Area>>,
+) {
+    let Ok(current_area_exits) = areas.get(current_area.0) else {
+        return;
+    };
+
+    commands
+        .spawn((
+            DespawnOnExit(ExploringState::AwaitingChoice),
+            GlobalZIndex(LAYER_HUD),
+            Node {
+                position_type: PositionType::Absolute,
+                bottom: Val::Px(250.),
+                width: Val::Percent(100.),
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+        ))
+        .with_children(|p| {
+            p.spawn(Node {
+                width: Val::Percent(100.),
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::SpaceEvenly,
+                align_items: AlignItems::Center,
+                ..default()
+            })
+            .with_children(|container| {
+                for exit in &current_area_exits.0 {
+                    match exit {
+                        AreaExit::Continue(_) => {
+                            // TODO: should not be possible
+                            todo!()
+                        }
+                        AreaExit::Choice(area_exit_options) => {
+                            for exit_option in area_exit_options {
+                                let label = exit_option.label.clone();
+                                let to = exit_option.to.clone();
+
+                                container.spawn(button(label)).observe(
+                                    move |_: On<Pointer<Click>>, mut commands: Commands| {
+                                        commands.trigger(PlayerChose(to.clone()));
+                                    },
+                                );
+                            }
+                        }
+                    };
+                }
+            });
+        });
 }

@@ -36,6 +36,7 @@ pub use crate::state::Pause;
 pub use crate::state::PlayState;
 
 // Events
+pub use crate::game::events::PlayerChose;
 pub use crate::game::events::PlayerContinued;
 pub use crate::ui::events::DialogueComplete;
 pub use crate::ui::events::NarrationComplete;

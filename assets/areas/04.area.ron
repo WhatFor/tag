@@ -1,0 +1,14 @@
+(
+    id: "start_04",
+    name: "Chair Daddy's Castle 4",
+    narration: (
+      lines: []
+    ),
+    dialogue: (
+      character_id: Some("chair_daddy"),
+      lines: [
+        "NOOOOO!"
+      ]
+    ),
+    exits: []
+)

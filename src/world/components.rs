@@ -7,12 +7,19 @@ pub struct Area;
 #[derive(Deserialize, Clone)]
 pub enum AreaExit {
     Continue(String),
+    Choice(Vec<AreaExitOption>),
 }
 
 #[derive(Component)]
 pub struct AreaExits(pub Vec<AreaExit>);
 
-#[derive(Component)]
+#[derive(Deserialize, Clone)]
+pub struct AreaExitOption {
+    pub to: AreaId,
+    pub label: String,
+}
+
+#[derive(Component, Deserialize, Clone)]
 pub struct AreaId(pub String);
 
 #[derive(Component)]

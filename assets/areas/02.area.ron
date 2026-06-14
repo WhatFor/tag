@@ -9,11 +9,13 @@
       lines: [
         "Welcome...",
         "to my piss lair!",
-        "Please! Make yourself at home!",
-        "Piss whereever you like."
+        "Now... to piss, or not to piss?",
       ]
     ),
     exits: [
-        Continue("start_03")
+        Choice([
+            ( to: ("start_03"), label: "Piss" ),
+            ( to: ("start_04"), label: "Not piss" ),
+        ])
     ]
 )

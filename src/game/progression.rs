@@ -8,18 +8,19 @@ impl Plugin for ProgressionPlugin {
         app.add_observer(on_narration_completed);
         app.add_observer(on_dialogue_completed);
         app.add_observer(on_player_continued);
+        app.add_observer(on_player_chose);
     }
 }
 
 fn on_narration_completed(
     _: On<NarrationComplete>,
     current_area: Single<&CurrentArea, With<Player>>,
-    areas: Query<&AreaExits, With<Area>>,
+    areas: Query<(&AreaId, &AreaExits), With<Area>>,
     mut next_exploring_state: ResMut<NextState<ExploringState>>,
 ) {
     info!("Progression handling NarrationComplete event...");
 
-    let Ok(current_area_exits) = areas.get(current_area.0) else {
+    let Ok((area_id, current_area_exits)) = areas.get(current_area.0) else {
         return;
     };
 
@@ -28,6 +29,10 @@ fn on_narration_completed(
             info!("Continuing on to room {}", next_room);
 
             next_exploring_state.set(ExploringState::AwaitingContinue);
+        }
+        Some(AreaExit::Choice(_)) => {
+            info!("Waiting for choice from room {}", area_id.0);
+            next_exploring_state.set(ExploringState::AwaitingChoice);
         }
         None => panic!("No exits!"),
     }
@@ -51,6 +56,10 @@ fn on_dialogue_completed(
 
             next_exploring_state.set(ExploringState::AwaitingContinue);
         }
+        Some(AreaExit::Choice(_)) => {
+            info!("Waiting for choice from room {}", area_id.0);
+            next_exploring_state.set(ExploringState::AwaitingChoice);
+        }
         None => {
             warn!("on_dialogue_completed: area '{}' has no exits", area_id.0);
         }
@@ -71,11 +80,34 @@ fn on_player_continued(
 
         match exits.0.first() {
             Some(AreaExit::Continue(id)) => id.clone(),
+            Some(AreaExit::Choice(choices)) => {
+                // TODO: shouldn't be possible
+                todo!();
+            }
             None => panic!("No exits!"),
         }
     };
 
     let Some((next_entity, _, _)) = areas.iter().find(|(_, id, _)| id.0 == next_room_id) else {
+        return;
+    };
+
+    current_area.0 = next_entity;
+    commands.trigger(PlayerEnteredArea(next_entity));
+    next_exploring_state.set(ExploringState::Narrating);
+}
+
+fn on_player_chose(
+    trigger: On<PlayerChose>,
+    mut commands: Commands,
+    mut current_area: Single<&mut CurrentArea, With<Player>>,
+    areas: Query<(Entity, &AreaId, &AreaExits), With<Area>>,
+    mut next_exploring_state: ResMut<NextState<ExploringState>>,
+) {
+    info!("Player chose to move to room {}", trigger.0.0);
+
+    let Some((next_entity, _, _)) = areas.iter().find(|(_, id, _)| id.0 == trigger.0.0) else {
+        warn!("Room {} not found!", trigger.0.0);
         return;
     };
 

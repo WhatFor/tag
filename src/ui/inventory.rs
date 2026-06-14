@@ -4,8 +4,6 @@ use bevy::prelude::*;
 use crate::ui::widgets::panel::DespawnPanel;
 use bevy::input::common_conditions::input_just_pressed;
 
-pub struct InventoryUIPlugin;
-
 const ITEM_BORDER_COLOUR: Color = Color::srgb(0.4, 0.4, 0.4);
 const ITEM_SIZE: f32 = 100.;
 const ITEM_PADDING: f32 = 10.;
@@ -26,6 +24,8 @@ pub enum InventoryState {
     Closed,
     Open,
 }
+
+pub struct InventoryUIPlugin;
 
 impl Plugin for InventoryUIPlugin {
     fn build(&self, app: &mut App) {
@@ -61,9 +61,6 @@ fn button_init(mut commands: Commands) {
         .insert((
             DespawnOnExit(GameState::Playing),
             GlobalZIndex(LAYER_HUD),
-            Tooltip::new(|p| {
-                p.spawn(Text::new("What might you find?"));
-            }),
             Node {
                 position_type: PositionType::Absolute,
 
