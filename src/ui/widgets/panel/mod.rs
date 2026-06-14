@@ -43,7 +43,6 @@ impl Plugin for PanelWidgetPlugin {
 const BG_COLOUR: Color = Color::srgb(0.15, 0.15, 0.15);
 const BACKDROP_COLOUR: Color = Color::srgba(0.05, 0.05, 0.05, 0.45);
 const BORDER_COLOUR: Color = Color::srgb(0.4, 0.4, 0.4);
-const PADDING: f32 = 30.0;
 
 const DEFAULT_SIZE: f32 = 60.0;
 
@@ -71,13 +70,43 @@ pub fn init(
             ))
             .id();
 
-        let title = commands
-            .spawn((
-                Name::new("Panel Title"),
-                Text::new(panel.title.clone()),
-                fonts.ui_color,
-                fonts.ui_font.clone(),
-            ))
+        let header = commands
+            .spawn(Node {
+                width: Val::Percent(100.),
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::SpaceBetween,
+                align_items: AlignItems::Center,
+                ..default()
+            })
+            .with_children(|h| {
+                h.spawn((
+                    Node {
+                        padding: UiRect {
+                            left: Val::Px(20.),
+                            right: Val::Px(20.),
+                            top: Val::Px(10.),
+                            bottom: Val::Px(10.),
+                        },
+                        flex_direction: FlexDirection::Row,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    children![(
+                        Name::new("Panel Title"),
+                        Text::new(panel.title.clone()),
+                        fonts.ui_color,
+                        fonts.ui_font.clone(),
+                    )],
+                ));
+
+                h.spawn(button("Close")).observe(
+                    move |_: On<Pointer<Click>>, mut commands: Commands| {
+                        commands
+                            .entity(panel_entity)
+                            .trigger(|p| DespawnPanel { entity: p });
+                    },
+                );
+            })
             .id();
 
         commands
@@ -89,7 +118,6 @@ pub fn init(
                     height: panel.height,
                     flex_direction: FlexDirection::Column,
                     align_items: AlignItems::Center,
-                    padding: UiRect::all(Val::Px(PADDING)),
                     border: UiRect::all(Val::Px(1.0)),
                     ..default()
                 },
@@ -97,7 +125,7 @@ pub fn init(
                 BorderColor::all(BORDER_COLOUR),
                 GlobalZIndex(LAYER_MENU),
             ))
-            .insert_child(0, title);
+            .insert_child(0, header);
     }
 }
 

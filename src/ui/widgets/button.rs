@@ -4,6 +4,9 @@ const NORMAL: Color = Color::srgb(0.15, 0.15, 0.15);
 const HOVERED: Color = Color::srgb(0.25, 0.25, 0.25);
 const PRESSED: Color = Color::srgb(0.35, 0.75, 0.35);
 
+const PADDING_X: f32 = 20.;
+const PADDING_Y: f32 = 10.;
+
 #[derive(Component)]
 pub struct StyledButton;
 
@@ -27,10 +30,12 @@ pub fn button(label: impl Into<String>) -> impl Bundle {
         Name::new(format!("{} Button", label.clone())),
         BackgroundColor(NORMAL),
         Node {
-            // Size
-            width: px(200),
-            height: px(65),
-            // Centre text
+            padding: UiRect {
+                left: Val::Px(PADDING_X),
+                right: Val::Px(PADDING_X),
+                top: Val::Px(PADDING_Y),
+                bottom: Val::Px(PADDING_Y),
+            },
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             ..default()

@@ -88,7 +88,6 @@ fn despawn_inventory(
     mut commands: Commands,
     panel: Single<Entity, With<InventoryPanel>>,
     state: Res<State<InventoryState>>,
-    mut next: ResMut<NextState<InventoryState>>,
 ) {
     match state.get() {
         InventoryState::Closed => {}
@@ -96,8 +95,6 @@ fn despawn_inventory(
             commands
                 .entity(*panel)
                 .trigger(|p| DespawnPanel { entity: p });
-
-            next.set(InventoryState::Closed);
         }
     }
 }
@@ -154,30 +151,46 @@ fn spawn_inventory(
             InventoryPanel,
             Name::new("Inventory Panel"),
         ))
+        .observe(
+            // If the panel is despawned, it means the inventory has been closed.
+            // This allows the panel to close itself via it's close button.
+            |_: On<DespawnPanel>, mut next: ResMut<NextState<InventoryState>>| {
+                next.set(InventoryState::Closed);
+            },
+        )
         .with_children(|p| {
-            p.spawn(scroll_area(move |p| {
-                p.spawn(inventory_grid()).with_children(|grid| {
-                    for item in rows {
-                        grid.spawn(inventory_item(
-                            item.clone(),
-                            ui_font.clone(),
-                            ui_color.clone(),
-                        ))
-                        .with_children(|tile| {
-                            tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
+            p.spawn((
+                Node {
+                    display: Display::Flex,
+                    width: Val::Percent(100.),
+                    height: Val::Percent(100.),
+                    padding: UiRect::all(Val::Px(20.)),
+                    ..default()
+                },
+                children![scroll_area(move |p| {
+                    p.spawn(inventory_grid()).with_children(|grid| {
+                        for item in rows {
+                            grid.spawn(inventory_item(
+                                item.clone(),
+                                ui_font.clone(),
+                                ui_color.clone(),
+                            ))
+                            .with_children(|tile| {
+                                tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
 
-                            if let Some(count) = item.count.filter(|&c| c > 0) {
-                                tile.spawn(item_count(
-                                    item.id.clone(),
-                                    count.to_string(),
-                                    ui_font.clone(),
-                                    ui_color.clone(),
-                                ));
-                            }
-                        });
-                    }
-                });
-            }));
+                                if let Some(count) = item.count.filter(|&c| c > 0) {
+                                    tile.spawn(item_count(
+                                        item.id.clone(),
+                                        count.to_string(),
+                                        ui_font.clone(),
+                                        ui_color.clone(),
+                                    ));
+                                }
+                            });
+                        }
+                    });
+                })],
+            ));
         });
 }
 

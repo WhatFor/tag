@@ -1,8 +1,5 @@
 # TODO List
 
-- add an inventory UI
-  - esc closes invent if open, not opens pause menu
-  - invent button changes when invent is open (hides, or changes text?)
 - multi-path exits
 - how to play sounds? loops? one-shots?
 - pause menu settings
