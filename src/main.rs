@@ -8,16 +8,18 @@ pub mod prelude;
 pub mod state;
 
 mod assets;
-mod components;
-mod debug_tools;
 mod game;
 mod global;
 mod main_menu;
 mod pause_menu;
+mod persistence;
 mod player;
-mod sets;
 mod ui;
 mod world;
+
+mod components;
+mod debug_tools;
+mod sets;
 
 #[cfg(feature = "dev")]
 use crate::debug_tools::DebugToolsPlugin;
@@ -30,6 +32,7 @@ use crate::game::GameplayPlugin;
 use crate::global::GlobalPlugin;
 use crate::main_menu::MainMenuPlugin;
 use crate::pause_menu::PauseMenuPlugin;
+use crate::persistence::PersistencePlugin;
 use crate::player::PlayerPlugin;
 use crate::ui::UIPlugin;
 use crate::world::WorldPlugin;
@@ -69,6 +72,7 @@ fn main() {
         .add_plugins(GlobalPlugin)
         .add_plugins(MainMenuPlugin)
         .add_plugins(PauseMenuPlugin)
+        .add_plugins(PersistencePlugin)
         .add_plugins(WorldPlugin)
         .add_plugins(UIPlugin)
         .add_plugins(PlayerPlugin);

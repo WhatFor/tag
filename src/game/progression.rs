@@ -1,6 +1,8 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::persistence::events::SaveRequested;
+
 pub struct ProgressionPlugin;
 
 impl Plugin for ProgressionPlugin {
@@ -94,6 +96,7 @@ fn on_player_continued(
 
     current_area.0 = next_entity;
     commands.trigger(PlayerEnteredArea(next_entity));
+    commands.trigger(SaveRequested);
     next_exploring_state.set(ExploringState::Narrating);
 }
 
@@ -113,5 +116,6 @@ fn on_player_chose(
 
     current_area.0 = next_entity;
     commands.trigger(PlayerEnteredArea(next_entity));
+    commands.trigger(SaveRequested);
     next_exploring_state.set(ExploringState::Narrating);
 }

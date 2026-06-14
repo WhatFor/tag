@@ -1,5 +1,6 @@
 # TODO List
 
+- saving
 - go back button to return to the previous room (to help with testing)
 - how to play sounds? loops? one-shots?
 - pause menu settings
