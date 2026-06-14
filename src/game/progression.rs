@@ -80,7 +80,7 @@ fn on_player_continued(
 
         match exits.0.first() {
             Some(AreaExit::Continue(id)) => id.clone(),
-            Some(AreaExit::Choice(choices)) => {
+            Some(AreaExit::Choice(_)) => {
                 // TODO: shouldn't be possible
                 todo!();
             }
