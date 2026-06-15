@@ -87,32 +87,54 @@ fn build_text_fall(
                     Node {
                         width: Val::Percent(100.),
                         flex_direction: FlexDirection::Row,
+                        flex_wrap: FlexWrap::Wrap,
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
+                        column_gap: Val::Px(8.),
+                        row_gap: Val::Px(4.),
                         ..default()
                     },
                 ))
                 .id();
 
+            let mut char_entities: Vec<Entity> = Vec::new();
+            let mut word_nodes: Vec<Entity> = Vec::new();
+
             // Pass 1: spawn in forward order
-            let char_entities: Vec<Entity> = line
-                .chars()
-                .map(|ch| {
-                    commands
-                        .spawn((
-                            Text::new(ch.to_string()),
-                            Name::new("Animation TextFall Line Char"),
-                            animation.font.clone(),
-                            TextColor(animation.color.with_alpha(0.0)),
-                            Node {
-                                position_type: PositionType::Relative,
-                                bottom: Val::Px(CHAR_Y_OFFSET),
-                                ..default()
-                            },
-                        ))
-                        .id()
-                })
-                .collect();
+            for word in line.split_whitespace() {
+                let word_node = commands
+                    .spawn((
+                        Name::new("Animation TextFall Word"),
+                        Node {
+                            flex_direction: FlexDirection::Row,
+                            ..default()
+                        },
+                    ))
+                    .id();
+
+                let chars_in_word = word
+                    .chars()
+                    .map(|ch| {
+                        commands
+                            .spawn((
+                                Text::new(ch.to_string()),
+                                Name::new("Animation TextFall Line Char"),
+                                animation.font.clone(),
+                                TextColor(animation.color.with_alpha(0.0)),
+                                Node {
+                                    position_type: PositionType::Relative,
+                                    bottom: Val::Px(CHAR_Y_OFFSET),
+                                    ..default()
+                                },
+                            ))
+                            .id()
+                    })
+                    .collect::<Vec<Entity>>();
+
+                commands.entity(word_node).add_children(&chars_in_word);
+                word_nodes.push(word_node);
+                char_entities.extend(chars_in_word);
+            }
 
             // Pass 2: link each entity to the next
             for i in 0..char_entities.len() {
@@ -141,7 +163,7 @@ fn build_text_fall(
                 }
             }
 
-            commands.entity(line_node).add_children(&char_entities);
+            commands.entity(line_node).add_children(&word_nodes);
             line_nodes.push(line_node);
 
             // Last char needs a marker

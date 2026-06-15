@@ -28,6 +28,7 @@ fn init(mut commands: Commands) {
         Node {
             width: Val::Percent(100.),
             height: Val::Percent(100.),
+            padding: UiRect::axes(Val::Percent(5.), Val::Percent(0.)),
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
