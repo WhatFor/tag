@@ -1,6 +1,9 @@
+use crate::persistence::SAVE_FILE_KEY;
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::persistence::events::SaveDeleted;
+use crate::persistence::resources::SaveBackend;
 use crate::ui::widgets::button::button;
 
 pub struct MainMenuPlugin;
@@ -11,7 +14,7 @@ impl Plugin for MainMenuPlugin {
     }
 }
 
-fn init(mut commands: Commands) {
+fn init(mut commands: Commands, save_store: Res<SaveBackend>) {
     commands
         .spawn((
             Node {
@@ -20,14 +23,29 @@ fn init(mut commands: Commands) {
                 height: percent(100),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(20.),
                 ..default()
             },
             Name::new("Main Menu Container"),
             DespawnOnExit(GameState::MainMenu),
         ))
         .with_children(|p| {
-            p.spawn(button("Play")).observe(
-                |_: On<Pointer<Click>>, mut next_state: ResMut<NextState<GameState>>| {
+            if let Ok(save_file_exists) = save_store.0.exists(SAVE_FILE_KEY) {
+                if save_file_exists {
+                    p.spawn(button("Continue")).observe(
+                        |_: On<Pointer<Click>>, mut next_state: ResMut<NextState<GameState>>| {
+                            next_state.set(GameState::Playing);
+                        },
+                    );
+                }
+            }
+
+            p.spawn(button("New game")).observe(
+                |_: On<Pointer<Click>>,
+                 mut commands: Commands,
+                 mut next_state: ResMut<NextState<GameState>>| {
+                    commands.trigger(SaveDeleted);
                     next_state.set(GameState::Playing);
                 },
             );

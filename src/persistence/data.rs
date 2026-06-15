@@ -1,15 +1,15 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-struct SaveData {
-    version: u32,
-    current_area_id: String,
-    health: usize,
-    inventory: Vec<SavedItem>,
+pub struct SaveData {
+    pub version: u32,
+    pub current_area_id: String,
+    pub health: usize,
+    pub inventory: Vec<SavedItem>,
 }
 
 #[derive(Serialize, Deserialize)]
-struct SavedItem {
-    item_id: String,
-    count: u32,
+pub struct SavedItem {
+    pub item_id: String,
+    pub count: u32,
 }
