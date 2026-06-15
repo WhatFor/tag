@@ -1,7 +1,7 @@
-use crate::persistence::SAVE_FILE_KEY;
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::persistence::SAVE_FILE_KEY;
 use crate::persistence::events::SaveDeleted;
 use crate::persistence::resources::SaveBackend;
 use crate::ui::widgets::button::button;
@@ -46,7 +46,7 @@ fn init(mut commands: Commands, save_store: Res<SaveBackend>) {
                  mut commands: Commands,
                  mut next_state: ResMut<NextState<GameState>>| {
                     commands.trigger(SaveDeleted);
-                    next_state.set(GameState::Playing);
+                    next_state.set(GameState::Introduction);
                 },
             );
         });

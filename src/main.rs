@@ -10,6 +10,7 @@ pub mod state;
 mod assets;
 mod game;
 mod global;
+mod introduction;
 mod main_menu;
 mod pause_menu;
 mod persistence;
@@ -30,6 +31,7 @@ use bevy::dev_tools::picking_debug::{DebugPickingMode, DebugPickingPlugin};
 use crate::assets::AssetsPlugin;
 use crate::game::GameplayPlugin;
 use crate::global::GlobalPlugin;
+use crate::introduction::IntroductionPlugin;
 use crate::main_menu::MainMenuPlugin;
 use crate::pause_menu::PauseMenuPlugin;
 use crate::persistence::PersistencePlugin;
@@ -70,6 +72,7 @@ fn main() {
     app.add_plugins(AssetsPlugin)
         .add_plugins(GameplayPlugin)
         .add_plugins(GlobalPlugin)
+        .add_plugins(IntroductionPlugin)
         .add_plugins(MainMenuPlugin)
         .add_plugins(PauseMenuPlugin)
         .add_plugins(PersistencePlugin)
