@@ -8,10 +8,10 @@ use crate::assets::area_asset_loader::{AreaAssetLoader, AreaData};
 pub struct AreaAssets {
     #[asset(
         paths(
-            "areas/01.area.ron",
-            "areas/02.area.ron",
-            "areas/03.area.ron",
-            "areas/04.area.ron"
+            "areas/01.introduction.01.area.ron",
+            "areas/01.introduction.02.area.ron",
+            "areas/01.introduction.03.area.ron",
+            "areas/01.introduction.fail.area.ron",
         ),
         collection(typed)
     )]

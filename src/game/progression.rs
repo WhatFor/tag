@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::game::events::PlayerGameOver;
 use crate::persistence::events::SaveRequested;
 
 pub struct ProgressionPlugin;
@@ -11,6 +12,7 @@ impl Plugin for ProgressionPlugin {
         app.add_observer(on_dialogue_completed);
         app.add_observer(on_player_continued);
         app.add_observer(on_player_chose);
+        app.add_observer(on_player_game_over);
     }
 }
 
@@ -35,6 +37,10 @@ fn on_narration_completed(
         Some(AreaExit::Choice(_)) => {
             info!("Waiting for choice from room {}", area_id.0);
             next_exploring_state.set(ExploringState::AwaitingChoice);
+        }
+        Some(AreaExit::GameOver) => {
+            info!("Waiting for GameOver continue {}", area_id.0);
+            next_exploring_state.set(ExploringState::AwaitingGameOver);
         }
         None => panic!("No exits!"),
     }
@@ -62,6 +68,10 @@ fn on_dialogue_completed(
             info!("Waiting for choice from room {}", area_id.0);
             next_exploring_state.set(ExploringState::AwaitingChoice);
         }
+        Some(AreaExit::GameOver) => {
+            info!("Waiting for GameOver continue {}", area_id.0);
+            next_exploring_state.set(ExploringState::AwaitingGameOver);
+        }
         None => {
             warn!("on_dialogue_completed: area '{}' has no exits", area_id.0);
         }
@@ -85,6 +95,10 @@ fn on_player_continued(
             Some(AreaExit::Choice(_)) => {
                 // TODO: shouldn't be possible
                 todo!();
+            }
+            Some(AreaExit::GameOver) => {
+                // TODO: shouldn't be possible
+                todo!()
             }
             None => panic!("No exits!"),
         }
@@ -118,4 +132,10 @@ fn on_player_chose(
     commands.trigger(PlayerEnteredArea(next_entity));
     commands.trigger(SaveRequested);
     next_exploring_state.set(ExploringState::Narrating);
+}
+
+fn on_player_game_over(_: On<PlayerGameOver>, mut next_game_state: ResMut<NextState<GameState>>) {
+    info!("Game over!");
+
+    next_game_state.set(GameState::GameOver);
 }

@@ -1,0 +1,22 @@
+(
+    id: "intro_02",
+    name: "???",
+    narration: (
+      lines: []
+    ),
+    dialogue: (
+      character_id: Some("unknown"),
+      lines: [
+        "You're in my service now. For the rest of your miserable days, I assure you.",
+        "How many days that might be... Well, that's up to you to decide.",
+        "We can easily cast you back into Death's domain if you so desire.",
+        "How about it? Serve, or... retire?"
+      ]
+    ),
+    exits: [
+        Choice([
+            ( to: ("intro_03"), label: "Serve" ),
+            ( to: ("intro_fail"), label: "Retire" ),
+        ])
+    ]
+)

@@ -1,5 +1,8 @@
 # TODO List
 
+- fix layout, primarily how the dialogue/narration is placed absolute and the character name isn't correct. also, figure out UI for the current area name; not clear atm.
+- fix button font
+- inventory icon, inventory close icon
 - how to play sounds? loops? one-shots?
 
 # Nice to haves, not important

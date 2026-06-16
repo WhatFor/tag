@@ -9,6 +9,17 @@ impl Plugin for IntroductionPlugin {
     }
 }
 
+const INTRODUCTION_LINES: &[&str] = &[
+    "You remember the sensation of grass under your bare feet and the warmth of the evening sun.",
+    "The familiar sounds, bringing calm, to the place you called home.",
+    "But that was before.",
+    "Now, your senses fail you. You see nothing, and your limbs fail to find solid ground.",
+    "There is no up, no down. No time, nor sound.",
+    "Until a distant, deep and mountainous voice echoes through the void.",
+    "You try to call out to the stranger, sensing a way out...",
+    "You wake.",
+];
+
 fn init(mut commands: Commands, fonts: Res<FontAssets>) {
     commands
         .spawn((
@@ -20,7 +31,7 @@ fn init(mut commands: Commands, fonts: Res<FontAssets>) {
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Column,
-                row_gap: Val::Px(20.),
+                row_gap: Val::Px(30.),
                 ..default()
             },
             DespawnOnExit(GameState::Introduction),
@@ -28,7 +39,7 @@ fn init(mut commands: Commands, fonts: Res<FontAssets>) {
         .with_children(|p| {
             p.spawn((
                 Name::from("Introduction Title"),
-                Text::from("TAG"),
+                Text::from("Welcome"),
                 fonts.narration_font.clone(),
                 fonts.narration_color.clone(),
             ));
@@ -40,21 +51,19 @@ fn init(mut commands: Commands, fonts: Res<FontAssets>) {
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     flex_direction: FlexDirection::Column,
-                    row_gap: Val::Px(10.),
+                    row_gap: Val::Px(12.),
                     padding: UiRect::axes(Val::Percent(5.), Val::Percent(0.)),
                     ..default()
                 },
             ))
             .with_children(|p| {
-                p.spawn(Text::from(
-                    "Line 1 Line 1 Line 1 Line 1 Line 1 Line 1 Line 1 Line 1 Line 1 ",
-                ));
-                p.spawn(Text::from(
-                    "Line 2 Line 2 Line 2 Line 2 Line 2 Line 2 Line 2 Line 2 Line 2 ",
-                ));
-                p.spawn(Text::from(
-                    "Line 3 Line 3 Line 3 Line 3 Line 3 Line 3 Line 3 Line 3 Line 3 ",
-                ));
+                for line in INTRODUCTION_LINES {
+                    p.spawn((
+                        Text::from(*line),
+                        fonts.narration_font.clone().with_font_size(24.),
+                        fonts.narration_color.clone(),
+                    ));
+                }
             });
 
             p.spawn(button("Continue")).observe(

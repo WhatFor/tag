@@ -1,0 +1,14 @@
+(
+    id: "intro_03",
+    name: "???",
+    narration: (
+      lines: []
+    ),
+    dialogue: (
+      character_id: Some("unknown"),
+      lines: [
+        "Good!"
+      ]
+    ),
+    exits: []
+)

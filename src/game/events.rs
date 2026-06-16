@@ -6,3 +6,6 @@ pub struct PlayerContinued;
 
 #[derive(Event)]
 pub struct PlayerChose(pub AreaId);
+
+#[derive(Event)]
+pub struct PlayerGameOver;

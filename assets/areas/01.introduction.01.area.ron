@@ -1,0 +1,19 @@
+(
+    id: "intro_01",
+    name: "???",
+    narration: (
+      lines: []
+    ),
+    dialogue: (
+      character_id: Some("unknown"),
+      lines: [
+        "You! Pay attention, you soulless wretch.",
+        "I grow tired of repeating myself, I won't be saying this twice.",
+        "I've been over this with the 6 or 7 others today and they've all been horribly disappointing...",
+        "You won't disappoint me, will you?"
+      ]
+    ),
+    exits: [
+        Continue("intro_02")
+    ]
+)

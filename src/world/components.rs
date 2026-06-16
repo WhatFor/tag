@@ -8,6 +8,7 @@ pub struct Area;
 pub enum AreaExit {
     Continue(String),
     Choice(Vec<AreaExitOption>),
+    GameOver,
 }
 
 #[derive(Component)]

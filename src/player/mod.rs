@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{game::events::PlayerGameOver, prelude::*};
 use bevy::prelude::*;
 
 pub mod components;
@@ -22,6 +22,11 @@ impl Plugin for PlayerPlugin {
             wait_for_continue_input
                 .run_if(in_state(ExploringState::AwaitingContinue))
                 .in_set(PausableSystems),
+        );
+
+        app.add_systems(
+            OnEnter(ExploringState::AwaitingGameOver),
+            show_game_over.in_set(PausableSystems),
         );
     }
 }
@@ -85,10 +90,6 @@ fn show_choice_prompt(
             .with_children(|container| {
                 for exit in &current_area_exits.0 {
                     match exit {
-                        AreaExit::Continue(_) => {
-                            // TODO: should not be possible
-                            todo!()
-                        }
                         AreaExit::Choice(area_exit_options) => {
                             for exit_option in area_exit_options {
                                 let label = exit_option.label.clone();
@@ -101,8 +102,43 @@ fn show_choice_prompt(
                                 );
                             }
                         }
+                        _ => {
+                            warn!("Should not be possible!");
+                        }
                     };
                 }
+            });
+        });
+}
+
+fn show_game_over(mut commands: Commands) {
+    commands
+        .spawn((
+            DespawnOnExit(GameState::GameOver),
+            Node {
+                position_type: PositionType::Absolute,
+                bottom: Val::Px(250.),
+                width: Val::Percent(100.),
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+        ))
+        .with_children(|p| {
+            p.spawn(Node {
+                width: Val::Percent(100.),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                row_gap: Val::Px(20.),
+                ..default()
+            })
+            .with_children(|p| {
+                p.spawn(Text::new("Game over..."));
+                p.spawn(button("Main menu")).observe(
+                    |_: On<Pointer<Click>>, mut commands: Commands| {
+                        commands.trigger(PlayerGameOver);
+                    },
+                );
             });
         });
 }

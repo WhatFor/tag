@@ -1,0 +1,16 @@
+(
+    id: "intro_fail",
+    name: "???",
+    narration: (
+      lines: []
+    ),
+    dialogue: (
+      character_id: Some("unknown"),
+      lines: [
+        "How disappointing..."
+      ]
+    ),
+    exits: [
+        GameOver
+    ]
+)

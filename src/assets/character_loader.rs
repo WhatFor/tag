@@ -7,7 +7,10 @@ use std::collections::HashMap;
 
 #[derive(AssetCollection, Resource)]
 pub struct CharacterAssets {
-    #[asset(paths("characters/chair_daddy.char.ron"), collection(typed))]
+    #[asset(
+        paths("characters/chair_daddy.char.ron", "characters/unknown.char.ron"),
+        collection(typed)
+    )]
     handles: Vec<Handle<CharacterData>>,
 }
 

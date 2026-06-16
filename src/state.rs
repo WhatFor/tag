@@ -29,4 +29,5 @@ pub enum ExploringState {
     Narrating,
     AwaitingContinue,
     AwaitingChoice,
+    AwaitingGameOver,
 }
