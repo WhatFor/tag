@@ -1,10 +1,11 @@
 use crate::prelude::*;
+use crate::ui::layout::HudAreaTop;
 use bevy::prelude::*;
 
-use crate::ui::widgets::animation::text_fall::{AnimateTextFall, AnimateTextFallComplete};
-
-#[derive(Component)]
-struct ContainerNode;
+use crate::ui::NarrationContainerNode;
+use crate::ui::layout::GameArea;
+use crate::ui::widgets::animation::text_fall::AnimateTextFall;
+use crate::ui::widgets::animation::text_fall::AnimateTextFallComplete;
 
 #[derive(Component)]
 struct DialogueWrapperNode;
@@ -13,31 +14,8 @@ pub struct DialogueUIPlugin;
 
 impl Plugin for DialogueUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            OnEnter(GameState::Playing),
-            init.in_set(PlayingSet::InitialiseUI),
-        );
-
         app.add_observer(on_player_enter_area);
     }
-}
-
-fn init(mut commands: Commands) {
-    commands.spawn((
-        ContainerNode,
-        GlobalZIndex(LAYER_GAME),
-        Name::new("Dialogue Container"),
-        Node {
-            width: Val::Percent(100.),
-            height: Val::Percent(100.),
-            padding: UiRect::axes(Val::Percent(5.), Val::Percent(0.)),
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..default()
-        },
-        DespawnOnExit(GameState::Playing),
-    ));
 }
 
 fn on_player_enter_area(
@@ -45,12 +23,10 @@ fn on_player_enter_area(
     mut commands: Commands,
     all_area_dialogue: Query<&AreaDialogue, With<Area>>,
     character_store: Res<CharacterStore>,
-    container: Single<Entity, With<ContainerNode>>,
     fonts: Res<FontAssets>,
+    game_area: Single<Entity, With<GameArea>>,
+    hud_area_top: Single<Entity, With<HudAreaTop>>,
 ) {
-    // Clean up old content
-    commands.entity(*container).despawn_related::<Children>();
-
     // If we have no dialogue for the Area, skip.
     let Ok(dialogue) = all_area_dialogue.get(event.0) else {
         return;
@@ -60,14 +36,60 @@ fn on_player_enter_area(
         return;
     }
 
-    // Spawn a wrapper to hold the dialogue lines to make it easy to position other elements
+    // Draw the speaker name
+    let speaker = character_store
+        .0
+        .get(&dialogue.character_id.clone().unwrap_or(String::from("")))
+        .expect("Character not found!");
+
+    commands.spawn((
+        Name::new("Dialogue Speaker Text Container"),
+        ChildOf(hud_area_top.entity()),
+        Node {
+            flex_direction: FlexDirection::Row,
+            width: Val::Percent(100.),
+            justify_content: JustifyContent::Center,
+            ..default()
+        },
+        children![(
+            Text::new(speaker.display_name.clone()),
+            Name::new("Dialogue Speaker Text"),
+            TextLayout {
+                linebreak: LineBreak::NoWrap,
+                ..default()
+            },
+            fonts.ui_font.clone(),
+            fonts.ui_color,
+        )],
+    ));
+
+    let container = commands
+        .spawn((
+            ChildOf(game_area.entity()),
+            DespawnOnExit(GameState::Playing),
+            NarrationContainerNode,
+            GlobalZIndex(LAYER_GAME),
+            Name::new("Dialogue Container"),
+            Node {
+                width: Val::Percent(100.),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+        ))
+        .id();
+
+    // Draw dialogue text
     let dialogue_wrapper = commands
         .spawn((
             DialogueWrapperNode,
+            ChildOf(container.entity()),
             Name::new("Dialogue Wrapper"),
             Node {
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Center,
+                row_gap: Val::Px(10.),
                 ..default()
             },
             DespawnOnExit(GameState::Playing),
@@ -94,38 +116,4 @@ fn on_player_enter_area(
         .observe(|_: On<AnimateTextFallComplete>, mut commands: Commands| {
             commands.trigger(DialogueComplete);
         });
-
-    // Draw the speaker name
-    let speaker = character_store
-        .0
-        .get(&dialogue.character_id.clone().unwrap_or(String::from("")))
-        .expect("Character not found!");
-
-    let speaker_name_text = commands
-        .spawn((
-            Text::new("- ".to_owned() + &speaker.display_name.clone()),
-            Name::new("Dialogue Speaker Text"),
-            TextLayout {
-                linebreak: LineBreak::NoWrap,
-                ..default()
-            },
-            fonts.dialogue_font.clone(),
-            fonts.dialogue_color,
-            Node {
-                position_type: PositionType::Absolute,
-                bottom: Val::Px(-50.0),
-                right: Val::Px(-150.0),
-                ..default()
-            },
-        ))
-        .id();
-
-    commands
-        .entity(dialogue_wrapper)
-        .add_child(speaker_name_text);
-
-    // Finally, draw everything
-    commands
-        .entity(*container)
-        .replace_children(&[dialogue_wrapper]);
 }

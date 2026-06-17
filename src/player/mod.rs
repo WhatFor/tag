@@ -1,4 +1,4 @@
-use crate::{game::events::PlayerGameOver, prelude::*};
+use crate::{game::events::PlayerGameOver, prelude::*, ui::NarrationContainerNode};
 use bevy::prelude::*;
 
 pub mod components;
@@ -45,10 +45,14 @@ fn show_continue_prompt(mut commands: Commands) {
             },
         ))
         .with_children(|p| {
-            p.spawn(button("Continue"))
-                .observe(|_: On<Pointer<Click>>, mut commands: Commands| {
+            p.spawn(button("Continue")).observe(
+                |_: On<Pointer<Click>>,
+                 mut commands: Commands,
+                 current_dialogue: Single<Entity, With<NarrationContainerNode>>| {
                     commands.trigger(PlayerContinued);
-                });
+                    commands.entity(current_dialogue.entity()).try_despawn();
+                },
+            );
         });
 }
 
@@ -96,8 +100,14 @@ fn show_choice_prompt(
                                 let to = exit_option.to.clone();
 
                                 container.spawn(button(label)).observe(
-                                    move |_: On<Pointer<Click>>, mut commands: Commands| {
+                                    move |_: On<Pointer<Click>>,
+                                          mut commands: Commands,
+                                          current_dialogue: Single<
+                                        Entity,
+                                        With<NarrationContainerNode>,
+                                    >| {
                                         commands.trigger(PlayerChose(to.clone()));
+                                        commands.entity(current_dialogue.entity()).try_despawn();
                                     },
                                 );
                             }

@@ -1,53 +1,26 @@
 use crate::prelude::*;
+use crate::ui::NarrationContainerNode;
 use bevy::prelude::*;
 
+use crate::ui::layout::GameArea;
 use crate::ui::widgets::animation::text_fall::AnimateTextFall;
 use crate::ui::widgets::animation::text_fall::AnimateTextFallComplete;
-
-#[derive(Component)]
-struct ContainerNode;
 
 pub struct NarrationUIPlugin;
 
 impl Plugin for NarrationUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            OnEnter(GameState::Playing),
-            init.in_set(PlayingSet::InitialiseUI),
-        );
-
         app.add_observer(on_player_enter_area);
     }
-}
-
-fn init(mut commands: Commands) {
-    commands.spawn((
-        ContainerNode,
-        GlobalZIndex(LAYER_GAME),
-        Name::new("Narration Container"),
-        Node {
-            width: Val::Percent(100.),
-            height: Val::Percent(100.),
-            padding: UiRect::axes(Val::Percent(5.), Val::Percent(0.)),
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..default()
-        },
-        DespawnOnExit(GameState::Playing),
-    ));
 }
 
 fn on_player_enter_area(
     event: On<PlayerEnteredArea>,
     mut commands: Commands,
     all_area_narration: Query<&AreaNarration, With<Area>>,
-    container: Single<Entity, With<ContainerNode>>,
     fonts: Res<FontAssets>,
+    game_area: Single<Entity, With<GameArea>>,
 ) {
-    // Clean up old content
-    commands.entity(*container).despawn_related::<Children>();
-
     // If we have no narration for the Area, skip.
     let Ok(narration) = all_area_narration.get(event.0) else {
         return;
@@ -57,6 +30,23 @@ fn on_player_enter_area(
         return;
     }
 
+    let container = commands
+        .spawn((
+            ChildOf(game_area.entity()),
+            DespawnOnExit(GameState::Playing),
+            NarrationContainerNode,
+            GlobalZIndex(LAYER_GAME),
+            Name::new("Narration Container"),
+            Node {
+                width: Val::Percent(100.),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+        ))
+        .id();
+
     commands
         .spawn((
             AnimateTextFall {
@@ -64,7 +54,7 @@ fn on_player_enter_area(
                 font: fonts.narration_font.clone(),
                 color: fonts.narration_color,
             },
-            ChildOf(*container),
+            ChildOf(container),
             Node {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),

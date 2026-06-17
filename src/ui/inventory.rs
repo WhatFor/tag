@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{prelude::*, ui::layout::HudAreaBottom};
 use bevy::prelude::*;
 
 use crate::ui::widgets::panel::DespawnPanel;
@@ -55,20 +55,10 @@ impl Plugin for InventoryUIPlugin {
     }
 }
 
-fn button_init(mut commands: Commands) {
+fn button_init(mut commands: Commands, hud_area: Single<Entity, With<HudAreaBottom>>) {
     commands
-        .spawn(button("Inventory"))
-        .insert((
-            DespawnOnExit(GameState::Playing),
-            GlobalZIndex(LAYER_HUD),
-            Node {
-                position_type: PositionType::Absolute,
-
-                bottom: Val::Px(50.0),
-                right: Val::Px(50.0),
-                ..default()
-            },
-        ))
+        .spawn((button("Inventory"), ChildOf(hud_area.entity())))
+        .insert((DespawnOnExit(GameState::Playing), GlobalZIndex(LAYER_HUD)))
         .observe(
             |_: On<Pointer<Click>>,
              state: Res<State<InventoryState>>,

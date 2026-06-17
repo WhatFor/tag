@@ -1,6 +1,8 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::ui::layout::GameArea;
+
 pub struct IntroductionPlugin;
 
 impl Plugin for IntroductionPlugin {
@@ -20,14 +22,13 @@ const INTRODUCTION_LINES: &[&str] = &[
     "You wake.",
 ];
 
-fn init(mut commands: Commands, fonts: Res<FontAssets>) {
+fn init(mut commands: Commands, game_area: Single<Entity, With<GameArea>>, fonts: Res<FontAssets>) {
     commands
         .spawn((
             Name::new("Introduction Container"),
+            ChildOf(game_area.entity()),
             Node {
-                // center button
-                width: percent(100),
-                height: percent(100),
+                width: Val::Percent(100.),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Column,
@@ -47,7 +48,7 @@ fn init(mut commands: Commands, fonts: Res<FontAssets>) {
             p.spawn((
                 Name::from("Introduction Text Container"),
                 Node {
-                    width: percent(100),
+                    width: Val::Percent(100.),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     flex_direction: FlexDirection::Column,
