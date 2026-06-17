@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::ui::FontAssets;
+
 const NORMAL: Color = Color::srgb(0.15, 0.15, 0.15);
 const HOVERED: Color = Color::srgb(0.25, 0.25, 0.25);
 const PRESSED: Color = Color::srgb(0.35, 0.75, 0.35);
@@ -10,10 +12,15 @@ const PADDING_Y: f32 = 10.;
 #[derive(Component)]
 pub struct StyledButton;
 
+#[derive(Component)]
+pub struct StyledButtonText;
+
 pub struct ButtonWidgetPlugin;
 
 impl Plugin for ButtonWidgetPlugin {
     fn build(&self, app: &mut App) {
+        app.add_observer(on_create);
+
         app.add_observer(on_mouse_hover);
         app.add_observer(on_mouse_unhover);
 
@@ -43,6 +50,7 @@ pub fn button(label: impl Into<String>) -> impl Bundle {
         children![(
             Name::new(format!("{} Button Text", label.clone())),
             Text::new(label),
+            StyledButtonText,
             TextLayout {
                 linebreak: LineBreak::NoWrap,
                 ..default()
@@ -54,6 +62,17 @@ pub fn button(label: impl Into<String>) -> impl Bundle {
             TextColor(Color::srgb(0.9, 0.9, 0.9)),
         )],
     )
+}
+
+fn on_create(
+    add: On<Add, StyledButtonText>,
+    fonts: Res<FontAssets>,
+    mut query: Query<(&mut TextFont, &mut TextColor), With<StyledButtonText>>,
+) {
+    if let Ok((mut button_font, mut button_color)) = query.get_mut(add.entity) {
+        button_font.font = fonts.ui_font.font.clone();
+        button_color.0 = fonts.ui_color.0.clone();
+    }
 }
 
 fn on_mouse_hover(
