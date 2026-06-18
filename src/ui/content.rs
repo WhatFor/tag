@@ -1,15 +1,14 @@
 use crate::prelude::*;
-use crate::ui::layout::HudAreaTop;
 use bevy::prelude::*;
 
 use crate::ui::layout::GameArea;
+use crate::ui::layout::HudAreaTop;
 use crate::ui::widgets::animation::text_fall::AnimateTextFall;
 use crate::ui::widgets::animation::text_fall::AnimateTextFallComplete;
 
-// TODO: Remove me?
 #[derive(Component, Reflect)]
 #[reflect(Component)]
-pub struct NarrationContainerNode;
+pub struct AreaContentRoot;
 
 pub struct ContentUIPlugin;
 
@@ -23,6 +22,7 @@ fn on_player_enter_area(
     event: On<PlayerEnteredArea>,
     mut commands: Commands,
     all_area_content: Query<&AreaContent, With<Area>>,
+    previous_area_content: Query<Entity, With<AreaContentRoot>>,
     character_store: Res<CharacterStore>,
     fonts: Res<FontAssets>,
     game_area: Single<Entity, With<GameArea>>,
@@ -31,6 +31,10 @@ fn on_player_enter_area(
     let Ok(content) = all_area_content.get(event.0) else {
         return;
     };
+
+    for entity in &previous_area_content {
+        commands.entity(entity).try_despawn();
+    }
 
     match content {
         AreaContent::Dialogue {
@@ -49,6 +53,8 @@ fn on_player_enter_area(
 
             commands.spawn((
                 Name::new("Dialogue Speaker Text Container"),
+                AreaContentRoot,
+                DespawnOnExit(GameState::Playing),
                 ChildOf(hud_area_top.entity()),
                 Node {
                     flex_direction: FlexDirection::Row,
@@ -71,8 +77,8 @@ fn on_player_enter_area(
             let container = commands
                 .spawn((
                     ChildOf(game_area.entity()),
+                    AreaContentRoot,
                     DespawnOnExit(GameState::Playing),
-                    NarrationContainerNode,
                     GlobalZIndex(LAYER_GAME),
                     Name::new("Dialogue Container"),
                     Node {
@@ -130,7 +136,7 @@ fn on_player_enter_area(
                 .spawn((
                     ChildOf(game_area.entity()),
                     DespawnOnExit(GameState::Playing),
-                    NarrationContainerNode,
+                    AreaContentRoot,
                     GlobalZIndex(LAYER_GAME),
                     Name::new("Narration Container"),
                     Node {

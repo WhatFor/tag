@@ -59,7 +59,7 @@ fn reset_to_menu(
     save_store: Res<SaveBackend>,
 ) -> Result {
     next_game_state.set(GameState::MainMenu);
-    next_exploring_state.set(ExploringState::Narrating);
+    next_exploring_state.set(ExploringState::PresentingContent);
     save_store.0.clear(SAVE_FILE_KEY)?;
 
     Ok(())

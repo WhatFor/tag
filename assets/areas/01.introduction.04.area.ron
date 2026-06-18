@@ -1,0 +1,10 @@
+(
+    id: "intro_04",
+    name: "???",
+    content: Narration(
+      lines: [
+        "The dragon sniffs. Mmmmmmm... piss."
+      ]
+    ),
+    exits: []
+)

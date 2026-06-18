@@ -26,7 +26,7 @@ pub enum PlayState {
 #[source(PlayState = PlayState::Exploring)]
 pub enum ExploringState {
     #[default]
-    Narrating,
+    PresentingContent,
     AwaitingContinue,
     AwaitingChoice,
     AwaitingGameOver,

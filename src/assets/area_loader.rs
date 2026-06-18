@@ -11,6 +11,7 @@ pub struct AreaAssets {
             "areas/01.introduction.01.area.ron",
             "areas/01.introduction.02.area.ron",
             "areas/01.introduction.03.area.ron",
+            "areas/01.introduction.04.area.ron",
             "areas/01.introduction.fail.area.ron",
         ),
         collection(typed)

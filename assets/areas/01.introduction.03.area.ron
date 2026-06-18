@@ -7,5 +7,7 @@
         "Good!"
       ]
     ),
-    exits: []
+    exits: [
+        Continue("intro_04")
+    ]
 )

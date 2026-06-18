@@ -3,9 +3,6 @@ use bevy::prelude::*;
 
 use crate::game::events::PlayerGameOver;
 
-// TODO: remove me
-use crate::ui::content::NarrationContainerNode;
-
 pub mod components;
 
 pub struct PlayerPlugin;
@@ -50,14 +47,10 @@ fn show_continue_prompt(mut commands: Commands) {
             },
         ))
         .with_children(|p| {
-            p.spawn(button("Continue")).observe(
-                |_: On<Pointer<Click>>,
-                 mut commands: Commands,
-                 current_dialogue: Single<Entity, With<NarrationContainerNode>>| {
+            p.spawn(button("Continue"))
+                .observe(|_: On<Pointer<Click>>, mut commands: Commands| {
                     commands.trigger(PlayerContinued);
-                    commands.entity(current_dialogue.entity()).try_despawn();
-                },
-            );
+                });
         });
 }
 
@@ -105,14 +98,8 @@ fn show_choice_prompt(
                                 let to = exit_option.to.clone();
 
                                 container.spawn(button(label)).observe(
-                                    move |_: On<Pointer<Click>>,
-                                          mut commands: Commands,
-                                          current_dialogue: Single<
-                                        Entity,
-                                        With<NarrationContainerNode>,
-                                    >| {
+                                    move |_: On<Pointer<Click>>, mut commands: Commands| {
                                         commands.trigger(PlayerChose(to.clone()));
-                                        commands.entity(current_dialogue.entity()).try_despawn();
                                     },
                                 );
                             }
@@ -130,6 +117,7 @@ fn show_game_over(mut commands: Commands) {
     commands
         .spawn((
             DespawnOnExit(GameState::GameOver),
+            GlobalZIndex(LAYER_HUD),
             Node {
                 position_type: PositionType::Absolute,
                 bottom: Val::Px(250.),

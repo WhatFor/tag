@@ -42,7 +42,9 @@ fn on_narration_completed(
             info!("Waiting for GameOver continue {}", area_id.0);
             next_exploring_state.set(ExploringState::AwaitingGameOver);
         }
-        None => panic!("No exits!"),
+        None => {
+            warn!("on_narration_completed: area '{}' has no exits", area_id.0);
+        }
     }
 }
 
@@ -111,7 +113,7 @@ fn on_player_continued(
     current_area.0 = next_entity;
     commands.trigger(PlayerEnteredArea(next_entity));
     commands.trigger(SaveRequested);
-    next_exploring_state.set(ExploringState::Narrating);
+    next_exploring_state.set(ExploringState::PresentingContent);
 }
 
 fn on_player_chose(
@@ -131,7 +133,7 @@ fn on_player_chose(
     current_area.0 = next_entity;
     commands.trigger(PlayerEnteredArea(next_entity));
     commands.trigger(SaveRequested);
-    next_exploring_state.set(ExploringState::Narrating);
+    next_exploring_state.set(ExploringState::PresentingContent);
 }
 
 fn on_player_game_over(_: On<PlayerGameOver>, mut next_game_state: ResMut<NextState<GameState>>) {

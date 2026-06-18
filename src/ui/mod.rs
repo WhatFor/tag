@@ -15,7 +15,7 @@ pub mod layout;
 pub mod widgets;
 
 mod area;
-pub mod content;
+mod content;
 
 #[derive(AssetCollection, Resource)]
 pub struct FontHandles {
