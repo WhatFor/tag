@@ -1,5 +1,10 @@
-use crate::{game::events::PlayerGameOver, prelude::*, ui::NarrationContainerNode};
+use crate::prelude::*;
 use bevy::prelude::*;
+
+use crate::game::events::PlayerGameOver;
+
+// TODO: remove me
+use crate::ui::content::NarrationContainerNode;
 
 pub mod components;
 

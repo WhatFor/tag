@@ -23,15 +23,15 @@ pub struct AreaExitOption {
 #[derive(Component, Deserialize, Clone)]
 pub struct AreaId(pub String);
 
-#[derive(Component)]
-pub struct AreaNarration {
-    pub lines: Vec<String>,
-}
-
-#[derive(Component)]
-pub struct AreaDialogue {
-    pub character_id: Option<String>,
-    pub lines: Vec<String>,
+#[derive(Component, Deserialize, Clone)]
+pub enum AreaContent {
+    Dialogue {
+        character_id: Option<String>,
+        lines: Vec<String>,
+    },
+    Narration {
+        lines: Vec<String>,
+    },
 }
 
 #[derive(Component, Reflect)]

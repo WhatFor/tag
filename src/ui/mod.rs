@@ -3,10 +3,9 @@ use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
 use crate::ui::area::AreaUIPlugin;
-use crate::ui::dialogue::DialogueUIPlugin;
+use crate::ui::content::ContentUIPlugin;
 use crate::ui::inventory::InventoryUIPlugin;
 use crate::ui::layout::UILayoutPlugin;
-use crate::ui::narration::NarrationUIPlugin;
 use crate::ui::widgets::WidgetsPlugin;
 
 pub mod events;
@@ -16,12 +15,7 @@ pub mod layout;
 pub mod widgets;
 
 mod area;
-mod dialogue;
-mod narration;
-
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct NarrationContainerNode;
+pub mod content;
 
 #[derive(AssetCollection, Resource)]
 pub struct FontHandles {
@@ -57,8 +51,7 @@ impl Plugin for UIPlugin {
         app.add_plugins(WidgetsPlugin);
         app.add_plugins(UILayoutPlugin);
         app.add_plugins(AreaUIPlugin);
-        app.add_plugins(NarrationUIPlugin);
-        app.add_plugins(DialogueUIPlugin);
+        app.add_plugins(ContentUIPlugin);
         app.add_plugins(InventoryUIPlugin);
 
         app.configure_loading_state(

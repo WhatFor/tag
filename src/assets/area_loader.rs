@@ -48,13 +48,7 @@ fn spawn_areas(mut commands: Commands, areas: Res<AreaAssets>, area_data: Res<As
             Area,
             Name::new(format!("Area {}", data.id)),
             AreaExits(data.exits.clone()),
-            AreaNarration {
-                lines: data.narration.lines.clone(),
-            },
-            AreaDialogue {
-                character_id: data.dialogue.character_id.clone(),
-                lines: data.dialogue.lines.clone(),
-            },
+            data.content.clone(),
             crate::components::DisplayName(data.name.clone()),
             crate::world::components::AreaId(data.id.clone()),
         ));

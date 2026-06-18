@@ -4,26 +4,11 @@ use bevy::prelude::*;
 use serde::Deserialize;
 use thiserror::Error;
 
-pub type AreaId = String;
-pub type CharacterId = String;
-
-#[derive(TypePath, Deserialize)]
-pub struct AreaNarration {
-    pub lines: Vec<String>,
-}
-
-#[derive(TypePath, Deserialize)]
-pub struct AreaDialogue {
-    pub character_id: Option<CharacterId>,
-    pub lines: Vec<String>,
-}
-
 #[derive(Asset, TypePath, Deserialize)]
 pub struct AreaData {
-    pub id: AreaId,
+    pub id: String,
     pub name: String,
-    pub narration: AreaNarration,
-    pub dialogue: AreaDialogue,
+    pub content: AreaContent,
     pub exits: Vec<AreaExit>,
 }
 

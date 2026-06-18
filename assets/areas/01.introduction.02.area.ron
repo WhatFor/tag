@@ -1,10 +1,7 @@
 (
     id: "intro_02",
     name: "???",
-    narration: (
-      lines: []
-    ),
-    dialogue: (
+    content: Dialogue(
       character_id: Some("unknown"),
       lines: [
         "You're in my service now. For the rest of your miserable days, I assure you.",

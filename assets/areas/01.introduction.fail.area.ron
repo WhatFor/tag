@@ -1,10 +1,7 @@
 (
     id: "intro_fail",
     name: "???",
-    narration: (
-      lines: []
-    ),
-    dialogue: (
+    content: Dialogue(
       character_id: Some("unknown"),
       lines: [
         "How disappointing..."
