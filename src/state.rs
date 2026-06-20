@@ -27,7 +27,6 @@ pub enum PlayState {
 pub enum ExploringState {
     #[default]
     PresentingContent,
-    AwaitingContinue,
-    AwaitingChoice,
+    AwaitingContentPrompt,
     AwaitingGameOver,
 }

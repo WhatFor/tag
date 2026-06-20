@@ -37,6 +37,7 @@ pub use crate::state::PlayState;
 // Events
 pub use crate::game::events::PlayerChose;
 pub use crate::game::events::PlayerContinued;
+pub use crate::game::events::PlayerGameOver;
 pub use crate::world::events::PlayerEnteredArea;
 
 // UI

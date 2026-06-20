@@ -19,6 +19,23 @@ impl Plugin for ContentUIPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(on_player_enter_area);
         app.add_observer(on_content_display_completed);
+
+        app.add_systems(
+            OnEnter(ExploringState::AwaitingContentPrompt),
+            show_content_prompt.in_set(PausableSystems),
+        );
+
+        app.add_systems(
+            Update,
+            wait_for_continue_input
+                .run_if(in_state(ExploringState::AwaitingContentPrompt))
+                .in_set(PausableSystems),
+        );
+
+        app.add_systems(
+            OnEnter(ExploringState::AwaitingGameOver),
+            show_game_over.in_set(PausableSystems),
+        );
     }
 }
 
@@ -187,14 +204,8 @@ fn on_content_display_completed(
     };
 
     match current_area_exits.first() {
-        Some(AreaExit::Continue(next_room)) => {
-            info!("Continuing on to room {}", next_room);
-
-            next_exploring_state.set(ExploringState::AwaitingContinue);
-        }
-        Some(AreaExit::Choice(_)) => {
-            info!("Waiting for choice from room {}", **area_id);
-            next_exploring_state.set(ExploringState::AwaitingChoice);
+        Some(AreaExit::Continue(_)) | Some(AreaExit::Choice(_)) => {
+            next_exploring_state.set(ExploringState::AwaitingContentPrompt);
         }
         Some(AreaExit::GameOver) => {
             info!("Waiting for GameOver continue {}", **area_id);
@@ -204,4 +215,137 @@ fn on_content_display_completed(
             warn!("on_dialogue_completed: area '{}' has no exits", **area_id);
         }
     }
+}
+
+fn show_content_prompt(
+    mut commands: Commands,
+    current_area: Single<&CurrentArea, With<Player>>,
+    areas: Query<&AreaExits, With<Area>>,
+) {
+    let Ok(current_area_exits) = areas.get(current_area.entity()) else {
+        // Area not found - shouldn't happen
+        return;
+    };
+
+    if let Some(AreaExit::Continue(_)) = current_area_exits.first() {
+        // Spawn 'Continue' button
+        commands
+            .spawn((
+                DespawnOnExit(ExploringState::AwaitingContentPrompt),
+                GlobalZIndex(LAYER_HUD),
+                Node {
+                    position_type: PositionType::Absolute,
+                    bottom: Val::Px(250.0),
+                    width: Val::Percent(100.0),
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                },
+            ))
+            .with_children(|p| {
+                p.spawn(button("Continue (space)")).observe(
+                    |_: On<Pointer<Click>>, mut commands: Commands| {
+                        commands.trigger(PlayerContinued);
+                    },
+                );
+            });
+    } else {
+        // Spawn 'Choice' buttons
+        commands
+            .spawn((
+                DespawnOnExit(ExploringState::AwaitingContentPrompt),
+                GlobalZIndex(LAYER_HUD),
+                Node {
+                    position_type: PositionType::Absolute,
+                    bottom: Val::Px(250.),
+                    width: Val::Percent(100.),
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                },
+            ))
+            .with_children(|p| {
+                p.spawn(Node {
+                    width: Val::Percent(100.),
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::SpaceEvenly,
+                    align_items: AlignItems::Center,
+                    ..default()
+                })
+                .with_children(|container| {
+                    for exit in current_area_exits.iter() {
+                        match exit {
+                            AreaExit::Choice(area_exit_options) => {
+                                for exit_option in area_exit_options {
+                                    let label = exit_option.label.clone();
+                                    let to = exit_option.to.clone();
+
+                                    container.spawn(button(label)).observe(
+                                        move |_: On<Pointer<Click>>, mut commands: Commands| {
+                                            commands.trigger(PlayerChose(to.clone()));
+                                        },
+                                    );
+                                }
+                            }
+                            _ => {
+                                warn!("Should not be possible!");
+                            }
+                        };
+                    }
+                });
+            });
+    };
+}
+
+fn wait_for_continue_input(
+    mut commands: Commands,
+    current_area: Single<&CurrentArea, With<Player>>,
+    areas: Query<&AreaExits, With<Area>>,
+    keyboard: Res<ButtonInput<KeyCode>>,
+) {
+    let Ok(current_area_exits) = areas.get(current_area.entity()) else {
+        return;
+    };
+
+    match current_area_exits.first() {
+        Some(AreaExit::Continue(_)) => {
+            if keyboard.just_pressed(KeyCode::Space) {
+                commands.trigger(PlayerContinued);
+            }
+        }
+        _ => {
+            // Ignore where no exits or choice exits
+        }
+    };
+}
+
+fn show_game_over(mut commands: Commands) {
+    commands
+        .spawn((
+            DespawnOnExit(GameState::GameOver),
+            GlobalZIndex(LAYER_HUD),
+            Node {
+                position_type: PositionType::Absolute,
+                bottom: Val::Px(250.),
+                width: Val::Percent(100.),
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+        ))
+        .with_children(|p| {
+            p.spawn(Node {
+                width: Val::Percent(100.),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                row_gap: Val::Px(20.),
+                ..default()
+            })
+            .with_children(|p| {
+                p.spawn(Text::new("Game over..."));
+                p.spawn(button("Main menu")).observe(
+                    |_: On<Pointer<Click>>, mut commands: Commands| {
+                        commands.trigger(PlayerGameOver);
+                    },
+                );
+            });
+        });
 }

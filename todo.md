@@ -1,7 +1,6 @@
 # TODO List
 
-- fix layout, primarily how the dialogue/narration is placed absolute and the character name isn't correct. also, figure out UI for the current area name; not clear atm.
-- figure out project structure; the flow of code through narration/dialogue is confusing and touches mods: player, game:progression, and ui:content. It's all content! Decide on a barrier and stick to it. progression should probably do the state handling, ui:content should probably do rendering, and player probably shouldn't do anything!
+- figure out UI for the current area name;
 - main menu splash
 - inventory icon, inventory close icon
 - how to play sounds? loops? one-shots?
