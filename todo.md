@@ -1,14 +1,14 @@
 # TODO List
 
-- figure out UI for the current area name;
-- main menu splash
-- inventory icon, inventory close icon
+- break out icon button component for invent + panel close
 - how to play sounds? loops? one-shots?
 
 # Nice to haves, not important
 - go back button to return to the previous room (to help with testing)
 - pause menu settings
 - export/import save
+- main menu splash
+- hover effect on inventory icon, bg colour, something for interaction
 
 ---
 

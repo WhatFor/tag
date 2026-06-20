@@ -7,7 +7,7 @@ use bevy_asset_loader::prelude::*;
 use crate::assets::item_asset_loader::{ItemAssetLoader, ItemData};
 
 #[derive(AssetCollection, Resource)]
-pub struct IconAssets {
+pub struct ItemIconAssets {
     #[asset(
         paths("icons/_placeholder.png", "icons/iron_sword.png", "icons/potion.png"),
         collection(typed, mapped)
@@ -47,7 +47,7 @@ impl Plugin for ItemLoaderPlugin {
         app.configure_loading_state(
             LoadingStateConfig::new(GameState::Initialising)
                 .load_collection::<ItemAssets>()
-                .load_collection::<IconAssets>(),
+                .load_collection::<ItemIconAssets>(),
         );
 
         app.add_systems(OnExit(GameState::Initialising), add_item_store);
@@ -58,7 +58,7 @@ fn add_item_store(
     items: Res<ItemAssets>,
     item_data: Res<Assets<ItemData>>,
     mut item_store: ResMut<ItemStore>,
-    icon_store: Res<IconAssets>,
+    icon_store: Res<ItemIconAssets>,
 ) {
     info!(
         "IconAssets keys: {:?}",

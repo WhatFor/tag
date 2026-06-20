@@ -5,7 +5,8 @@ use crate::ui::layout::HudAreaBottomRight;
 use crate::ui::widgets::panel::DespawnPanel;
 use bevy::input::common_conditions::input_just_pressed;
 
-const ITEM_BORDER_COLOUR: Color = Color::srgb(0.4, 0.4, 0.4);
+const ITEM_BORDER_COLOUR: Color = Color::srgb(1., 1., 1.);
+const ITEM_BORDER_SIZE: f32 = 4.;
 const ITEM_SIZE: f32 = 100.;
 const ITEM_PADDING: f32 = 10.;
 const GRID_GAP: f32 = 10.;
@@ -15,6 +16,8 @@ const TOOLTIP_ITEM_SIZE: f32 = 32.;
 
 const TOOLTIP_LABEL_FONT_SIZE: f32 = 26.;
 const TOOLTIP_DESC_FONT_SIZE: f32 = 18.;
+
+const INVENTORY_BUTTON_ICON_SIZE: f32 = 64.;
 
 #[derive(Component)]
 pub struct InventoryPanel;
@@ -56,20 +59,51 @@ impl Plugin for InventoryUIPlugin {
     }
 }
 
-fn button_init(mut commands: Commands, hud_area: Single<Entity, With<HudAreaBottomRight>>) {
-    commands
-        .spawn((button("Inventory"), ChildOf(hud_area.entity())))
-        .insert((DespawnOnExit(GameState::Playing), GlobalZIndex(LAYER_HUD)))
-        .observe(
-            |_: On<Pointer<Click>>,
-             state: Res<State<InventoryState>>,
-             mut next: ResMut<NextState<InventoryState>>| {
-                match state.get() {
-                    InventoryState::Closed => next.set(InventoryState::Open),
-                    InventoryState::Open => next.set(InventoryState::Closed),
-                };
-            },
+fn button_init(
+    mut commands: Commands,
+    icon_store: Res<IconAssets>,
+    hud_area: Single<Entity, With<HudAreaBottomRight>>,
+) {
+    if let Some(inventory_icon) = icon_store.icons.get("inventory").cloned() {
+        commands
+            .spawn((
+                Button,
+                Tooltip::basic("Inventory"),
+                ChildOf(hud_area.entity()),
+                DespawnOnExit(GameState::Playing),
+                GlobalZIndex(LAYER_HUD),
+                Node {
+                    padding: UiRect::all(Val::Px(8.)),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                Name::new("Inventory Button"),
+                children![(
+                    Node {
+                        width: Val::Px(INVENTORY_BUTTON_ICON_SIZE),
+                        height: Val::Px(INVENTORY_BUTTON_ICON_SIZE),
+                        ..default()
+                    },
+                    ImageNode::new(inventory_icon),
+                )],
+            ))
+            .observe(
+                |_: On<Pointer<Click>>,
+                 state: Res<State<InventoryState>>,
+                 mut next: ResMut<NextState<InventoryState>>| {
+                    match state.get() {
+                        InventoryState::Closed => next.set(InventoryState::Open),
+                        InventoryState::Open => next.set(InventoryState::Closed),
+                    };
+                },
+            );
+    } else {
+        warn!(
+            "Failed to find ui/inventory button. See: {:?}",
+            icon_store.icons
         );
+    }
 }
 
 fn despawn_inventory(
@@ -214,7 +248,7 @@ fn inventory_item(item: ItemRow, font: TextFont, color: TextColor) -> impl Bundl
     (
         Name::new(format!("Inventory Item '{}' (ID: {})", item.name, item.id)),
         Node {
-            border: UiRect::all(Val::Px(1.)),
+            border: UiRect::all(Val::Px(ITEM_BORDER_SIZE)),
             padding: UiRect::all(Val::Px(ITEM_PADDING)),
             ..default()
         },

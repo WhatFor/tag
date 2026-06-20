@@ -8,7 +8,8 @@ use std::sync::Arc;
 const FADE_SECONDS: f32 = 0.15 * GLOBAL_ANIMATION_SPEED;
 
 const BG_COLOUR: Color = Color::srgb(0.15, 0.15, 0.15);
-const BORDER_COLOUR: Color = Color::srgb(0.25, 0.25, 0.25);
+const BORDER_COLOUR: Color = Color::srgb(1., 1., 1.);
+const BORDER_SIZE: f32 = 4.;
 
 const PADDING_X: f32 = 20.;
 const PADDING_Y: f32 = 10.;
@@ -22,6 +23,14 @@ pub struct Tooltip {
 }
 
 impl Tooltip {
+    pub fn basic(content: impl Into<String>) -> Self {
+        let content = content.into();
+
+        Self::new(move |p| {
+            p.spawn(Text::new(content.clone()));
+        })
+    }
+
     pub fn new<F>(child_spawner: F) -> Self
     where
         F: Fn(&mut RelatedSpawnerCommands<ChildOf>) + Send + Sync + 'static,
@@ -182,7 +191,7 @@ fn on_mouse_over(
                     Val::Px(PADDING_Y), // Top
                     Val::Px(PADDING_Y), // Bottom
                 ),
-                border: UiRect::all(Val::Px(1.)),
+                border: UiRect::all(Val::Px(BORDER_SIZE)),
                 ..default()
             },
             BackgroundColor(BG_COLOUR.with_alpha(0.0)),
