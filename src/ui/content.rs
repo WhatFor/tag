@@ -2,6 +2,7 @@ use crate::prelude::*;
 use bevy::prelude::*;
 
 use crate::ui::layout::GameArea;
+use crate::ui::layout::HudAreaBottomCenter;
 use crate::ui::layout::HudAreaTop;
 use crate::ui::widgets::animation::text_fall::AnimateTextFall;
 use crate::ui::widgets::animation::text_fall::AnimateTextFallComplete;
@@ -221,6 +222,7 @@ fn show_content_prompt(
     mut commands: Commands,
     current_area: Single<&CurrentArea, With<Player>>,
     areas: Query<&AreaExits, With<Area>>,
+    bottom_center_hud: Single<Entity, With<HudAreaBottomCenter>>,
 ) {
     let Ok(current_area_exits) = areas.get(current_area.entity()) else {
         // Area not found - shouldn't happen
@@ -231,12 +233,13 @@ fn show_content_prompt(
         // Spawn 'Continue' button
         commands
             .spawn((
+                Name::new("Continue Button Container"),
+                ChildOf(bottom_center_hud.entity()),
                 DespawnOnExit(ExploringState::AwaitingContentPrompt),
                 GlobalZIndex(LAYER_HUD),
                 Node {
-                    position_type: PositionType::Absolute,
-                    bottom: Val::Px(250.0),
-                    width: Val::Percent(100.0),
+                    width: Val::Percent(100.),
+                    flex_direction: FlexDirection::Row,
                     justify_content: JustifyContent::Center,
                     ..default()
                 },
@@ -252,45 +255,39 @@ fn show_content_prompt(
         // Spawn 'Choice' buttons
         commands
             .spawn((
+                Name::new("Choice Buttons Container"),
+                ChildOf(bottom_center_hud.entity()),
                 DespawnOnExit(ExploringState::AwaitingContentPrompt),
                 GlobalZIndex(LAYER_HUD),
                 Node {
-                    position_type: PositionType::Absolute,
-                    bottom: Val::Px(250.),
-                    width: Val::Percent(100.),
-                    justify_content: JustifyContent::Center,
-                    ..default()
-                },
-            ))
-            .with_children(|p| {
-                p.spawn(Node {
                     width: Val::Percent(100.),
                     flex_direction: FlexDirection::Row,
                     justify_content: JustifyContent::SpaceEvenly,
                     align_items: AlignItems::Center,
+                    column_gap: Val::Px(8.),
                     ..default()
-                })
-                .with_children(|container| {
-                    for exit in current_area_exits.iter() {
-                        match exit {
-                            AreaExit::Choice(area_exit_options) => {
-                                for exit_option in area_exit_options {
-                                    let label = exit_option.label.clone();
-                                    let to = exit_option.to.clone();
+                },
+            ))
+            .with_children(|container| {
+                for exit in current_area_exits.iter() {
+                    match exit {
+                        AreaExit::Choice(area_exit_options) => {
+                            for exit_option in area_exit_options {
+                                let label = exit_option.label.clone();
+                                let to = exit_option.to.clone();
 
-                                    container.spawn(button(label)).observe(
-                                        move |_: On<Pointer<Click>>, mut commands: Commands| {
-                                            commands.trigger(PlayerChose(to.clone()));
-                                        },
-                                    );
-                                }
+                                container.spawn(button(label)).observe(
+                                    move |_: On<Pointer<Click>>, mut commands: Commands| {
+                                        commands.trigger(PlayerChose(to.clone()));
+                                    },
+                                );
                             }
-                            _ => {
-                                warn!("Should not be possible!");
-                            }
-                        };
-                    }
-                });
+                        }
+                        _ => {
+                            warn!("Should not be possible!");
+                        }
+                    };
+                }
             });
     };
 }

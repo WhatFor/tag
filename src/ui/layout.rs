@@ -17,6 +17,18 @@ pub struct HudAreaTop;
 #[reflect(Component)]
 pub struct HudAreaBottom;
 
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct HudAreaBottomLeft;
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct HudAreaBottomCenter;
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct HudAreaBottomRight;
+
 pub struct UILayoutPlugin;
 
 impl Plugin for UILayoutPlugin {
@@ -68,9 +80,39 @@ fn spawn_layout(mut commands: Commands) {
                     flex_shrink: 0.,
                     flex_direction: FlexDirection::Row,
                     align_items: AlignItems::Center,
+                    justify_content: JustifyContent::SpaceBetween,
                     padding: UiRect::axes(Val::Px(30.), Val::Px(0.)),
                     ..default()
-                }
+                },
+                children![
+                    (
+                        HudAreaBottomLeft,
+                        Name::new("HUD Bottom Left"),
+                        Node {
+                            flex_direction: FlexDirection::Row,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                    ),
+                    (
+                        HudAreaBottomCenter,
+                        Name::new("HUD Bottom Center"),
+                        Node {
+                            flex_direction: FlexDirection::Row,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                    ),
+                    (
+                        HudAreaBottomRight,
+                        Name::new("HUD Bottom Right"),
+                        Node {
+                            flex_direction: FlexDirection::Row,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                    ),
+                ],
             )
         ],
     ));

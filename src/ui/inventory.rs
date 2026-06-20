@@ -1,6 +1,7 @@
-use crate::{prelude::*, ui::layout::HudAreaBottom};
+use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::ui::layout::HudAreaBottomRight;
 use crate::ui::widgets::panel::DespawnPanel;
 use bevy::input::common_conditions::input_just_pressed;
 
@@ -55,7 +56,7 @@ impl Plugin for InventoryUIPlugin {
     }
 }
 
-fn button_init(mut commands: Commands, hud_area: Single<Entity, With<HudAreaBottom>>) {
+fn button_init(mut commands: Commands, hud_area: Single<Entity, With<HudAreaBottomRight>>) {
     commands
         .spawn((button("Inventory"), ChildOf(hud_area.entity())))
         .insert((DespawnOnExit(GameState::Playing), GlobalZIndex(LAYER_HUD)))

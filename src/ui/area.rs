@@ -1,6 +1,8 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::ui::layout::HudAreaBottomLeft;
+
 #[derive(Component)]
 struct AreaNameText;
 
@@ -17,17 +19,20 @@ impl Plugin for AreaUIPlugin {
     }
 }
 
-fn init(mut commands: Commands, fonts: Res<FontAssets>) {
+fn init(
+    mut commands: Commands,
+    hud_area: Single<Entity, With<HudAreaBottomLeft>>,
+    fonts: Res<FontAssets>,
+) {
     commands.spawn((
         AreaNameText,
+        ChildOf(hud_area.entity()),
+        GlobalZIndex(LAYER_HUD),
         Name::new("Area Name Text"),
         Text::new(""),
         fonts.title_font.clone(),
         fonts.title_color,
         Node {
-            position_type: PositionType::Absolute,
-            bottom: Val::Percent(3.),
-            left: Val::Percent(3.),
             ..Default::default()
         },
         DespawnOnExit(GameState::Playing),
@@ -36,7 +41,7 @@ fn init(mut commands: Commands, fonts: Res<FontAssets>) {
 
 fn on_player_enter_area(
     event: On<PlayerEnteredArea>,
-    all_areas: Query<&crate::components::DisplayName, With<Area>>,
+    all_areas: Query<&DisplayName, With<Area>>,
     mut area_name_text: Single<&mut Text, With<AreaNameText>>,
 ) {
     let Ok(current_area_name) = all_areas.get(**event) else {
