@@ -6,6 +6,9 @@ use crate::ui::layout::HudAreaTop;
 use crate::ui::widgets::animation::text_fall::AnimateTextFall;
 use crate::ui::widgets::animation::text_fall::AnimateTextFallComplete;
 
+#[derive(Event)]
+pub struct ContentDisplayCompleted;
+
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct AreaContentRoot;
@@ -15,6 +18,7 @@ pub struct ContentUIPlugin;
 impl Plugin for ContentUIPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(on_player_enter_area);
+        app.add_observer(on_content_display_completed);
     }
 }
 
@@ -28,7 +32,7 @@ fn on_player_enter_area(
     game_area: Single<Entity, With<GameArea>>,
     hud_area_top: Single<Entity, With<HudAreaTop>>,
 ) {
-    let Ok(content) = all_area_content.get(event.0) else {
+    let Ok(content) = all_area_content.get(**event) else {
         return;
     };
 
@@ -47,7 +51,6 @@ fn on_player_enter_area(
 
             // Draw the speaker name
             let speaker = character_store
-                .0
                 .get(&character_id.clone().unwrap_or(String::from("")))
                 .expect("Character not found!");
 
@@ -115,8 +118,8 @@ fn on_player_enter_area(
                     },
                     ChildOf(dialogue_wrapper),
                     Node {
-                        width: Val::Percent(100.0),
-                        height: Val::Percent(100.0),
+                        width: Val::Percent(100.),
+                        height: Val::Percent(100.),
                         flex_direction: FlexDirection::Column,
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
@@ -124,7 +127,7 @@ fn on_player_enter_area(
                     },
                 ))
                 .observe(|_: On<AnimateTextFallComplete>, mut commands: Commands| {
-                    commands.trigger(DialogueComplete);
+                    commands.trigger(ContentDisplayCompleted);
                 });
         }
         AreaContent::Narration { lines } => {
@@ -158,8 +161,8 @@ fn on_player_enter_area(
                     },
                     ChildOf(container),
                     Node {
-                        width: Val::Percent(100.0),
-                        height: Val::Percent(100.0),
+                        width: Val::Percent(100.),
+                        height: Val::Percent(100.),
                         flex_direction: FlexDirection::Column,
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
@@ -167,8 +170,38 @@ fn on_player_enter_area(
                     },
                 ))
                 .observe(|_: On<AnimateTextFallComplete>, mut commands: Commands| {
-                    commands.trigger(NarrationComplete);
+                    commands.trigger(ContentDisplayCompleted);
                 });
+        }
+    }
+}
+
+fn on_content_display_completed(
+    _: On<ContentDisplayCompleted>,
+    current_area: Single<&CurrentArea, With<Player>>,
+    areas: Query<(&AreaId, &AreaExits), With<Area>>,
+    mut next_exploring_state: ResMut<NextState<ExploringState>>,
+) {
+    let Ok((area_id, current_area_exits)) = areas.get(current_area.entity()) else {
+        return;
+    };
+
+    match current_area_exits.first() {
+        Some(AreaExit::Continue(next_room)) => {
+            info!("Continuing on to room {}", next_room);
+
+            next_exploring_state.set(ExploringState::AwaitingContinue);
+        }
+        Some(AreaExit::Choice(_)) => {
+            info!("Waiting for choice from room {}", **area_id);
+            next_exploring_state.set(ExploringState::AwaitingChoice);
+        }
+        Some(AreaExit::GameOver) => {
+            info!("Waiting for GameOver continue {}", **area_id);
+            next_exploring_state.set(ExploringState::AwaitingGameOver);
+        }
+        None => {
+            warn!("on_dialogue_completed: area '{}' has no exits", **area_id);
         }
     }
 }

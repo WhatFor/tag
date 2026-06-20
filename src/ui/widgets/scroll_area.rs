@@ -51,7 +51,7 @@ where
                         overflow: Overflow::scroll(),
                         ..default()
                     },
-                    ScrollPosition(Vec2::new(0.0, 0.0)),
+                    ScrollPosition(Vec2::new(0., 0.)),
                     Children::spawn(SpawnWith(child_spawner)),
                 ))
                 .observe(

@@ -18,13 +18,13 @@ struct NextChar {
 #[derive(Component)]
 struct LineNode;
 
-#[derive(Component)]
+#[derive(Component, Deref, DerefMut)]
 struct AnimationDelay(pub Timer);
 
-#[derive(Component)]
+#[derive(Component, Deref, DerefMut)]
 struct AnimationProgress(pub f32);
 
-#[derive(Component)]
+#[derive(Component, Deref)]
 struct LastInAnimation(pub Entity);
 
 #[derive(Component)]
@@ -35,8 +35,8 @@ pub struct AnimateTextFallComplete {
     entity: Entity,
 }
 
-const CHAR_ENTER_SPEED: f32 = 15.0 * GLOBAL_ANIMATION_SPEED;
-const CHAR_Y_OFFSET: f32 = 30.0;
+const CHAR_ENTER_SPEED: f32 = 15. * GLOBAL_ANIMATION_SPEED;
+const CHAR_Y_OFFSET: f32 = 30.;
 const NEXT_CHAR_THRESHOLD: f32 = 0.3;
 const LINE_DELAY_SECS: f32 = 0.6 * GLOBAL_ANIMATION_SPEED;
 
@@ -120,7 +120,7 @@ fn build_text_fall(
                                 Text::new(ch.to_string()),
                                 Name::new("Animation TextFall Line Char"),
                                 animation.font.clone(),
-                                TextColor(animation.color.with_alpha(0.0)),
+                                TextColor(animation.color.with_alpha(0.)),
                                 Node {
                                     position_type: PositionType::Relative,
                                     bottom: Val::Px(CHAR_Y_OFFSET),
@@ -158,7 +158,7 @@ fn build_text_fall(
             // First char of the whole sequence starts animating
             if !first_char_animated {
                 if let Some(&first) = char_entities.first() {
-                    commands.entity(first).insert(AnimationProgress(0.0));
+                    commands.entity(first).insert(AnimationProgress(0.));
                     first_char_animated = true;
                 }
             }
@@ -192,13 +192,13 @@ fn animate(
     )>,
 ) {
     for (entity, mut progress, mut color, mut node, next_char) in &mut query {
-        progress.0 = (progress.0 + time.delta_secs() * CHAR_ENTER_SPEED).min(1.0);
+        **progress = (**progress + time.delta_secs() * CHAR_ENTER_SPEED).min(1.);
 
-        color.0.set_alpha(progress.0);
-        node.bottom = Val::Px(CHAR_Y_OFFSET * (1.0 - progress.0));
+        color.0.set_alpha(**progress);
+        node.bottom = Val::Px(CHAR_Y_OFFSET * (1. - **progress));
 
         if let Some(mut next) = next_char {
-            if progress.0 >= NEXT_CHAR_THRESHOLD {
+            if **progress >= NEXT_CHAR_THRESHOLD {
                 // Take the next_entity so not to repeat
                 if let Some(next_entity) = next.entity.take() {
                     // If a delay is present, apply AnimationDelay
@@ -208,13 +208,13 @@ fn animate(
                             .insert(AnimationDelay(Timer::from_seconds(delay, TimerMode::Once)));
                     // Else apply the animation directly.
                     } else {
-                        commands.entity(next_entity).insert(AnimationProgress(0.0));
+                        commands.entity(next_entity).insert(AnimationProgress(0.));
                     }
                 }
             }
         }
 
-        if progress.0 >= 1.0 {
+        if progress.0 >= 1. {
             commands
                 .entity(entity)
                 .remove::<AnimationProgress>()
@@ -229,17 +229,17 @@ fn tick_delay(
     mut commands: Commands,
 ) {
     for (entity, mut pending) in &mut query {
-        if pending.0.tick(time.delta()).just_finished() {
+        if pending.tick(time.delta()).just_finished() {
             commands
                 .entity(entity)
                 .remove::<AnimationDelay>()
-                .insert(AnimationProgress(0.0));
+                .insert(AnimationProgress(0.));
         }
     }
 }
 
 fn on_char_done(mut commands: Commands, query: Query<&LastInAnimation, Added<AnimationComplete>>) {
     for entity in &query {
-        commands.trigger(AnimateTextFallComplete { entity: entity.0 });
+        commands.trigger(AnimateTextFallComplete { entity: **entity });
     }
 }

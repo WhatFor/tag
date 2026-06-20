@@ -8,7 +8,6 @@ use crate::ui::inventory::InventoryUIPlugin;
 use crate::ui::layout::UILayoutPlugin;
 use crate::ui::widgets::WidgetsPlugin;
 
-pub mod events;
 pub mod inventory;
 pub mod layers;
 pub mod layout;
@@ -69,28 +68,28 @@ impl FromWorld for FontAssets {
         Self {
             title_font: TextFont {
                 font: fonts.title.clone(),
-                font_size: 90.0,
+                font_size: 90.,
                 ..default()
             },
-            title_color: TextColor(Color::srgb(0.8, 0.9, 1.0)),
+            title_color: TextColor(Color::srgb(0.8, 0.9, 1.)),
 
             narration_font: TextFont {
                 font: fonts.narration.clone(),
-                font_size: 45.0,
+                font_size: 45.,
                 ..default()
             },
-            narration_color: TextColor(Color::srgb(1.0, 0.95, 1.0)),
+            narration_color: TextColor(Color::srgb(1.0, 0.95, 1.)),
 
             dialogue_font: TextFont {
                 font: fonts.dialogue.clone(),
-                font_size: 45.0,
+                font_size: 45.,
                 ..default()
             },
             dialogue_color: TextColor(Color::srgb(0.9, 0.475, 0.425)),
 
             ui_font: TextFont {
                 font: fonts.ui.clone(),
-                font_size: 30.0,
+                font_size: 30.,
                 ..default()
             },
             ui_color: TextColor(Color::srgb(0.6, 0.65, 0.6)),

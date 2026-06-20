@@ -11,27 +11,27 @@ pub fn default_player() -> impl Bundle {
     )
 }
 
-pub fn item(def: &ItemDef) -> impl Bundle {
+pub fn item(item_def: &ItemDef) -> impl Bundle {
     (
         Item,
-        ItemId(def.id.clone()),
-        DisplayName(def.name.clone()),
-        Description(def.description.clone()),
+        ItemId(item_def.id.clone()),
+        DisplayName(item_def.name.clone()),
+        Description(item_def.description.clone()),
     )
 }
 
-pub fn item_stack(def: &ItemDef, count: u32) -> impl Bundle {
+pub fn item_stack(item_def: &ItemDef, count: u32) -> impl Bundle {
     debug_assert!(
-        def.stackable,
+        item_def.stackable,
         "tried to stack non-stackable item {}",
-        def.id
+        item_def.id
     );
 
     (
         Item,
-        ItemId(def.id.clone()),
+        ItemId(item_def.id.clone()),
         ItemStack(count),
-        DisplayName(def.name.clone()),
-        Description(def.description.clone()),
+        DisplayName(item_def.name.clone()),
+        Description(item_def.description.clone()),
     )
 }

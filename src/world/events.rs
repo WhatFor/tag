@@ -1,4 +1,4 @@
 use bevy::prelude::*;
 
-#[derive(Event)]
+#[derive(Event, Deref)]
 pub struct PlayerEnteredArea(pub Entity);

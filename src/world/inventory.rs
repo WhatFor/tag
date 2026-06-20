@@ -14,7 +14,7 @@ pub trait GiveItemExt {
 impl Command for GiveItem {
     fn apply(self, world: &mut World) {
         // Find the item definition
-        let def = match world.resource::<ItemStore>().0.get(&self.item_id) {
+        let def = match world.resource::<ItemStore>().get(&self.item_id) {
             Some(def) => def.clone(),
             None => {
                 warn!("Give item failed to find item. ID: {}", self.item_id);
@@ -44,7 +44,7 @@ impl Command for GiveItem {
         // Either add the item(s) to an existing inventory, or create one and add
         match recipient.get_mut::<Inventory>() {
             Some(mut invent) => {
-                invent.0.push(item_entity);
+                invent.push(item_entity);
             }
             None => {
                 recipient.insert(Inventory(vec![item_entity]));
@@ -56,8 +56,8 @@ impl Command for GiveItem {
 fn find_item_stack(world: &World, recipient: Entity, item: &ItemDef) -> Option<Entity> {
     // Check that the given Item is in the inventory and that it's stackable. If so, return it.
     match world.get::<Inventory>(recipient) {
-        Some(invent) => invent.0.iter().copied().find(|&e| {
-            let is_match = world.get::<ItemId>(e).is_some_and(|id| id.0 == item.id);
+        Some(invent) => invent.iter().copied().find(|&e| {
+            let is_match = world.get::<ItemId>(e).is_some_and(|id| **id == item.id);
             let stackable = world.get::<ItemStack>(e).is_some();
             is_match && stackable
         }),

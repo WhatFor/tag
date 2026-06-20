@@ -44,7 +44,7 @@ const BG_COLOUR: Color = Color::srgb(0.15, 0.15, 0.15);
 const BACKDROP_COLOUR: Color = Color::srgba(0.05, 0.05, 0.05, 0.45);
 const BORDER_COLOUR: Color = Color::srgb(0.4, 0.4, 0.4);
 
-const DEFAULT_SIZE: f32 = 60.0;
+const DEFAULT_SIZE: f32 = 60.;
 
 pub fn init(
     mut commands: Commands,
@@ -118,7 +118,7 @@ pub fn init(
                     height: panel.height,
                     flex_direction: FlexDirection::Column,
                     align_items: AlignItems::Center,
-                    border: UiRect::all(Val::Px(1.0)),
+                    border: UiRect::all(Val::Px(1.)),
                     ..default()
                 },
                 BackgroundColor(BG_COLOUR),

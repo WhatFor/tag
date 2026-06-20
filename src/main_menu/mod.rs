@@ -32,7 +32,7 @@ fn init(mut commands: Commands, save_store: Res<SaveBackend>) {
             DespawnOnExit(GameState::MainMenu),
         ))
         .with_children(|p| {
-            if let Ok(save_file_exists) = save_store.0.exists(SAVE_FILE_KEY) {
+            if let Ok(save_file_exists) = save_store.exists(SAVE_FILE_KEY) {
                 if save_file_exists {
                     p.spawn(button("Continue")).observe(
                         |_: On<Pointer<Click>>, mut next_state: ResMut<NextState<GameState>>| {
@@ -60,7 +60,7 @@ fn reset_to_menu(
 ) -> Result {
     next_game_state.set(GameState::MainMenu);
     next_exploring_state.set(ExploringState::PresentingContent);
-    save_store.0.clear(SAVE_FILE_KEY)?;
+    save_store.clear(SAVE_FILE_KEY)?;
 
     Ok(())
 }

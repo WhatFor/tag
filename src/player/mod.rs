@@ -62,10 +62,10 @@ fn wait_for_continue_input(mut commands: Commands, keyboard: Res<ButtonInput<Key
 
 fn show_choice_prompt(
     mut commands: Commands,
-    current_area: Single<&mut CurrentArea, With<Player>>,
+    current_area: Single<&CurrentArea, With<Player>>,
     areas: Query<&AreaExits, With<Area>>,
 ) {
-    let Ok(current_area_exits) = areas.get(current_area.0) else {
+    let Ok(current_area_exits) = areas.get(current_area.entity()) else {
         return;
     };
 
@@ -90,7 +90,7 @@ fn show_choice_prompt(
                 ..default()
             })
             .with_children(|container| {
-                for exit in &current_area_exits.0 {
+                for exit in current_area_exits.iter() {
                     match exit {
                         AreaExit::Choice(area_exit_options) => {
                             for exit_option in area_exit_options {

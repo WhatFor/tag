@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Deref)]
 #[reflect(Component)]
 pub struct DisplayName(pub String);
 
@@ -8,6 +8,6 @@ pub struct DisplayName(pub String);
 #[reflect(Component)]
 pub struct Description(pub String);
 
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Deref)]
 #[reflect(Component)]
 pub struct Health(pub usize);

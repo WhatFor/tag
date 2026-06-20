@@ -4,7 +4,7 @@ use bevy::prelude::*;
 #[derive(Event)]
 pub struct PlayerContinued;
 
-#[derive(Event)]
+#[derive(Event, Deref, Debug)]
 pub struct PlayerChose(pub AreaId);
 
 #[derive(Event)]

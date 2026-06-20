@@ -26,18 +26,18 @@ fn on_save_requested(
 ) -> Result {
     info!("Saving game...");
 
-    let current_area_id = areas.get(player.2.0)?.0.clone();
+    let (health, inventory, current_area) = *player;
 
-    let inventory = player
-        .1
-        .0
+    let current_area_id = areas.get(current_area.entity())?.0.clone();
+
+    let inventory = inventory
         .iter()
         .map(|&e| {
             let (id, stack) = items.get(e)?;
 
             Ok(SavedItem {
-                item_id: id.0.clone(),
-                count: stack.map_or(1, |s| s.0),
+                item_id: (*id).clone(),
+                count: stack.map_or(1, |s| **s),
             })
         })
         .collect::<Result<Vec<_>, BevyError>>()?;
@@ -45,13 +45,13 @@ fn on_save_requested(
     let save_data = SaveData {
         version: SAVE_FORMAT_VERSION,
         current_area_id: current_area_id,
-        health: player.0.0,
+        health: **health,
         inventory: inventory,
     };
 
     let save_data = ron::to_string(&save_data)?;
 
-    if let Err(error) = store.0.write(SAVE_FILE_KEY, &save_data) {
+    if let Err(error) = store.write(SAVE_FILE_KEY, &save_data) {
         warn!("Save failed: {}", error);
     } else {
         info!("Game saved!");

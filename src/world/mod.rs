@@ -39,7 +39,7 @@ fn spawn_player(
     store: Res<SaveBackend>,
 ) {
     info!("> Checking save state...");
-    let save_data = store.0.read(SAVE_FILE_KEY);
+    let save_data = store.read(SAVE_FILE_KEY);
 
     let start_data = match save_data {
         Ok(Some(save_data)) => {
@@ -75,7 +75,7 @@ fn spawn_player(
     // Apply the player data, either default or from save file
     let start_area = areas
         .iter()
-        .find(|(_, id)| id.0 == start_data.current_area_id)
+        .find(|(_, id)| ***id == start_data.current_area_id)
         .map(|(entity, _)| entity)
         .expect("Unable to find start area");
 

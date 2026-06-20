@@ -26,8 +26,8 @@ fn init(mut commands: Commands, fonts: Res<FontAssets>) {
         fonts.title_color,
         Node {
             position_type: PositionType::Absolute,
-            bottom: Val::Percent(3.0),
-            left: Val::Percent(3.0),
+            bottom: Val::Percent(3.),
+            left: Val::Percent(3.),
             ..Default::default()
         },
         DespawnOnExit(GameState::Playing),
@@ -39,9 +39,9 @@ fn on_player_enter_area(
     all_areas: Query<&crate::components::DisplayName, With<Area>>,
     mut area_name_text: Single<&mut Text, With<AreaNameText>>,
 ) {
-    let Ok(current_area_name) = all_areas.get(event.0) else {
+    let Ok(current_area_name) = all_areas.get(**event) else {
         return;
     };
 
-    **area_name_text = Text::new(current_area_name.0.clone());
+    **area_name_text = Text::new((*current_area_name).clone());
 }

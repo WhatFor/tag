@@ -11,7 +11,7 @@ pub enum AreaExit {
     GameOver,
 }
 
-#[derive(Component)]
+#[derive(Component, Deref)]
 pub struct AreaExits(pub Vec<AreaExit>);
 
 #[derive(Deserialize, Clone)]
@@ -20,7 +20,7 @@ pub struct AreaExitOption {
     pub label: String,
 }
 
-#[derive(Component, Deserialize, Clone)]
+#[derive(Component, Deserialize, Clone, Debug, Deref, PartialEq, Eq)]
 pub struct AreaId(pub String);
 
 #[derive(Component, Deserialize, Clone)]
@@ -38,14 +38,14 @@ pub enum AreaContent {
 #[reflect(Component)]
 pub struct Item;
 
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Deref, PartialEq, Eq)]
 #[reflect(Component)]
 pub struct ItemId(pub String);
 
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Deref)]
 #[reflect(Component)]
 pub struct ItemStack(pub u32);
 
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Deref, DerefMut)]
 #[reflect(Component)]
 pub struct Inventory(pub Vec<Entity>);

@@ -33,7 +33,7 @@ pub struct ItemDef {
     pub icon: Handle<Image>,
 }
 
-#[derive(Resource, Default, Debug)]
+#[derive(Resource, Default, Debug, Deref, DerefMut)]
 pub struct ItemStore(pub HashMap<String, ItemDef>);
 
 pub struct ItemLoaderPlugin;
@@ -85,7 +85,7 @@ fn add_item_store(
             .or_else(|| placeholder_icon.clone())
             .unwrap_or_default();
 
-        item_store.0.insert(
+        item_store.insert(
             data.id.clone(),
             ItemDef {
                 id: data.id.clone(),

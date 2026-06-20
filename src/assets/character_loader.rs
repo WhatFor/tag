@@ -19,7 +19,7 @@ pub struct NarrativeCharacter {
     pub display_name: String,
 }
 
-#[derive(Resource, Default, Debug)]
+#[derive(Resource, Default, Debug, Deref, DerefMut)]
 pub struct CharacterStore(pub HashMap<String, NarrativeCharacter>);
 
 pub struct CharacterLoaderPlugin;
@@ -50,7 +50,7 @@ fn add_character_resource(
 
         info!("Parsed Character {}...", data.id);
 
-        char_store.0.insert(
+        char_store.insert(
             data.id.clone(),
             NarrativeCharacter {
                 display_name: data.display_name.clone(),

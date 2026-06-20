@@ -10,10 +10,10 @@ const FADE_SECONDS: f32 = 0.15 * GLOBAL_ANIMATION_SPEED;
 const BG_COLOUR: Color = Color::srgb(0.15, 0.15, 0.15);
 const BORDER_COLOUR: Color = Color::srgb(0.25, 0.25, 0.25);
 
-const PADDING_X: f32 = 20.0;
-const PADDING_Y: f32 = 10.0;
-const MAX_WIDTH: f32 = 280.0;
-const OFFSET: f32 = 20.0;
+const PADDING_X: f32 = 20.;
+const PADDING_Y: f32 = 10.;
+const MAX_WIDTH: f32 = 280.;
+const OFFSET: f32 = 20.;
 
 #[derive(Component)]
 pub struct Tooltip {
@@ -47,7 +47,7 @@ impl Tooltip {
 struct TooltipElement;
 
 // TODO: Break out into a generic 'fade in' animation
-#[derive(Component)]
+#[derive(Component, Deref, DerefMut)]
 struct TooltipFadeIn(Timer);
 
 pub struct TooltipWidgetPlugin;
@@ -71,7 +71,7 @@ fn follow(
     let (computed, mut node) = tooltip.into_inner();
     let size = computed.size();
 
-    if size.x <= 0.0 || size.y <= 0.0 {
+    if size.x <= 0. || size.y <= 0. {
         return;
     }
 
@@ -86,11 +86,11 @@ fn clamp(
     let (computed, mut node) = tooltip.into_inner();
     let size = computed.size();
 
-    if size.x <= 0.0 || size.y <= 0.0 {
+    if size.x <= 0. || size.y <= 0. {
         return;
     }
 
-    let margin = 8.0;
+    let margin = 8.;
     let max_left = (window.width() - size.x - margin).max(margin);
     let max_top = (window.height() - size.y - margin).max(margin);
 
@@ -121,14 +121,14 @@ fn fade_in(
     )>,
 ) {
     for (entity, computed, mut fade, mut bg, mut border, children) in &mut roots {
-        if computed.size().y <= 0.0 {
+        if computed.size().y <= 0. {
             // Don't start fading until drawn
             continue;
         }
 
-        fade.0.tick(time.delta());
+        fade.tick(time.delta());
 
-        let alpha = fade.0.fraction().min(1.0);
+        let alpha = fade.fraction().min(1.);
 
         bg.0.set_alpha(alpha);
         border.set_all(BORDER_COLOUR.with_alpha(alpha));
@@ -139,7 +139,7 @@ fn fade_in(
             }
         }
 
-        if fade.0.just_finished() {
+        if fade.just_finished() {
             commands.entity(entity).remove::<TooltipFadeIn>();
         }
     }

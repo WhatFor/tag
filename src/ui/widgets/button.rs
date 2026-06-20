@@ -56,7 +56,7 @@ pub fn button(label: impl Into<String>) -> impl Bundle {
                 ..default()
             },
             TextFont {
-                font_size: 33.0,
+                font_size: 33.,
                 ..default()
             },
             TextColor(Color::srgb(0.9, 0.9, 0.9)),

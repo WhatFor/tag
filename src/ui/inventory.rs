@@ -103,16 +103,15 @@ fn spawn_inventory(
     item_store: Res<ItemStore>,
     fonts: Res<FontAssets>,
 ) {
-    if inventory.0.is_empty() {
+    if inventory.is_empty() {
         return;
     }
 
     let rows: Vec<ItemRow> = inventory
-        .0
         .iter()
         .filter_map(|&item_entity| {
             let (id, stack) = items.get(item_entity).ok()?;
-            let store_item = item_store.0.get(&id.0)?;
+            let store_item = item_store.get(&id.0)?;
 
             let count = match stack {
                 Some(ItemStack(count)) => Some(count.clone()),
