@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use bevy::ui_widgets::ScrollbarPlugin;
+use bevy::ui_widgets::SliderPlugin;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
@@ -16,6 +17,7 @@ mod main_menu;
 mod pause_menu;
 mod persistence;
 mod player;
+mod settings_menu;
 mod ui;
 mod world;
 
@@ -38,6 +40,7 @@ use crate::main_menu::MainMenuPlugin;
 use crate::pause_menu::PauseMenuPlugin;
 use crate::persistence::PersistencePlugin;
 use crate::player::PlayerPlugin;
+use crate::settings_menu::SettingsMenuPlugin;
 use crate::ui::UIPlugin;
 use crate::world::WorldPlugin;
 
@@ -61,6 +64,7 @@ fn main() {
                 ..default()
             }),
         ScrollbarPlugin,
+        SliderPlugin,
     ));
 
     #[cfg(feature = "dev")]
@@ -78,6 +82,7 @@ fn main() {
         .add_plugins(IntroductionPlugin)
         .add_plugins(MainMenuPlugin)
         .add_plugins(PauseMenuPlugin)
+        .add_plugins(SettingsMenuPlugin)
         .add_plugins(PersistencePlugin)
         .add_plugins(WorldPlugin)
         .add_plugins(UIPlugin)

@@ -59,6 +59,12 @@ fn init(mut commands: Commands) {
                     next_game_state.set(GameState::MainMenu);
                 },
             );
+
+            // p.spawn(button("Settings")).observe(
+            //     |_: On<Pointer<Click>>, mut next_game_state: ResMut<NextState<GameState>>| {
+            //         next_game_state.set(GameState::SettingsMenu);
+            //     },
+            // );
         });
 }
 

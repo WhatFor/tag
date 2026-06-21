@@ -4,7 +4,6 @@ use bevy::prelude::*;
 use crate::persistence::SAVE_FILE_KEY;
 use crate::persistence::events::SaveDeleted;
 use crate::persistence::resources::SaveBackend;
-use crate::ui::widgets::button::button;
 
 pub struct MainMenuPlugin;
 
@@ -28,6 +27,7 @@ fn init(mut commands: Commands, save_store: Res<SaveBackend>) {
                 row_gap: Val::Px(20.),
                 ..default()
             },
+            GlobalZIndex(LAYER_HUD),
             Name::new("Main Menu Container"),
             DespawnOnExit(GameState::MainMenu),
         ))
@@ -52,6 +52,12 @@ fn init(mut commands: Commands, save_store: Res<SaveBackend>) {
                     commands.trigger(SaveDeleted);
                     commands.trigger(PlaySoundtrack);
                     next_state.set(GameState::Introduction);
+                },
+            );
+
+            p.spawn(button("Settings")).observe(
+                |_: On<Pointer<Click>>, mut next_state: ResMut<NextState<GameState>>| {
+                    next_state.set(GameState::SettingsMenu);
                 },
             );
         });

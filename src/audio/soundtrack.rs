@@ -54,10 +54,11 @@ fn play(
         Name::from("Soundtrack"),
         Soundtrack,
         AudioPlayer(placeholder.clone()),
+        AudioChannel::Ambience,
         FadeIn(Timer::from_seconds(FADE_TIME, TimerMode::Once)),
         PlaybackSettings {
             mode: PlaybackMode::Loop,
-            volume: Volume::Linear(1.),
+            volume: Volume::Linear(0.),
             ..default()
         },
     ));
@@ -80,12 +81,16 @@ fn stop(
 fn fade_in(
     mut commands: Commands,
     mut tracks: Query<(Entity, &mut AudioSink, &mut FadeIn)>,
+    audio_settings: Res<AudioSettings>,
     time: Res<Time>,
 ) {
     for (entity, mut audio, mut fade) in &mut tracks {
         fade.0.tick(time.delta());
 
-        audio.set_volume(Volume::SILENT.fade_towards(Volume::Linear(1.), fade.0.fraction()));
+        audio.set_volume(Volume::SILENT.fade_towards(
+            Volume::Linear(audio_settings.ambience_volume),
+            fade.0.fraction(),
+        ));
 
         if fade.0.is_finished() {
             audio.set_volume(Volume::Linear(1.));
@@ -97,12 +102,16 @@ fn fade_in(
 fn fade_out(
     mut commands: Commands,
     mut tracks: Query<(Entity, &mut AudioSink, &mut FadeOut)>,
+    audio_settings: Res<AudioSettings>,
     time: Res<Time>,
 ) {
     for (entity, mut audio, mut fade) in &mut tracks {
         fade.0.tick(time.delta());
 
-        audio.set_volume(Volume::Linear(1.).fade_towards(Volume::SILENT, fade.0.fraction()));
+        audio.set_volume(
+            Volume::Linear(audio_settings.ambience_volume)
+                .fade_towards(Volume::SILENT, fade.0.fraction()),
+        );
 
         if fade.0.is_finished() {
             commands.entity(entity).despawn();

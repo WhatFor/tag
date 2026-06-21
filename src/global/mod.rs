@@ -10,6 +10,7 @@ pub struct GlobalPlugin;
 impl Plugin for GlobalPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<GameState>();
+        app.init_resource::<AudioSettings>();
         app.add_sub_state::<PlayState>();
         app.add_sub_state::<ExploringState>();
 

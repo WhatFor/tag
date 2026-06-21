@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -19,6 +20,10 @@ impl Plugin for ClickSfxInteractionPlugin {
 
 fn on_click(trigger: On<Pointer<Click>>, query: Query<&ClickSfx>, mut commands: Commands) {
     if let Ok(sfx) = query.get(trigger.event_target()) {
-        commands.spawn((AudioPlayer::new(sfx.0.clone()), PlaybackSettings::DESPAWN));
+        commands.spawn((
+            AudioPlayer::new(sfx.0.clone()),
+            AudioChannel::Sfx,
+            PlaybackSettings::DESPAWN,
+        ));
     }
 }

@@ -318,14 +318,15 @@ fn show_game_over(mut commands: Commands) {
     commands
         .spawn((
             DespawnOnExit(GameState::GameOver),
-            GlobalZIndex(LAYER_HUD),
+            GlobalZIndex(LAYER_MENU),
             Node {
                 position_type: PositionType::Absolute,
-                bottom: Val::Px(250.),
                 width: Val::Percent(100.),
+                height: Val::Percent(100.),
                 justify_content: JustifyContent::Center,
                 ..default()
             },
+            BackgroundColor::from(Color::srgb(0., 0., 0.)),
         ))
         .with_children(|p| {
             p.spawn(Node {
@@ -337,9 +338,10 @@ fn show_game_over(mut commands: Commands) {
                 ..default()
             })
             .with_children(|p| {
-                p.spawn(Text::new("Game over..."));
+                p.spawn(Text::new("Game over."));
                 p.spawn(button("Main menu")).observe(
                     |_: On<Pointer<Click>>, mut commands: Commands| {
+                        commands.trigger(StopSoundtrack);
                         commands.trigger(PlayerGameOver);
                     },
                 );

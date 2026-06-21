@@ -9,6 +9,7 @@ pub enum GameState {
     #[default]
     Initialising,
     MainMenu,
+    SettingsMenu,
     Introduction,
     Playing,
     GameOver,

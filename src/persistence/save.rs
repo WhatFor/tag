@@ -4,7 +4,6 @@ use bevy::prelude::*;
 
 use crate::persistence::events::{SaveDeleted, SaveRequested};
 use crate::persistence::resources::SaveBackend;
-use crate::persistence::store::SaveStore;
 use crate::persistence::{SAVE_FILE_KEY, SAVE_FORMAT_VERSION};
 
 pub struct PersistenceSavePlugin;
@@ -13,7 +12,6 @@ impl Plugin for PersistenceSavePlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(on_save_requested);
         app.add_observer(on_save_deleted);
-        app.insert_resource(SaveBackend(default_store()));
     }
 }
 
@@ -66,20 +64,4 @@ fn on_save_deleted(_: On<SaveDeleted>, store: Res<SaveBackend>) -> Result {
     info!("Save deleted!");
 
     Ok(())
-}
-
-#[cfg(target_arch = "wasm32")]
-fn default_store() -> Box<dyn SaveStore> {
-    use crate::persistence::store::wasm::LocalStorageStore;
-
-    Box::new(LocalStorageStore::new())
-}
-
-// TODO: Supporting non-web platforms in the design, but not implementing.
-//       This will blow up atm but that's fine.
-#[cfg(not(target_arch = "wasm32"))]
-fn default_store() -> Box<dyn SaveStore> {
-    use crate::persistence::store::fs::FileSystemStorageStore;
-
-    Box::new(FileSystemStorageStore::new())
 }

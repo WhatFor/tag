@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
 pub trait AudioCommandsExt {
@@ -6,6 +7,10 @@ pub trait AudioCommandsExt {
 
 impl AudioCommandsExt for Commands<'_, '_> {
     fn play_sfx(&mut self, sfx: Handle<AudioSource>) {
-        self.spawn((AudioPlayer::new(sfx), PlaybackSettings::DESPAWN));
+        self.spawn((
+            AudioPlayer::new(sfx),
+            AudioChannel::Sfx,
+            PlaybackSettings::DESPAWN,
+        ));
     }
 }
