@@ -42,6 +42,8 @@ pub use crate::state::Pause;
 pub use crate::state::PlayState;
 
 // Events
+pub use crate::audio::soundtrack::PlaySoundtrack;
+pub use crate::audio::soundtrack::StopSoundtrack;
 pub use crate::game::events::PlayerChose;
 pub use crate::game::events::PlayerContinued;
 pub use crate::game::events::PlayerGameOver;

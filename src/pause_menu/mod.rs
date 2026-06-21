@@ -51,8 +51,10 @@ fn init(mut commands: Commands) {
         .with_children(|p| {
             p.spawn(button("Main Menu")).observe(
                 |_: On<Pointer<Click>>,
+                 mut commands: Commands,
                  mut next_game_state: ResMut<NextState<GameState>>,
                  mut next_pause_state: ResMut<NextState<Pause>>| {
+                    commands.trigger(StopSoundtrack);
                     next_pause_state.set(Pause(false));
                     next_game_state.set(GameState::MainMenu);
                 },

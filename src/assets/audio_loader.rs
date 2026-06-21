@@ -12,8 +12,8 @@ pub struct AudioAssets {
         collection(typed, mapped)
     )]
     pub sfx: HashMap<AssetFileStem, Handle<AudioSource>>,
-    // #[asset(paths("audio/bg/spooky.ogg"), collection(typed, mapped))]
-    // pub background: HashMap<AssetFileStem, Handle<AudioSource>>,
+    #[asset(paths("audio/music/placeholder.ogg"), collection(typed, mapped))]
+    pub background: HashMap<AssetFileStem, Handle<AudioSource>>,
 }
 
 pub struct AudioSfxLoaderPlugin;

@@ -35,7 +35,10 @@ fn init(mut commands: Commands, save_store: Res<SaveBackend>) {
             if let Ok(save_file_exists) = save_store.exists(SAVE_FILE_KEY) {
                 if save_file_exists {
                     p.spawn(button("Continue")).observe(
-                        |_: On<Pointer<Click>>, mut next_state: ResMut<NextState<GameState>>| {
+                        |_: On<Pointer<Click>>,
+                         mut commands: Commands,
+                         mut next_state: ResMut<NextState<GameState>>| {
+                            commands.trigger(PlaySoundtrack);
                             next_state.set(GameState::Playing);
                         },
                     );
@@ -47,6 +50,7 @@ fn init(mut commands: Commands, save_store: Res<SaveBackend>) {
                  mut commands: Commands,
                  mut next_state: ResMut<NextState<GameState>>| {
                     commands.trigger(SaveDeleted);
+                    commands.trigger(PlaySoundtrack);
                     next_state.set(GameState::Introduction);
                 },
             );
