@@ -8,6 +8,7 @@ use crate::ui::inventory::InventoryUIPlugin;
 use crate::ui::layout::UILayoutPlugin;
 use crate::ui::widgets::WidgetsPlugin;
 
+pub mod interaction;
 pub mod inventory;
 pub mod layers;
 pub mod layout;

@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::ui::interaction::image_tint::ImageTint;
 use crate::ui::layout::HudAreaBottomRight;
 use crate::ui::widgets::panel::DespawnPanel;
 use bevy::input::common_conditions::input_just_pressed;
@@ -68,6 +69,8 @@ fn button_init(
         commands
             .spawn((
                 Button,
+                ImageTint::darken(Color::srgb(1., 1., 1.)),
+                Name::new("Inventory Button"),
                 Tooltip::basic("Inventory"),
                 ChildOf(hud_area.entity()),
                 DespawnOnExit(GameState::Playing),
@@ -78,13 +81,14 @@ fn button_init(
                     align_items: AlignItems::Center,
                     ..default()
                 },
-                Name::new("Inventory Button"),
                 children![(
+                    Name::new("Inventory Button Icon"),
                     Node {
                         width: Val::Px(INVENTORY_BUTTON_ICON_SIZE),
                         height: Val::Px(INVENTORY_BUTTON_ICON_SIZE),
                         ..default()
                     },
+                    Pickable::IGNORE,
                     ImageNode::new(inventory_icon),
                 )],
             ))

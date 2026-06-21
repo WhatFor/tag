@@ -1,6 +1,8 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::ui::interaction::image_tint::ImageTint;
+
 #[derive(Component)]
 pub struct Panel {
     pub title: String,
@@ -112,7 +114,8 @@ pub fn init(
 
                     h.spawn((
                         Button,
-                        Name::new("Panel Close Button Container"),
+                        ImageTint::darken(Color::srgb(1., 1., 1.)),
+                        Name::new("Panel Close Button"),
                         Node {
                             padding: UiRect {
                                 left: Val::Px(20.),
@@ -126,12 +129,13 @@ pub fn init(
                             ..default()
                         },
                         children![(
-                            Name::new("Panel Close Button"),
+                            Name::new("Panel Close Button Icon"),
                             Node {
                                 width: Val::Px(CLOSE_BUTTON_ICON_SIZE),
                                 height: Val::Px(CLOSE_BUTTON_ICON_SIZE),
                                 ..default()
                             },
+                            Pickable::IGNORE,
                             ImageNode::new(x_icon.clone()),
                         )],
                     ))

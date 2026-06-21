@@ -1,6 +1,5 @@
 # TODO List
 
-- break out icon button component for invent + panel close
 - how to play sounds? loops? one-shots?
 
 # Nice to haves, not important

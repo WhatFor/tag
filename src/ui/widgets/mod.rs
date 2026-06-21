@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::ui::interaction::UIInteractionPlugin;
 use crate::ui::widgets::animation::AnimationWidgetsPlugin;
 use crate::ui::widgets::button::ButtonWidgetPlugin;
 use crate::ui::widgets::panel::PanelWidgetPlugin;
@@ -21,5 +22,6 @@ impl Plugin for WidgetsPlugin {
         app.add_plugins(TooltipWidgetPlugin);
         app.add_plugins(PanelWidgetPlugin);
         app.add_plugins(ScrollAreaWidgetPlugin);
+        app.add_plugins(UIInteractionPlugin);
     }
 }
