@@ -88,12 +88,15 @@ fn fade_in(
         fade.0.tick(time.delta());
 
         audio.set_volume(Volume::SILENT.fade_towards(
-            Volume::Linear(audio_settings.ambience_volume),
+            Volume::Linear(audio_settings.ambience_volume * audio_settings.master_volume),
             fade.0.fraction(),
         ));
 
         if fade.0.is_finished() {
-            audio.set_volume(Volume::Linear(1.));
+            audio.set_volume(Volume::Linear(
+                audio_settings.ambience_volume * audio_settings.master_volume,
+            ));
+
             commands.entity(entity).remove::<FadeIn>();
         }
     }
@@ -109,7 +112,7 @@ fn fade_out(
         fade.0.tick(time.delta());
 
         audio.set_volume(
-            Volume::Linear(audio_settings.ambience_volume)
+            Volume::Linear(audio_settings.ambience_volume * audio_settings.master_volume)
                 .fade_towards(Volume::SILENT, fade.0.fraction()),
         );
 

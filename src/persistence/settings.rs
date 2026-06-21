@@ -14,12 +14,16 @@ impl Plugin for PersistenceSettingsPlugin {
     }
 }
 
-fn on_save_requested(_: On<SettingsUpdated>, store: Res<SaveBackend>) -> Result {
+fn on_save_requested(
+    _: On<SettingsUpdated>,
+    store: Res<SaveBackend>,
+    settings: Res<AudioSettings>,
+) -> Result {
     info!("Saving settings...");
 
     let save_data = SettingsData {
         version: SETTINGS_FORMAT_VERSION,
-        audio: AudioSettings::default(),
+        audio: settings.clone(),
     };
 
     let save_data = ron::to_string(&save_data)?;

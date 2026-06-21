@@ -20,10 +20,6 @@ impl Plugin for HoverSfxInteractionPlugin {
 
 fn on_hover(trigger: On<Pointer<Over>>, query: Query<&HoverSfx>, mut commands: Commands) {
     if let Ok(sfx) = query.get(trigger.event_target()) {
-        commands.spawn((
-            AudioPlayer::new(sfx.0.clone()),
-            AudioChannel::Sfx,
-            PlaybackSettings::DESPAWN,
-        ));
+        commands.trigger(PlaySfx(sfx.0.clone()));
     }
 }

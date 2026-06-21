@@ -2,12 +2,14 @@ use crate::prelude::*;
 use bevy::prelude::*;
 
 use crate::audio::interaction::AudioInteractionPlugin;
+use crate::audio::sfx::AudioSfxPlugin;
 use crate::audio::soundtrack::SoundtrackPlugin;
+
 use bevy::audio::Volume;
 
 pub mod components;
-pub mod ext;
 pub mod interaction;
+pub mod sfx;
 pub mod soundtrack;
 
 pub struct GameAudioPlugin;
@@ -16,6 +18,7 @@ impl Plugin for GameAudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(AudioInteractionPlugin);
         app.add_plugins(SoundtrackPlugin);
+        app.add_plugins(AudioSfxPlugin);
 
         app.add_systems(Update, apply_channel_volume);
     }

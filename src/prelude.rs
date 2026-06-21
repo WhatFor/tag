@@ -7,7 +7,6 @@ pub use crate::assets::item_loader::ItemStore;
 
 // Audio
 pub use crate::audio::components::AudioChannel;
-pub use crate::audio::ext::*;
 pub use crate::audio::interaction::click_sfx::ClickSfx;
 pub use crate::audio::interaction::hover_sfx::HoverSfx;
 pub use crate::persistence::data::AudioSettings;
@@ -44,11 +43,13 @@ pub use crate::state::Pause;
 pub use crate::state::PlayState;
 
 // Events
+pub use crate::audio::sfx::PlaySfx;
 pub use crate::audio::soundtrack::PlaySoundtrack;
 pub use crate::audio::soundtrack::StopSoundtrack;
 pub use crate::game::events::PlayerChose;
 pub use crate::game::events::PlayerContinued;
 pub use crate::game::events::PlayerGameOver;
+pub use crate::persistence::events::SettingsUpdated;
 pub use crate::world::events::PlayerEnteredArea;
 
 // UI
