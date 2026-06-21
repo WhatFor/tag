@@ -1,13 +1,14 @@
 # TODO List
 
 - how to play sounds? loops? one-shots?
+- texture atlases for UI frames: https://bevy.org/examples/ui-user-interface/ui-texture-slice/
 
 # Nice to haves, not important
 - go back button to return to the previous room (to help with testing)
 - pause menu settings
 - export/import save
 - main menu splash
-- hover effect on inventory icon, bg colour, something for interaction
+- hover effect on inventory icon, bg colour, something for inteaction
 
 ---
 
