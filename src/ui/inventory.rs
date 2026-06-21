@@ -63,51 +63,56 @@ impl Plugin for InventoryUIPlugin {
 fn button_init(
     mut commands: Commands,
     icon_store: Res<IconAssets>,
+    audio_store: Res<AudioAssets>,
     hud_area: Single<Entity, With<HudAreaBottomRight>>,
 ) {
-    if let Some(inventory_icon) = icon_store.icons.get("inventory").cloned() {
-        commands
-            .spawn((
-                Button,
-                ImageTint::darken(Color::srgb(1., 1., 1.)),
-                Name::new("Inventory Button"),
-                Tooltip::basic("Inventory"),
-                ChildOf(hud_area.entity()),
-                DespawnOnExit(GameState::Playing),
-                GlobalZIndex(LAYER_HUD),
+    let Some(click_sfx) = audio_store.sfx.get("click") else {
+        warn!("Failed to find click SFX. See: {:?}", audio_store.sfx);
+        return;
+    };
+
+    let Some(inventory_icon) = icon_store.icons.get("inventory").cloned() else {
+        warn!("Failed to find inventory icon. See: {:?}", icon_store.icons);
+        return;
+    };
+
+    commands
+        .spawn((
+            Button,
+            ImageTint::darken(Color::srgb(1., 1., 1.)),
+            ClickSfx::from(click_sfx.clone()),
+            Name::new("Inventory Button"),
+            Tooltip::basic("Inventory"),
+            ChildOf(hud_area.entity()),
+            DespawnOnExit(GameState::Playing),
+            GlobalZIndex(LAYER_HUD),
+            Node {
+                padding: UiRect::all(Val::Px(8.)),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            children![(
+                Name::new("Inventory Button Icon"),
                 Node {
-                    padding: UiRect::all(Val::Px(8.)),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
+                    width: Val::Px(INVENTORY_BUTTON_ICON_SIZE),
+                    height: Val::Px(INVENTORY_BUTTON_ICON_SIZE),
                     ..default()
                 },
-                children![(
-                    Name::new("Inventory Button Icon"),
-                    Node {
-                        width: Val::Px(INVENTORY_BUTTON_ICON_SIZE),
-                        height: Val::Px(INVENTORY_BUTTON_ICON_SIZE),
-                        ..default()
-                    },
-                    Pickable::IGNORE,
-                    ImageNode::new(inventory_icon),
-                )],
-            ))
-            .observe(
-                |_: On<Pointer<Click>>,
-                 state: Res<State<InventoryState>>,
-                 mut next: ResMut<NextState<InventoryState>>| {
-                    match state.get() {
-                        InventoryState::Closed => next.set(InventoryState::Open),
-                        InventoryState::Open => next.set(InventoryState::Closed),
-                    };
-                },
-            );
-    } else {
-        warn!(
-            "Failed to find ui/inventory button. See: {:?}",
-            icon_store.icons
+                Pickable::IGNORE,
+                ImageNode::new(inventory_icon),
+            )],
+        ))
+        .observe(
+            |_: On<Pointer<Click>>,
+             state: Res<State<InventoryState>>,
+             mut next: ResMut<NextState<InventoryState>>| {
+                match state.get() {
+                    InventoryState::Closed => next.set(InventoryState::Open),
+                    InventoryState::Open => next.set(InventoryState::Closed),
+                };
+            },
         );
-    }
 }
 
 fn despawn_inventory(
@@ -126,11 +131,21 @@ fn despawn_inventory(
 }
 
 fn on_keybind_open_inventory(
+    mut commands: Commands,
     state: Res<State<InventoryState>>,
     mut next: ResMut<NextState<InventoryState>>,
+    audio_store: Res<AudioAssets>,
 ) {
     match state.get() {
-        InventoryState::Closed => next.set(InventoryState::Open),
+        InventoryState::Closed => {
+            let Some(coin_sfx) = audio_store.sfx.get("coins") else {
+                warn!("Failed to find coins SFX. See: {:?}", audio_store.sfx);
+                return;
+            };
+
+            commands.play_sfx(coin_sfx.clone());
+            next.set(InventoryState::Open);
+        }
         InventoryState::Open => {}
     };
 }

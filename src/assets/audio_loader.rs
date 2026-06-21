@@ -6,9 +6,14 @@ use bevy::platform::collections::HashMap;
 use bevy_asset_loader::mapped::AssetFileStem;
 
 #[derive(AssetCollection, Resource)]
-pub struct AudioSfxAssets {
-    #[asset(paths("audio/sfx/coins.wav"), collection(typed, mapped))]
+pub struct AudioAssets {
+    #[asset(
+        paths("audio/sfx/coins.wav", "audio/sfx/click.wav"),
+        collection(typed, mapped)
+    )]
     pub sfx: HashMap<AssetFileStem, Handle<AudioSource>>,
+    // #[asset(paths("audio/bg/spooky.ogg"), collection(typed, mapped))]
+    // pub background: HashMap<AssetFileStem, Handle<AudioSource>>,
 }
 
 pub struct AudioSfxLoaderPlugin;
@@ -16,7 +21,7 @@ pub struct AudioSfxLoaderPlugin;
 impl Plugin for AudioSfxLoaderPlugin {
     fn build(&self, app: &mut App) {
         app.configure_loading_state(
-            LoadingStateConfig::new(GameState::Initialising).load_collection::<AudioSfxAssets>(),
+            LoadingStateConfig::new(GameState::Initialising).load_collection::<AudioAssets>(),
         );
     }
 }

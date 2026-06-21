@@ -1,8 +1,14 @@
 // Assets
+pub use crate::assets::audio_loader::AudioAssets;
 pub use crate::assets::character_loader::CharacterStore;
 pub use crate::assets::icon_loader::IconAssets;
 pub use crate::assets::item_loader::ItemDef;
 pub use crate::assets::item_loader::ItemStore;
+
+// Audio
+pub use crate::audio::ext::*;
+pub use crate::audio::interaction::click_sfx::ClickSfx;
+pub use crate::audio::interaction::hover_sfx::HoverSfx;
 
 // Bundles
 pub use crate::world::bundles::item;

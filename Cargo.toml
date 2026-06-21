@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-bevy = { version = "0.18.1", default-features = false, features = ["2d", "experimental_bevy_ui_widgets"] }
+bevy = { version = "0.18.1", default-features = false, features = ["2d", "experimental_bevy_ui_widgets", "wav"] }
 bevy_asset_loader = { version = "0.26.0", features = ["standard_dynamic_assets", "2d"] }
 bevy-inspector-egui = "0.36.0"
 ron = "0.12.1"

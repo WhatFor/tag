@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
 use crate::ui::FontAssets;
@@ -15,11 +16,15 @@ pub struct StyledButton;
 #[derive(Component)]
 pub struct StyledButtonText;
 
+#[derive(Component)]
+pub struct StyledButtonSfx;
+
 pub struct ButtonWidgetPlugin;
 
 impl Plugin for ButtonWidgetPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(on_create);
+        app.add_observer(on_create_sfx);
 
         app.add_observer(on_mouse_hover);
         app.add_observer(on_mouse_unhover);
@@ -34,6 +39,7 @@ pub fn button(label: impl Into<String>) -> impl Bundle {
     (
         Button,
         StyledButton,
+        StyledButtonSfx,
         Name::new(format!("{} Button", label.clone())),
         BackgroundColor(NORMAL),
         Node {
@@ -73,6 +79,21 @@ fn on_create(
         button_font.font = fonts.ui_font.font.clone();
         button_color.0 = fonts.ui_color.0.clone();
     }
+}
+
+fn on_create_sfx(
+    add: On<Add, StyledButtonSfx>,
+    audio_store: Res<AudioAssets>,
+    mut commands: Commands,
+) {
+    let Some(click_sfx) = audio_store.sfx.get("click") else {
+        warn!("Failed to find click SFX. See: {:?}", audio_store.sfx);
+        return;
+    };
+
+    commands
+        .entity(add.entity)
+        .insert(ClickSfx::from(click_sfx.clone()));
 }
 
 fn on_mouse_hover(

@@ -8,6 +8,7 @@ pub mod prelude;
 pub mod state;
 
 mod assets;
+mod audio;
 mod game;
 mod global;
 mod introduction;
@@ -29,6 +30,7 @@ use crate::debug_tools::DebugToolsPlugin;
 use bevy::dev_tools::picking_debug::{DebugPickingMode, DebugPickingPlugin};
 
 use crate::assets::AssetsPlugin;
+use crate::audio::GameAudioPlugin;
 use crate::game::GameplayPlugin;
 use crate::global::GlobalPlugin;
 use crate::introduction::IntroductionPlugin;
@@ -70,6 +72,7 @@ fn main() {
     app.insert_resource(DebugPickingMode::Normal);
 
     app.add_plugins(AssetsPlugin)
+        .add_plugins(GameAudioPlugin)
         .add_plugins(GameplayPlugin)
         .add_plugins(GlobalPlugin)
         .add_plugins(IntroductionPlugin)

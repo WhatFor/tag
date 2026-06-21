@@ -56,123 +56,129 @@ pub fn init(
     query: Query<(Entity, &Panel), Added<Panel>>,
     fonts: Res<FontAssets>,
     icon_store: Res<IconAssets>,
+    audio_store: Res<AudioAssets>,
 ) {
-    if let Some(x_icon) = icon_store.icons.get("x").cloned() {
-        for (panel_entity, panel) in &query {
-            let backdrop = commands
-                .spawn((
-                    Name::new("Panel Backdrop"),
-                    BackgroundColor(BACKDROP_COLOUR),
-                    GlobalZIndex(LAYER_MENU - 1),
-                    Node {
-                        position_type: PositionType::Absolute,
-                        left: Val::Px(0.),
-                        top: Val::Px(0.),
-                        width: Val::Percent(100.),
-                        height: Val::Percent(100.),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                ))
-                // TODO: This triggers on click of content too
-                // .observe(move |_: On<Pointer<Click>>, mut commands: Commands| {
-                //     commands
-                //         .entity(panel_entity)
-                //         .trigger(|p| DespawnPanel { entity: p });
-                // })
-                .id();
+    let Some(click_sfx) = audio_store.sfx.get("click") else {
+        warn!("Failed to find click SFX. See: {:?}", audio_store.sfx);
+        return;
+    };
 
-            let header = commands
-                .spawn(Node {
+    let Some(x_icon) = icon_store.icons.get("x").cloned() else {
+        warn!("Failed to find x icon. See: {:?}", icon_store.icons);
+        return;
+    };
+
+    for (panel_entity, panel) in &query {
+        let backdrop = commands
+            .spawn((
+                Name::new("Panel Backdrop"),
+                BackgroundColor(BACKDROP_COLOUR),
+                GlobalZIndex(LAYER_MENU - 1),
+                Node {
+                    position_type: PositionType::Absolute,
+                    left: Val::Px(0.),
+                    top: Val::Px(0.),
                     width: Val::Percent(100.),
-                    flex_direction: FlexDirection::Row,
-                    justify_content: JustifyContent::SpaceBetween,
+                    height: Val::Percent(100.),
+                    justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     ..default()
-                })
-                .with_children(|h| {
-                    h.spawn((
-                        Node {
-                            padding: UiRect {
-                                left: Val::Px(20.),
-                                right: Val::Px(20.),
-                                top: Val::Px(10.),
-                                bottom: Val::Px(10.),
-                            },
-                            flex_direction: FlexDirection::Row,
-                            align_items: AlignItems::Center,
-                            ..default()
-                        },
-                        children![(
-                            Name::new("Panel Title"),
-                            Text::new(panel.title.clone()),
-                            fonts.ui_color,
-                            fonts.ui_font.clone(),
-                        )],
-                    ));
+                },
+            ))
+            // TODO: This triggers on click of content too
+            // .observe(move |_: On<Pointer<Click>>, mut commands: Commands| {
+            //     commands
+            //         .entity(panel_entity)
+            //         .trigger(|p| DespawnPanel { entity: p });
+            // })
+            .id();
 
-                    h.spawn((
-                        Button,
-                        ImageTint::darken(Color::srgb(1., 1., 1.)),
-                        Name::new("Panel Close Button"),
-                        Node {
-                            padding: UiRect {
-                                left: Val::Px(20.),
-                                right: Val::Px(20.),
-                                top: Val::Px(10.),
-                                bottom: Val::Px(10.),
-                            },
-                            flex_direction: FlexDirection::Row,
-                            align_items: AlignItems::Center,
-                            justify_content: JustifyContent::Center,
-                            ..default()
-                        },
-                        children![(
-                            Name::new("Panel Close Button Icon"),
-                            Node {
-                                width: Val::Px(CLOSE_BUTTON_ICON_SIZE),
-                                height: Val::Px(CLOSE_BUTTON_ICON_SIZE),
-                                ..default()
-                            },
-                            Pickable::IGNORE,
-                            ImageNode::new(x_icon.clone()),
-                        )],
-                    ))
-                    .observe(
-                        move |_: On<Pointer<Click>>, mut commands: Commands| {
-                            commands
-                                .entity(panel_entity)
-                                .trigger(|p| DespawnPanel { entity: p });
-                        },
-                    );
-                })
-                .id();
-
-            commands
-                .entity(panel_entity)
-                .insert((
-                    ChildOf(backdrop),
+        let header = commands
+            .spawn(Node {
+                width: Val::Percent(100.),
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::SpaceBetween,
+                align_items: AlignItems::Center,
+                ..default()
+            })
+            .with_children(|h| {
+                h.spawn((
                     Node {
-                        width: panel.width,
-                        height: panel.height,
-                        flex_direction: FlexDirection::Column,
+                        padding: UiRect {
+                            left: Val::Px(20.),
+                            right: Val::Px(20.),
+                            top: Val::Px(10.),
+                            bottom: Val::Px(10.),
+                        },
+                        flex_direction: FlexDirection::Row,
                         align_items: AlignItems::Center,
-                        border: UiRect::all(Val::Px(BORDER_SIZE)),
                         ..default()
                     },
-                    BackgroundColor(BG_COLOUR),
-                    BorderColor::all(BORDER_COLOUR),
-                    GlobalZIndex(LAYER_MENU),
-                    Pickable {
-                        is_hoverable: true,
-                        should_block_lower: true,
+                    children![(
+                        Name::new("Panel Title"),
+                        Text::new(panel.title.clone()),
+                        fonts.ui_color,
+                        fonts.ui_font.clone(),
+                    )],
+                ));
+
+                h.spawn((
+                    Button,
+                    ImageTint::darken(Color::srgb(1., 1., 1.)),
+                    ClickSfx::from(click_sfx.clone()),
+                    Name::new("Panel Close Button"),
+                    Node {
+                        padding: UiRect {
+                            left: Val::Px(20.),
+                            right: Val::Px(20.),
+                            top: Val::Px(10.),
+                            bottom: Val::Px(10.),
+                        },
+                        flex_direction: FlexDirection::Row,
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        ..default()
                     },
+                    children![(
+                        Name::new("Panel Close Button Icon"),
+                        Node {
+                            width: Val::Px(CLOSE_BUTTON_ICON_SIZE),
+                            height: Val::Px(CLOSE_BUTTON_ICON_SIZE),
+                            ..default()
+                        },
+                        Pickable::IGNORE,
+                        ImageNode::new(x_icon.clone()),
+                    )],
                 ))
-                .insert_child(0, header);
-        }
-    } else {
-        warn!("Unable to find x icon!");
+                .observe(move |_: On<Pointer<Click>>, mut commands: Commands| {
+                    commands
+                        .entity(panel_entity)
+                        .trigger(|p| DespawnPanel { entity: p });
+                });
+            })
+            .id();
+
+        commands
+            .entity(panel_entity)
+            .insert((
+                ChildOf(backdrop),
+                Node {
+                    width: panel.width,
+                    height: panel.height,
+                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::Center,
+                    border: UiRect::all(Val::Px(BORDER_SIZE)),
+                    ..default()
+                },
+                BackgroundColor(BG_COLOUR),
+                BorderColor::all(BORDER_COLOUR),
+                GlobalZIndex(LAYER_MENU),
+                Pickable {
+                    is_hoverable: true,
+                    should_block_lower: true,
+                },
+            ))
+            .insert_child(0, header);
     }
 }
 

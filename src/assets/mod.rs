@@ -3,14 +3,14 @@ use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
 use crate::assets::area_loader::AreaLoaderPlugin;
-use crate::assets::audio_sfx_loader::AudioSfxLoaderPlugin;
+use crate::assets::audio_loader::AudioSfxLoaderPlugin;
 use crate::assets::character_loader::CharacterLoaderPlugin;
 use crate::assets::icon_loader::IconLoaderPlugin;
 use crate::assets::item_loader::ItemLoaderPlugin;
 
 pub mod area_asset_loader;
 pub mod area_loader;
-pub mod audio_sfx_loader;
+pub mod audio_loader;
 pub mod character_asset_loader;
 pub mod character_loader;
 pub mod icon_loader;
