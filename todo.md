@@ -1,6 +1,5 @@
 # TODO List
 
-- volume controls
 - text draw sound-effect?
 - texture atlases for UI frames: https://bevy.org/examples/ui-user-interface/ui-texture-slice/
 

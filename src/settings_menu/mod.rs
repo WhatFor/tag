@@ -1,4 +1,6 @@
 use crate::prelude::*;
+use crate::settings_menu::volume_slider::THUMB_WIDTH;
+use crate::settings_menu::volume_slider::TRACK_WIDTH;
 use bevy::audio::Volume;
 use bevy::prelude::*;
 
@@ -71,7 +73,7 @@ fn init(mut commands: Commands, audio_settings: Res<AudioSettings>, font_store: 
                 ));
             }
 
-            p.spawn(button("Back")).observe(
+            p.spawn(button("Save")).observe(
                 |_: On<Pointer<Click>>,
                  mut commands: Commands,
                  mut next_state: ResMut<NextState<GameState>>| {
@@ -103,7 +105,7 @@ fn slider_changed(
 
         for &child in children {
             if let Ok(mut node) = thumbs.get_mut(child) {
-                node.left = Val::Percent(frac * 100.0);
+                node.left = Val::Px(frac * (TRACK_WIDTH - THUMB_WIDTH));
             }
         }
     }
