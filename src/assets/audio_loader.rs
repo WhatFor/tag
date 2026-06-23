@@ -8,7 +8,11 @@ use bevy_asset_loader::mapped::AssetFileStem;
 #[derive(AssetCollection, Resource)]
 pub struct AudioAssets {
     #[asset(
-        paths("audio/sfx/coins.wav", "audio/sfx/click.wav"),
+        paths(
+            "audio/sfx/coins.wav",
+            "audio/sfx/click.wav",
+            "audio/sfx/sci_fi_thlonk.wav"
+        ),
         collection(typed, mapped)
     )]
     pub sfx: HashMap<AssetFileStem, Handle<AudioSource>>,

@@ -7,6 +7,7 @@ use thiserror::Error;
 pub struct CharacterData {
     pub id: String,
     pub display_name: String,
+    pub speech_sfx: Option<String>,
 }
 
 #[derive(Default, TypePath)]

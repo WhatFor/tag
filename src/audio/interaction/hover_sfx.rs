@@ -20,6 +20,6 @@ impl Plugin for HoverSfxInteractionPlugin {
 
 fn on_hover(trigger: On<Pointer<Over>>, query: Query<&HoverSfx>, mut commands: Commands) {
     if let Ok(sfx) = query.get(trigger.event_target()) {
-        commands.trigger(PlaySfx(sfx.0.clone()));
+        commands.trigger(PlaySfx::new(sfx.0.clone()));
     }
 }

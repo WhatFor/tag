@@ -66,7 +66,61 @@ impl Plugin for TextFallAnimationPlugin {
                 .run_if(in_state(GameState::Playing))
                 .in_set(PausableSystems),
         );
+
+        app.add_observer(on_char_appeared);
     }
+}
+
+fn on_char_appeared(
+    _: On<Add, AnimationProgress>,
+    audio: Res<AudioAssets>,
+    current_area: Single<&mut CurrentArea, With<Player>>,
+    areas: Query<&AreaContent, With<Area>>,
+    character_store: Res<CharacterStore>,
+    mut commands: Commands,
+) {
+    let Ok(area_content) = areas.get(current_area.entity()) else {
+        return;
+    };
+
+    match area_content {
+        AreaContent::Dialogue {
+            character_id,
+            lines: _,
+        } => {
+            let speaker = character_store
+                .get(&character_id.clone().unwrap_or(String::from("")))
+                .expect("Character not found!");
+
+            let Some(speech_sfx) = speaker.speech_sfx.clone() else {
+                return;
+            };
+
+            let Some(sfx) = audio.sfx.get(speech_sfx.as_str()) else {
+                warn!("Missing speech sfx '{}'...", speech_sfx);
+                return;
+            };
+
+            let pitch = random_pitch();
+            commands.trigger(PlaySfx::with_speed(sfx.clone(), pitch));
+        }
+        AreaContent::Narration { lines: _ } => {
+            // TODO: No sound effect for narration. For now(?)
+        }
+    }
+}
+
+fn random_pitch() -> f32 {
+    let variance = 0.05;
+    let mut buf = [0u8; 4];
+
+    if getrandom::fill(&mut buf).is_err() {
+        return 1.0; // fall back to no bend rather than panic
+    }
+
+    let unit = u32::from_le_bytes(buf) as f32 / u32::MAX as f32; // [0, 1]
+
+    1.0 + (unit * 2.0 - 1.0) * variance // [1 - variance, 1 + variance]
 }
 
 fn build_text_fall(

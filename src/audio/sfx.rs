@@ -4,7 +4,20 @@ use bevy::prelude::*;
 use bevy::audio::Volume;
 
 #[derive(Event)]
-pub struct PlaySfx(pub Handle<AudioSource>);
+pub struct PlaySfx {
+    pub source: Handle<AudioSource>,
+    pub speed: f32,
+}
+
+impl PlaySfx {
+    pub fn new(source: Handle<AudioSource>) -> Self {
+        Self { source, speed: 1.0 }
+    }
+
+    pub fn with_speed(source: Handle<AudioSource>, speed: f32) -> Self {
+        Self { source, speed }
+    }
+}
 
 pub struct AudioSfxPlugin;
 
@@ -16,10 +29,11 @@ impl Plugin for AudioSfxPlugin {
 
 fn on_play_sfx(trigger: On<PlaySfx>, settings: Res<AudioSettings>, mut commands: Commands) {
     commands.spawn((
-        AudioPlayer::new(trigger.0.clone()),
+        AudioPlayer::new(trigger.source.clone()),
         AudioChannel::Sfx,
         PlaybackSettings {
             volume: Volume::Linear(settings.sfx_volume),
+            speed: trigger.speed,
             ..PlaybackSettings::DESPAWN
         },
     ));

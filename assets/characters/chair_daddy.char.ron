@@ -1,4 +1,5 @@
 (
     id: "chair_daddy",
     display_name: "Chair Daddy",
+    speech_sfx: None
 )

@@ -17,6 +17,7 @@ pub struct CharacterAssets {
 #[derive(Debug)]
 pub struct NarrativeCharacter {
     pub display_name: String,
+    pub speech_sfx: Option<String>,
 }
 
 #[derive(Resource, Default, Debug, Deref, DerefMut)]
@@ -54,6 +55,7 @@ fn add_character_resource(
             data.id.clone(),
             NarrativeCharacter {
                 display_name: data.display_name.clone(),
+                speech_sfx: data.speech_sfx.clone(),
             },
         );
     }

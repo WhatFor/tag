@@ -143,7 +143,7 @@ fn on_keybind_open_inventory(
                 return;
             };
 
-            commands.trigger(PlaySfx(coin_sfx.clone()));
+            commands.trigger(PlaySfx::new(coin_sfx.clone()));
             next.set(InventoryState::Open);
         }
         InventoryState::Open => {}

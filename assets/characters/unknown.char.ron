@@ -1,4 +1,5 @@
 (
     id: "unknown",
     display_name: "A stranger",
+    speech_sfx: Some("sci_fi_thlonk")
 )

@@ -20,6 +20,6 @@ impl Plugin for ClickSfxInteractionPlugin {
 
 fn on_click(trigger: On<Pointer<Click>>, query: Query<&ClickSfx>, mut commands: Commands) {
     if let Ok(sfx) = query.get(trigger.event_target()) {
-        commands.trigger(PlaySfx(sfx.0.clone()));
+        commands.trigger(PlaySfx::new(sfx.0.clone()));
     }
 }
