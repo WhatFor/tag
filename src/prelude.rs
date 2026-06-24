@@ -35,6 +35,7 @@ pub use crate::world::components::ItemStack;
 // Global
 pub use crate::debug_tools::GLOBAL_ANIMATION_SPEED;
 pub use crate::global::PausableSystems;
+pub use crate::global::dynamic_content::DynamicContent;
 
 // State
 pub use crate::sets::PlayingSet;

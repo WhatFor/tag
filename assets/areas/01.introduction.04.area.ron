@@ -3,7 +3,7 @@
     name: "???",
     content: Narration(
       lines: [
-        "The dragon sniffs. Mmmmmmm... piss."
+        "You have {player_health} health. Use it well."
       ]
     ),
     exits: []

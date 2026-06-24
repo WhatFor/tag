@@ -58,6 +58,7 @@ fn on_player_enter_area(
     font_handles: Res<FontHandles>,
     game_area: Single<Entity, With<GameArea>>,
     hud_area_top: Single<Entity, With<HudAreaTop>>,
+    dyn_content: DynamicContent,
 ) {
     let Ok(content) = all_area_content.get(**event) else {
         return;
@@ -149,10 +150,12 @@ fn on_player_enter_area(
                 ))
                 .id();
 
+            let dynamic_lines = lines.iter().map(|l| dyn_content.resolve(l)).collect();
+
             commands
                 .spawn((
                     AnimateTextFall {
-                        lines: lines.clone(),
+                        lines: dynamic_lines,
                         font: character_font.clone(),
                         color: TextColor(character_colour),
                     },
@@ -192,10 +195,12 @@ fn on_player_enter_area(
                 ))
                 .id();
 
+            let dynamic_lines = lines.iter().map(|l| dyn_content.resolve(l)).collect();
+
             commands
                 .spawn((
                     AnimateTextFall {
-                        lines: lines.clone(),
+                        lines: dynamic_lines,
                         font: fonts.narration_font.clone(),
                         color: fonts.narration_color,
                     },
