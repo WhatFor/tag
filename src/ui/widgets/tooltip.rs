@@ -53,7 +53,9 @@ impl Tooltip {
 }
 
 #[derive(Component)]
-struct TooltipElement;
+struct TooltipElement {
+    target: Entity,
+}
 
 // TODO: Break out into a generic 'fade in' animation
 #[derive(Component, Deref, DerefMut)]
@@ -66,6 +68,7 @@ impl Plugin for TooltipWidgetPlugin {
         app.add_systems(Update, (follow, clamp, fade_in).chain());
         app.add_observer(on_mouse_over);
         app.add_observer(on_mouse_out);
+        app.add_observer(on_target_gone);
     }
 }
 
@@ -179,7 +182,7 @@ fn on_mouse_over(
 
     commands
         .spawn((
-            TooltipElement,
+            TooltipElement { target: entity },
             TooltipFadeIn(Timer::from_seconds(FADE_SECONDS, TimerMode::Once)),
             Name::new("Tooltip"),
             Pickable::IGNORE,
@@ -218,5 +221,19 @@ fn on_mouse_out(
 
     for e in &existing {
         commands.entity(e).try_despawn();
+    }
+}
+
+fn on_target_gone(
+    trigger: On<Remove, Tooltip>,
+    elements: Query<(Entity, &TooltipElement)>,
+    mut commands: Commands,
+) {
+    let target = trigger.event_target();
+
+    for (entity, element) in &elements {
+        if element.target == target {
+            commands.entity(entity).try_despawn();
+        }
     }
 }
