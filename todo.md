@@ -5,10 +5,8 @@
 # Nice to haves, not important
 - better game over screen
 - go back button to return to the previous room (to help with testing)
-- pause menu settings
 - export/import save
 - main menu splash
-- hover effect on inventory icon, bg colour, something for inteaction
 
 ---
 
@@ -25,5 +23,4 @@
 ### Bugs
 
 - Scrollbar isn't fully pickable on the right-hand side; a few pixels of dead area.
-- Tooltip content doesn't seem to fade in like the tooltip container does
 - tooltips targeting an entity that gets despawned remains visible until a new tooltip is hovered

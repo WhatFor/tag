@@ -119,17 +119,18 @@ fn clamp(
 fn fade_in(
     time: Res<Time>,
     mut commands: Commands,
+    children_query: Query<&Children>,
     mut texts: Query<&mut TextColor>,
+    mut images: Query<&mut ImageNode>,
     mut roots: Query<(
         Entity,
         &ComputedNode,
         &mut TooltipFadeIn,
         &mut BackgroundColor,
         &mut BorderColor,
-        &Children,
     )>,
 ) {
-    for (entity, computed, mut fade, mut bg, mut border, children) in &mut roots {
+    for (entity, computed, mut fade, mut bg, mut border) in &mut roots {
         if computed.size().y <= 0. {
             // Don't start fading until drawn
             continue;
@@ -142,9 +143,12 @@ fn fade_in(
         bg.0.set_alpha(alpha);
         border.set_all(BORDER_COLOUR.with_alpha(alpha));
 
-        for &child in children {
+        for child in children_query.iter_descendants(entity) {
             if let Ok(mut text) = texts.get_mut(child) {
                 text.0.set_alpha(alpha);
+            }
+            if let Ok(mut image) = images.get_mut(child) {
+                image.color.set_alpha(alpha);
             }
         }
 
