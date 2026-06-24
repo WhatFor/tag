@@ -8,6 +8,8 @@ pub struct CharacterData {
     pub id: String,
     pub display_name: String,
     pub speech_sfx: Option<String>,
+    pub font: Option<String>,
+    pub font_colour: Option<Color>,
 }
 
 #[derive(Default, TypePath)]

@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::ui::FontHandles;
 use bevy::prelude::*;
 
 use crate::ui::layout::GameArea;
@@ -54,6 +55,7 @@ fn on_player_enter_area(
     previous_area_content: Query<Entity, With<AreaContentRoot>>,
     character_store: Res<CharacterStore>,
     fonts: Res<FontAssets>,
+    font_handles: Res<FontHandles>,
     game_area: Single<Entity, With<GameArea>>,
     hud_area_top: Single<Entity, With<HudAreaTop>>,
 ) {
@@ -74,10 +76,23 @@ fn on_player_enter_area(
                 return;
             }
 
-            // Draw the speaker name
             let speaker = character_store
                 .get(&character_id.clone().unwrap_or(String::from("")))
                 .expect("Character not found!");
+
+            let character_colour = speaker.font_colour.unwrap_or(fonts.dialogue_color.0);
+
+            let character_font = match speaker
+                .font
+                .as_deref()
+                .and_then(|name| font_handles.custom.get(name))
+            {
+                Some(handle) => TextFont {
+                    font: handle.clone(),
+                    ..fonts.dialogue_font.clone()
+                },
+                None => fonts.dialogue_font.clone(),
+            };
 
             commands.spawn((
                 Name::new("Dialogue Speaker Text Container"),
@@ -97,7 +112,7 @@ fn on_player_enter_area(
                         linebreak: LineBreak::NoWrap,
                         ..default()
                     },
-                    fonts.ui_font.clone(),
+                    character_font.clone(),
                     fonts.ui_color,
                 )],
             ));
@@ -138,8 +153,8 @@ fn on_player_enter_area(
                 .spawn((
                     AnimateTextFall {
                         lines: lines.clone(),
-                        font: fonts.dialogue_font.clone(),
-                        color: fonts.dialogue_color,
+                        font: character_font.clone(),
+                        color: TextColor(character_colour),
                     },
                     ChildOf(dialogue_wrapper),
                     Node {

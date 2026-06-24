@@ -7,6 +7,7 @@ use crate::ui::content::ContentUIPlugin;
 use crate::ui::inventory::InventoryUIPlugin;
 use crate::ui::layout::UILayoutPlugin;
 use crate::ui::widgets::WidgetsPlugin;
+use bevy::platform::collections::HashMap;
 
 pub mod interaction;
 pub mod inventory;
@@ -27,6 +28,9 @@ pub struct FontHandles {
     pub dialogue: Handle<Font>,
     #[asset(path = "fonts/bebas.otf")]
     pub ui: Handle<Font>,
+
+    #[asset(paths("fonts/black_chancery.ttf",), collection(typed, mapped))]
+    pub custom: HashMap<AssetFileStem, Handle<Font>>,
 }
 
 #[derive(Resource)]
@@ -86,7 +90,7 @@ impl FromWorld for FontAssets {
                 font_size: 45.,
                 ..default()
             },
-            dialogue_color: TextColor(Color::srgb(0.9, 0.475, 0.425)),
+            dialogue_color: TextColor(Color::srgb(0.9, 0.9, 0.9)),
 
             ui_font: TextFont {
                 font: fonts.ui.clone(),

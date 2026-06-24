@@ -18,6 +18,8 @@ pub struct CharacterAssets {
 pub struct NarrativeCharacter {
     pub display_name: String,
     pub speech_sfx: Option<String>,
+    pub font: Option<String>,
+    pub font_colour: Option<Color>,
 }
 
 #[derive(Resource, Default, Debug, Deref, DerefMut)]
@@ -56,6 +58,8 @@ fn add_character_resource(
             NarrativeCharacter {
                 display_name: data.display_name.clone(),
                 speech_sfx: data.speech_sfx.clone(),
+                font: data.font.clone(),
+                font_colour: data.font_colour,
             },
         );
     }

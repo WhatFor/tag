@@ -1,5 +1,7 @@
 (
     id: "unknown",
     display_name: "A stranger",
-    speech_sfx: Some("sci_fi_thlonk")
+    speech_sfx: Some("sci_fi_thlonk"),
+    font: Some("black_chancery"),
+    font_colour: Some(Srgba((red: 0.9, green: 0.475, blue: 0.425, alpha: 1.0))),
 )
