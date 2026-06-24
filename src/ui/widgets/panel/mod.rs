@@ -46,8 +46,7 @@ impl Plugin for PanelWidgetPlugin {
 
 const BG_COLOUR: Color = Color::srgb(0.15, 0.15, 0.15);
 const BACKDROP_COLOUR: Color = Color::srgba(0.05, 0.05, 0.05, 0.45);
-const BORDER_COLOUR: Color = Color::srgb(1., 1., 1.);
-const BORDER_SIZE: f32 = 4.;
+const FRAME_COLOUR: Color = Color::srgb(0.8, 0.8, 0.8);
 
 const DEFAULT_SIZE: f32 = 60.;
 
@@ -57,6 +56,7 @@ pub fn init(
     fonts: Res<FontAssets>,
     icon_store: Res<IconAssets>,
     audio_store: Res<AudioAssets>,
+    texture_store: Res<TextureAssets>,
 ) {
     let Some(click_sfx) = audio_store.sfx.get("click") else {
         warn!("Failed to find click SFX. See: {:?}", audio_store.sfx);
@@ -66,6 +66,21 @@ pub fn init(
     let Some(x_icon) = icon_store.icons.get("x").cloned() else {
         warn!("Failed to find x icon. See: {:?}", icon_store.icons);
         return;
+    };
+
+    let Some(border_texture) = texture_store.textures.get("panel_border").cloned() else {
+        warn!(
+            "Failed to find border texture. See: {:?}",
+            texture_store.textures
+        );
+        return;
+    };
+
+    let slicer = TextureSlicer {
+        border: BorderRect::all(32.),
+        center_scale_mode: SliceScaleMode::Stretch,
+        sides_scale_mode: SliceScaleMode::Stretch,
+        max_corner_scale: 1.,
     };
 
     for (panel_entity, panel) in &query {
@@ -167,11 +182,15 @@ pub fn init(
                     height: panel.height,
                     flex_direction: FlexDirection::Column,
                     align_items: AlignItems::Center,
-                    border: UiRect::all(Val::Px(BORDER_SIZE)),
+                    ..default()
+                },
+                ImageNode {
+                    image: border_texture.clone(),
+                    color: FRAME_COLOUR,
+                    image_mode: NodeImageMode::Sliced(slicer.clone()),
                     ..default()
                 },
                 BackgroundColor(BG_COLOUR),
-                BorderColor::all(BORDER_COLOUR),
                 GlobalZIndex(LAYER_MENU),
                 Pickable {
                     is_hoverable: true,

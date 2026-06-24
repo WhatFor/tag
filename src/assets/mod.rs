@@ -7,6 +7,7 @@ use crate::assets::audio_loader::AudioSfxLoaderPlugin;
 use crate::assets::character_loader::CharacterLoaderPlugin;
 use crate::assets::icon_loader::IconLoaderPlugin;
 use crate::assets::item_loader::ItemLoaderPlugin;
+use crate::assets::texture_loader::TextureLoaderPlugin;
 
 pub mod area_asset_loader;
 pub mod area_loader;
@@ -16,6 +17,7 @@ pub mod character_loader;
 pub mod icon_loader;
 pub mod item_asset_loader;
 pub mod item_loader;
+pub mod texture_loader;
 
 pub struct AssetsPlugin;
 
@@ -30,5 +32,6 @@ impl Plugin for AssetsPlugin {
         app.add_plugins(CharacterLoaderPlugin);
         app.add_plugins(ItemLoaderPlugin);
         app.add_plugins(IconLoaderPlugin);
+        app.add_plugins(TextureLoaderPlugin);
     }
 }

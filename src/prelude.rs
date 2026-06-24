@@ -4,6 +4,7 @@ pub use crate::assets::character_loader::CharacterStore;
 pub use crate::assets::icon_loader::IconAssets;
 pub use crate::assets::item_loader::ItemDef;
 pub use crate::assets::item_loader::ItemStore;
+pub use crate::assets::texture_loader::TextureAssets;
 
 // Audio
 pub use crate::audio::components::AudioChannel;

@@ -39,6 +39,6 @@ fn apply_channel_volume(
             AudioChannel::Music => settings.music_volume,
         };
 
-        sink.set_volume(Volume::Linear(v));
+        sink.set_volume(Volume::Linear(v * settings.master_volume));
     }
 }

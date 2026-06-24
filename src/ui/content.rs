@@ -280,7 +280,7 @@ fn show_content_prompt(
                     match exit {
                         AreaExit::Choice(area_exit_options) => {
                             for (index, exit_option) in area_exit_options.iter().enumerate() {
-                                let label = format!("{}. {}", index + 1, exit_option.label.clone());
+                                let label = format!("{}. {}", index + 1, exit_option.label);
                                 let to = exit_option.to.clone();
 
                                 container.spawn(button(label)).observe(

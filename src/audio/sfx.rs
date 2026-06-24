@@ -32,7 +32,7 @@ fn on_play_sfx(trigger: On<PlaySfx>, settings: Res<AudioSettings>, mut commands:
         AudioPlayer::new(trigger.source.clone()),
         AudioChannel::Sfx,
         PlaybackSettings {
-            volume: Volume::Linear(settings.sfx_volume),
+            volume: Volume::Linear(settings.sfx_volume * settings.master_volume),
             speed: trigger.speed,
             ..PlaybackSettings::DESPAWN
         },

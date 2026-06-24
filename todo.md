@@ -1,6 +1,6 @@
 # TODO List
 
-- texture atlases for UI frames: https://bevy.org/examples/ui-user-interface/ui-texture-slice/
+- ???
 
 # Nice to haves, not important
 - better game over screen
