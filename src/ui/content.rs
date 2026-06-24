@@ -7,6 +7,13 @@ use crate::ui::layout::HudAreaTop;
 use crate::ui::widgets::animation::text_fall::AnimateTextFall;
 use crate::ui::widgets::animation::text_fall::AnimateTextFallComplete;
 
+const CHOICE_KEYS: [KeyCode; 4] = [
+    KeyCode::Digit1,
+    KeyCode::Digit2,
+    KeyCode::Digit3,
+    KeyCode::Digit4,
+];
+
 #[derive(Event)]
 pub struct ContentDisplayCompleted;
 
@@ -28,7 +35,7 @@ impl Plugin for ContentUIPlugin {
 
         app.add_systems(
             Update,
-            wait_for_continue_input
+            wait_for_keyboard_input
                 .run_if(in_state(ExploringState::AwaitingContentPrompt))
                 .in_set(PausableSystems),
         );
@@ -272,8 +279,8 @@ fn show_content_prompt(
                 for exit in current_area_exits.iter() {
                     match exit {
                         AreaExit::Choice(area_exit_options) => {
-                            for exit_option in area_exit_options {
-                                let label = exit_option.label.clone();
+                            for (index, exit_option) in area_exit_options.iter().enumerate() {
+                                let label = format!("{}. {}", index + 1, exit_option.label.clone());
                                 let to = exit_option.to.clone();
 
                                 container.spawn(button(label)).observe(
@@ -292,7 +299,7 @@ fn show_content_prompt(
     };
 }
 
-fn wait_for_continue_input(
+fn wait_for_keyboard_input(
     mut commands: Commands,
     current_area: Single<&CurrentArea, With<Player>>,
     areas: Query<&AreaExits, With<Area>>,
@@ -306,6 +313,13 @@ fn wait_for_continue_input(
         Some(AreaExit::Continue(_)) => {
             if keyboard.just_pressed(KeyCode::Space) {
                 commands.trigger(PlayerContinued);
+            }
+        }
+        Some(AreaExit::Choice(choices)) => {
+            for (choice, key_code) in choices.iter().zip(CHOICE_KEYS) {
+                if keyboard.just_pressed(key_code) {
+                    commands.trigger(PlayerChose(choice.to.clone()));
+                }
             }
         }
         _ => {
