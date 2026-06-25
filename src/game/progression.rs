@@ -15,9 +15,10 @@ impl Plugin for ProgressionPlugin {
 }
 
 fn on_player_continued(
-    _: On<PlayerContinued>,
+    trigger: On<PlayerContinued>,
     mut commands: Commands,
     mut current_area: Single<&mut CurrentArea, With<Player>>,
+    mut full_path_taken: Single<&mut FullPathTaken, With<Player>>,
     areas: Query<(Entity, &AreaId, &AreaExits), With<Area>>,
     mut next_exploring_state: ResMut<NextState<ExploringState>>,
 ) {
@@ -44,7 +45,15 @@ fn on_player_continued(
         return;
     };
 
+    // Set the AreaId on the Player's CurrentArea
     ***current_area = next_entity;
+
+    // Add the Continue step to the Player's FullPathTaken
+    full_path_taken.0.push(TakenPath {
+        area_id: trigger.from.0.clone(),
+        choice_id: None,
+    });
+
     commands.trigger(PlayerEnteredArea(next_entity));
     commands.trigger(SaveRequested);
     next_exploring_state.set(ExploringState::PresentingContent);
@@ -54,17 +63,26 @@ fn on_player_chose(
     trigger: On<PlayerChose>,
     mut commands: Commands,
     mut current_area: Single<&mut CurrentArea, With<Player>>,
+    mut full_path_taken: Single<&mut FullPathTaken, With<Player>>,
     areas: Query<(Entity, &AreaId, &AreaExits), With<Area>>,
     mut next_exploring_state: ResMut<NextState<ExploringState>>,
 ) {
-    info!("Player chose to move to room {:?}", ***trigger);
+    info!("Player chose to move to room {:?}", trigger);
 
-    let Some((next_entity, _, _)) = areas.iter().find(|(_, id, _)| **id == **trigger) else {
-        warn!("Room {:?} not found!", ***trigger);
+    let Some((next_entity, _, _)) = areas.iter().find(|(_, id, _)| **id == trigger.to) else {
+        warn!("Room {:?} not found!", trigger);
         return;
     };
 
+    // Set the AreaId on the Player's CurrentArea
     ***current_area = next_entity;
+
+    // Add the Choice to the Player's FullPathTaken
+    full_path_taken.0.push(TakenPath {
+        area_id: trigger.from.0.clone(),
+        choice_id: Some(trigger.chosen_id.clone()),
+    });
+
     commands.trigger(PlayerEnteredArea(next_entity));
     commands.trigger(SaveRequested);
     next_exploring_state.set(ExploringState::PresentingContent);

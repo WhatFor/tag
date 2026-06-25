@@ -16,6 +16,7 @@ pub struct AreaExits(pub Vec<AreaExit>);
 
 #[derive(Deserialize, Clone)]
 pub struct AreaExitOption {
+    pub id: String,
     pub to: AreaId,
     pub label: String,
 }

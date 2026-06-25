@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+
+use crate::components::TakenPath;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -7,6 +9,7 @@ pub struct SaveData {
     pub current_area_id: String,
     pub health: usize,
     pub inventory: Vec<SavedItem>,
+    pub path_taken: Vec<TakenPath>,
 }
 
 #[derive(Serialize, Deserialize)]

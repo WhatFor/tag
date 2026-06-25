@@ -1,7 +1,8 @@
-use crate::persistence::data::{SaveData, SavedItem};
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::components::FullPathTaken;
+use crate::persistence::data::{SaveData, SavedItem};
 use crate::persistence::events::{SaveDeleted, SaveRequested};
 use crate::persistence::resources::SaveBackend;
 use crate::persistence::{SAVE_FILE_KEY, SAVE_FORMAT_VERSION};
@@ -18,13 +19,13 @@ impl Plugin for PersistenceSavePlugin {
 fn on_save_requested(
     _: On<SaveRequested>,
     store: Res<SaveBackend>,
-    player: Single<(&Health, &Inventory, &CurrentArea), With<Player>>,
+    player: Single<(&Health, &Inventory, &CurrentArea, &FullPathTaken), With<Player>>,
     areas: Query<&AreaId, With<Area>>,
     items: Query<(&ItemId, Option<&ItemStack>), With<Item>>,
 ) -> Result {
     info!("Saving game...");
 
-    let (health, inventory, current_area) = *player;
+    let (health, inventory, current_area, path_taken) = *player;
 
     let current_area_id = areas.get(current_area.entity())?.0.clone();
 
@@ -45,6 +46,7 @@ fn on_save_requested(
         current_area_id: current_area_id,
         health: **health,
         inventory: inventory,
+        path_taken: path_taken.0.clone(),
     };
 
     let save_data = ron::to_string(&save_data)?;

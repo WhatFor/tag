@@ -12,8 +12,8 @@
     ),
     exits: [
         Choice([
-            ( to: ("intro_03"), label: "Serve" ),
-            ( to: ("intro_fail"), label: "Retire" ),
+            ( id: "serve", to: ("intro_03"), label: "Serve" ),
+            ( id: "retire", to: ("intro_fail"), label: "Retire" ),
         ])
     ]
 )

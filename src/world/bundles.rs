@@ -4,6 +4,7 @@ use bevy::prelude::*;
 pub fn default_player() -> impl Bundle {
     (
         Player,
+        FullPathTaken(vec![]),
         Name::new("Player"),
         Health(100),
         Inventory(vec![]),

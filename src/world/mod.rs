@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
 use crate::persistence::SAVE_FILE_KEY;
@@ -56,6 +57,7 @@ fn spawn_player(
                 version: SAVE_FORMAT_VERSION,
                 health: 100,
                 current_area_id: START_AREA_ID.to_string(),
+                path_taken: vec![],
                 inventory: vec![
                     SavedItem {
                         count: 3,
@@ -81,7 +83,11 @@ fn spawn_player(
 
     let mut player = commands.spawn((default_player(), CurrentArea(start_area)));
 
-    player.insert(Health(start_data.health));
+    // Must insert these after default spawn in order to replace specified components
+    player.insert((
+        Health(start_data.health),
+        FullPathTaken(start_data.path_taken.clone()),
+    ));
 
     for item in &start_data.inventory {
         player.give(item.item_id.clone(), item.count);

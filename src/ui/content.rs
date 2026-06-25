@@ -1,7 +1,7 @@
 use crate::prelude::*;
-use crate::ui::FontHandles;
 use bevy::prelude::*;
 
+use crate::ui::FontHandles;
 use crate::ui::layout::GameArea;
 use crate::ui::layout::HudAreaBottomCenter;
 use crate::ui::layout::HudAreaTop;
@@ -248,13 +248,15 @@ fn on_content_display_completed(
 fn show_content_prompt(
     mut commands: Commands,
     current_area: Single<&CurrentArea, With<Player>>,
-    areas: Query<&AreaExits, With<Area>>,
+    areas: Query<(&AreaId, &AreaExits), With<Area>>,
     bottom_center_hud: Single<Entity, With<HudAreaBottomCenter>>,
 ) {
-    let Ok(current_area_exits) = areas.get(current_area.entity()) else {
+    let Ok((area_id, current_area_exits)) = areas.get(current_area.entity()) else {
         // Area not found - shouldn't happen
         return;
     };
+
+    let area_id = area_id.clone();
 
     if let Some(AreaExit::Continue(_)) = current_area_exits.first() {
         // Spawn 'Continue' button
@@ -273,8 +275,10 @@ fn show_content_prompt(
             ))
             .with_children(|p| {
                 p.spawn(button("Continue (space)")).observe(
-                    |_: On<Pointer<Click>>, mut commands: Commands| {
-                        commands.trigger(PlayerContinued);
+                    move |_: On<Pointer<Click>>, mut commands: Commands| {
+                        commands.trigger(PlayerContinued {
+                            from: area_id.clone(),
+                        });
                     },
                 );
             });
@@ -302,10 +306,16 @@ fn show_content_prompt(
                             for (index, exit_option) in area_exit_options.iter().enumerate() {
                                 let label = format!("{}. {}", index + 1, exit_option.label);
                                 let to = exit_option.to.clone();
+                                let chosen_id = exit_option.id.clone();
+                                let area_id = area_id.clone();
 
                                 container.spawn(button(label)).observe(
                                     move |_: On<Pointer<Click>>, mut commands: Commands| {
-                                        commands.trigger(PlayerChose(to.clone()));
+                                        commands.trigger(PlayerChose {
+                                            from: area_id.clone(),
+                                            to: to.clone(),
+                                            chosen_id: chosen_id.clone(),
+                                        });
                                     },
                                 );
                             }
@@ -322,23 +332,29 @@ fn show_content_prompt(
 fn wait_for_keyboard_input(
     mut commands: Commands,
     current_area: Single<&CurrentArea, With<Player>>,
-    areas: Query<&AreaExits, With<Area>>,
+    areas: Query<(&AreaId, &AreaExits), With<Area>>,
     keyboard: Res<ButtonInput<KeyCode>>,
 ) {
-    let Ok(current_area_exits) = areas.get(current_area.entity()) else {
+    let Ok((area_id, current_area_exits)) = areas.get(current_area.entity()) else {
         return;
     };
 
     match current_area_exits.first() {
         Some(AreaExit::Continue(_)) => {
             if keyboard.just_pressed(KeyCode::Space) {
-                commands.trigger(PlayerContinued);
+                commands.trigger(PlayerContinued {
+                    from: area_id.clone(),
+                });
             }
         }
         Some(AreaExit::Choice(choices)) => {
             for (choice, key_code) in choices.iter().zip(CHOICE_KEYS) {
                 if keyboard.just_pressed(key_code) {
-                    commands.trigger(PlayerChose(choice.to.clone()));
+                    commands.trigger(PlayerChose {
+                        from: area_id.clone(),
+                        chosen_id: choice.id.clone(),
+                        to: choice.to.clone(),
+                    });
                 }
             }
         }
