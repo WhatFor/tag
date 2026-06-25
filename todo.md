@@ -58,8 +58,9 @@
     - maybe add a hardcore mode that means auto-die and can't reset to checkpoint.
 
 ### Combat TODO
-- checkpoints on enter areas; store latest checkpoint in save file;
+- checkpoints:
   - menu option to return to last checkpoint
-  - hardcore mode to disable return to last checkpoint
+  - on death, return to checkpoint
+  - hardcore mode to disable return to last checkpoint, don't return to checkpoint on death
 - revisitable areas
   - need to store what previous area was before going to revisitable area so can return

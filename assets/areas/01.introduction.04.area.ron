@@ -1,6 +1,7 @@
 (
     id: "intro_04",
     name: "???",
+    is_checkpoint: false,
     content: Narration(
       lines: [
         "You have {player_health} health. Use it well."

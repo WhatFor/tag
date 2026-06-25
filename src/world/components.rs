@@ -6,6 +6,9 @@ use crate::prelude::TakenPath;
 #[derive(Component)]
 pub struct Area;
 
+#[derive(Component)]
+pub struct CheckpointArea;
+
 #[derive(Deserialize, Clone)]
 pub enum AreaExit {
     Continue(String),

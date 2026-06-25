@@ -45,7 +45,7 @@ fn spawn_areas(mut commands: Commands, areas: Res<AreaAssets>, area_data: Res<As
 
         info!("Spawning Area {}...", data.id);
 
-        commands.spawn((
+        let mut area = commands.spawn((
             Area,
             Name::new(format!("Area {}", data.id)),
             AreaExits(data.exits.clone()),
@@ -53,5 +53,9 @@ fn spawn_areas(mut commands: Commands, areas: Res<AreaAssets>, area_data: Res<As
             crate::components::DisplayName(data.name.clone()),
             crate::world::components::AreaId(data.id.clone()),
         ));
+
+        if data.is_checkpoint {
+            area.insert(CheckpointArea);
+        }
     }
 }

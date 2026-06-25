@@ -10,6 +10,7 @@ pub struct AreaData {
     pub name: String,
     pub content: AreaContent,
     pub exits: Vec<AreaExit>,
+    pub is_checkpoint: bool,
 }
 
 #[derive(Default, TypePath)]

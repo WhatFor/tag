@@ -1,6 +1,7 @@
 (
     id: "intro_01",
     name: "???",
+    is_checkpoint: true,
     content: Dialogue(
       character_id: Some("unknown"),
       lines: [

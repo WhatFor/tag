@@ -19,11 +19,12 @@ fn on_player_continued(
     mut commands: Commands,
     mut current_area: Single<&mut CurrentArea, With<Player>>,
     mut full_path_taken: Single<&mut FullPathTaken, With<Player>>,
-    areas: Query<(Entity, &AreaId, &AreaExits), With<Area>>,
+    mut checkpoint: Single<&mut LastCheckpointArea, With<Player>>,
+    areas: Query<(Entity, &AreaId, &AreaExits, Option<&CheckpointArea>), With<Area>>,
     mut next_exploring_state: ResMut<NextState<ExploringState>>,
 ) {
     let next_room_id = {
-        let Ok((_, _, exits)) = areas.get(current_area.entity()) else {
+        let Ok((_, _, exits, _)) = areas.get(current_area.entity()) else {
             return;
         };
 
@@ -41,7 +42,9 @@ fn on_player_continued(
         }
     };
 
-    let Some((next_entity, _, _)) = areas.iter().find(|(_, id, _)| ***id == next_room_id) else {
+    let Some((next_entity, _, _, is_checkpoint)) =
+        areas.iter().find(|(_, id, _, _)| ***id == next_room_id)
+    else {
         return;
     };
 
@@ -54,6 +57,11 @@ fn on_player_continued(
         choice_id: None,
     });
 
+    // If moved into a checkpoint area, save it
+    if is_checkpoint.is_some() {
+        checkpoint.0 = next_entity;
+    }
+
     commands.trigger(PlayerEnteredArea(next_entity));
     commands.trigger(SaveRequested);
     next_exploring_state.set(ExploringState::PresentingContent);
@@ -64,12 +72,15 @@ fn on_player_chose(
     mut commands: Commands,
     mut current_area: Single<&mut CurrentArea, With<Player>>,
     mut full_path_taken: Single<&mut FullPathTaken, With<Player>>,
-    areas: Query<(Entity, &AreaId, &AreaExits), With<Area>>,
+    mut checkpoint: Single<&mut LastCheckpointArea, With<Player>>,
+    areas: Query<(Entity, &AreaId, &AreaExits, Option<&CheckpointArea>), With<Area>>,
     mut next_exploring_state: ResMut<NextState<ExploringState>>,
 ) {
     info!("Player chose to move to room {:?}", trigger);
 
-    let Some((next_entity, _, _)) = areas.iter().find(|(_, id, _)| **id == trigger.to) else {
+    let Some((next_entity, _, _, is_checkpoint)) =
+        areas.iter().find(|(_, id, _, _)| **id == trigger.to)
+    else {
         warn!("Room {:?} not found!", trigger);
         return;
     };
@@ -82,6 +93,11 @@ fn on_player_chose(
         area_id: trigger.from.0.clone(),
         choice_id: Some(trigger.chosen_id.clone()),
     });
+
+    // If moved into a checkpoint area, save it
+    if is_checkpoint.is_some() {
+        checkpoint.0 = next_entity;
+    }
 
     commands.trigger(PlayerEnteredArea(next_entity));
     commands.trigger(SaveRequested);

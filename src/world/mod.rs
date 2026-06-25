@@ -57,6 +57,7 @@ fn spawn_player(
                 version: SAVE_FORMAT_VERSION,
                 health: 100,
                 current_area_id: START_AREA_ID.to_string(),
+                last_checkpoint_area_id: START_AREA_ID.to_string(),
                 path_taken: vec![],
                 inventory: vec![
                     SavedItem {
@@ -81,7 +82,17 @@ fn spawn_player(
         .map(|(entity, _)| entity)
         .expect("Unable to find start area");
 
-    let mut player = commands.spawn((default_player(), CurrentArea(start_area)));
+    let checkpoint_area = areas
+        .iter()
+        .find(|(_, id)| ***id == start_data.last_checkpoint_area_id)
+        .map(|(entity, _)| entity)
+        .expect("Unable to find last checkpoint area");
+
+    let mut player = commands.spawn((
+        default_player(),
+        CurrentArea(start_area),
+        LastCheckpointArea(checkpoint_area),
+    ));
 
     // Must insert these after default spawn in order to replace specified components
     player.insert((

@@ -19,15 +19,25 @@ impl Plugin for PersistenceSavePlugin {
 fn on_save_requested(
     _: On<SaveRequested>,
     store: Res<SaveBackend>,
-    player: Single<(&Health, &Inventory, &CurrentArea, &FullPathTaken), With<Player>>,
+    player: Single<
+        (
+            &Health,
+            &Inventory,
+            &CurrentArea,
+            &LastCheckpointArea,
+            &FullPathTaken,
+        ),
+        With<Player>,
+    >,
     areas: Query<&AreaId, With<Area>>,
     items: Query<(&ItemId, Option<&ItemStack>), With<Item>>,
 ) -> Result {
     info!("Saving game...");
 
-    let (health, inventory, current_area, path_taken) = *player;
+    let (health, inventory, current_area, last_checkpoint, path_taken) = *player;
 
     let current_area_id = areas.get(current_area.entity())?.0.clone();
+    let last_checkpoint_area_id = areas.get(last_checkpoint.entity())?.0.clone();
 
     let inventory = inventory
         .iter()
@@ -44,6 +54,7 @@ fn on_save_requested(
     let save_data = SaveData {
         version: SAVE_FORMAT_VERSION,
         current_area_id: current_area_id,
+        last_checkpoint_area_id: last_checkpoint_area_id,
         health: **health,
         inventory: inventory,
         path_taken: path_taken.0.clone(),
