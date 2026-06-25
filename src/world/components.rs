@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use serde::Deserialize;
 
+use crate::prelude::TakenPath;
+
 #[derive(Component)]
 pub struct Area;
 
@@ -19,6 +21,17 @@ pub struct AreaExitOption {
     pub id: String,
     pub to: AreaId,
     pub label: String,
+    pub requires: Option<Vec<AreaExitRequirement>>,
+}
+
+#[derive(Deserialize, Clone)]
+pub enum AreaExitRequirement {
+    // Dictates that a certain AreaId must have been passed through
+    // and, optionally, the choice that had to have been selected.
+    TookPath(TakenPath),
+    // Requires the player has at least a certain number of
+    // the specified item.
+    HasItem(ItemId, u32),
 }
 
 #[derive(Component, Deserialize, Clone, Debug, Deref, PartialEq, Eq)]
@@ -39,7 +52,7 @@ pub enum AreaContent {
 #[reflect(Component)]
 pub struct Item;
 
-#[derive(Component, Reflect, Deref, PartialEq, Eq)]
+#[derive(Component, Clone, Deserialize, Reflect, Deref, PartialEq, Eq)]
 #[reflect(Component)]
 pub struct ItemId(pub String);
 

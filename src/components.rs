@@ -17,7 +17,7 @@ pub struct Health(pub usize);
 #[reflect(Component)]
 pub struct FullPathTaken(pub Vec<TakenPath>);
 
-#[derive(Serialize, Deserialize, Reflect, Clone)]
+#[derive(Serialize, Deserialize, Reflect, Clone, PartialEq, Eq)]
 pub struct TakenPath {
     pub area_id: String,
     pub choice_id: Option<String>, // None if no choices to be made

@@ -6,5 +6,24 @@
         "You have {player_health} health. Use it well."
       ]
     ),
-    exits: []
+    exits: [
+        Choice([
+            (
+                id: "requires-serve",
+                to: ("intro_03"),
+                label: "Serve",
+                requires: Some([
+                    TookPath(( area_id: "intro_02", choice_id: Some("serve") ))
+                ])
+            ),
+            (
+                id: "requires-retire",
+                to: ("intro_fail"),
+                label: "Retire",
+                requires: Some([
+                    TookPath(( area_id: "intro_02", choice_id: Some("retire") ))
+                ])
+            ),
+        ])
+    ]
 )

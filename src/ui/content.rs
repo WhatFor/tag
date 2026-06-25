@@ -249,6 +249,9 @@ fn show_content_prompt(
     mut commands: Commands,
     current_area: Single<&CurrentArea, With<Player>>,
     areas: Query<(&AreaId, &AreaExits), With<Area>>,
+    full_path_taken: Single<&FullPathTaken, With<Player>>,
+    inventory: Single<&Inventory, With<Player>>,
+    items: Query<(&ItemId, Option<&ItemStack>), With<Item>>,
     bottom_center_hud: Single<Entity, With<HudAreaBottomCenter>>,
 ) {
     let Ok((area_id, current_area_exits)) = areas.get(current_area.entity()) else {
@@ -304,6 +307,34 @@ fn show_content_prompt(
                     match exit {
                         AreaExit::Choice(area_exit_options) => {
                             for (index, exit_option) in area_exit_options.iter().enumerate() {
+                                let requirements = exit_option.requires.clone();
+
+                                // Check if any requirement has failed
+                                if requirements.is_some_and(|requirements| {
+                                    requirements.iter().any(|req| match req {
+                                        AreaExitRequirement::TookPath(taken_path) => {
+                                            // Must have taken path
+                                            full_path_taken.contains(taken_path) == false
+                                        }
+                                        AreaExitRequirement::HasItem(item_id, required_count) => {
+                                            // Must have the specified count of items
+                                            let item_held_count: u32 = inventory
+                                                .iter()
+                                                .filter_map(|&entity| items.get(entity).ok())
+                                                .filter_map(|(id, stack)| {
+                                                    (id == item_id)
+                                                        .then(|| stack.map_or(1, |s| s.0))
+                                                })
+                                                .sum();
+
+                                            item_held_count < *required_count
+                                        }
+                                    })
+                                }) {
+                                    // Don't render the choice; Failed the req.
+                                    continue;
+                                }
+
                                 let label = format!("{}. {}", index + 1, exit_option.label);
                                 let to = exit_option.to.clone();
                                 let chosen_id = exit_option.id.clone();

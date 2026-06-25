@@ -1,6 +1,6 @@
 # TODO List
 
-- ???
+- keybind settings
 
 # Nice to haves, not important
 - better game over screen
@@ -58,8 +58,6 @@
     - maybe add a hardcore mode that means auto-die and can't reset to checkpoint.
 
 ### Combat TODO
-- full track of path taken (and choices selected) stored in save file
-- choices that have a requirement (i.e. a certain choice made in the past; item in invent;)
 - checkpoints on enter areas; store latest checkpoint in save file;
   - menu option to return to last checkpoint
   - hardcore mode to disable return to last checkpoint

@@ -35,7 +35,7 @@ fn on_save_requested(
             let (id, stack) = items.get(e)?;
 
             Ok(SavedItem {
-                item_id: (*id).clone(),
+                item_id: (**id).clone(),
                 count: stack.map_or(1, |s| **s),
             })
         })

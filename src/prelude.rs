@@ -27,6 +27,7 @@ pub use crate::player::components::Player;
 pub use crate::world::components::Area;
 pub use crate::world::components::AreaContent;
 pub use crate::world::components::AreaExit;
+pub use crate::world::components::AreaExitRequirement;
 pub use crate::world::components::AreaExits;
 pub use crate::world::components::AreaId;
 pub use crate::world::components::Inventory;
