@@ -1,3 +1,4 @@
+use crate::persistence::events::LoadCheckpoint;
 use crate::prelude::*;
 use bevy::prelude::*;
 
@@ -45,6 +46,8 @@ fn init(mut commands: Commands) {
                 height: percent(100),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(8.),
                 ..default()
             },
         ))
@@ -57,6 +60,22 @@ fn init(mut commands: Commands) {
                     commands.trigger(StopSoundtrack);
                     next_pause_state.set(Pause(false));
                     next_game_state.set(GameState::MainMenu);
+                },
+            );
+
+            p.spawn(button("Reset to Checkpoint")).observe(
+                |_: On<Pointer<Click>>,
+                 mut commands: Commands,
+                 last_checkpoint: Single<&LastCheckpointArea, With<Player>>,
+                 areas: Query<&AreaId, With<Area>>,
+                 mut next_pause_state: ResMut<NextState<Pause>>|
+                 -> Result {
+                    let area_id = areas.get(last_checkpoint.0)?.0.clone();
+                    commands.trigger(LoadCheckpoint { area_id: area_id });
+
+                    next_pause_state.set(Pause(false));
+
+                    Ok(())
                 },
             );
 

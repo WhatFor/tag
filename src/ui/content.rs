@@ -22,6 +22,10 @@ pub struct ContentDisplayCompleted;
 #[reflect(Component)]
 pub struct AreaContentRoot;
 
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct AreaPromptRoot;
+
 pub struct ContentUIPlugin;
 
 impl Plugin for ContentUIPlugin {
@@ -247,6 +251,7 @@ fn on_content_display_completed(
 
 fn show_content_prompt(
     mut commands: Commands,
+    previous_area_prompts: Query<Entity, With<AreaPromptRoot>>,
     current_area: Single<&CurrentArea, With<Player>>,
     areas: Query<(&AreaId, &AreaExits), With<Area>>,
     full_path_taken: Single<&FullPathTaken, With<Player>>,
@@ -259,6 +264,10 @@ fn show_content_prompt(
         return;
     };
 
+    for entity in &previous_area_prompts {
+        commands.entity(entity).try_despawn();
+    }
+
     let area_id = area_id.clone();
 
     if let Some(AreaExit::Continue(_)) = current_area_exits.first() {
@@ -266,6 +275,7 @@ fn show_content_prompt(
         commands
             .spawn((
                 Name::new("Continue Button Container"),
+                AreaPromptRoot,
                 ChildOf(bottom_center_hud.entity()),
                 DespawnOnExit(ExploringState::AwaitingContentPrompt),
                 GlobalZIndex(LAYER_HUD),
@@ -290,6 +300,7 @@ fn show_content_prompt(
         commands
             .spawn((
                 Name::new("Choice Buttons Container"),
+                AreaPromptRoot,
                 ChildOf(bottom_center_hud.entity()),
                 DespawnOnExit(ExploringState::AwaitingContentPrompt),
                 GlobalZIndex(LAYER_HUD),

@@ -8,3 +8,8 @@ pub struct SaveDeleted;
 
 #[derive(Event)]
 pub struct SettingsUpdated;
+
+#[derive(Event)]
+pub struct LoadCheckpoint {
+    pub area_id: String,
+}

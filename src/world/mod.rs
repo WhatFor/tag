@@ -14,7 +14,6 @@ use crate::world::bundles::default_player;
 use crate::world::components::Area;
 use crate::world::components::AreaId;
 use crate::world::events::PlayerEnteredArea;
-use crate::world::inventory::GiveItemExt;
 
 pub mod bundles;
 pub mod components;

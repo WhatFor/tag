@@ -1,6 +1,7 @@
 # TODO List
 
 - keybind settings
+- settings menu from pause
 
 # Nice to haves, not important
 - better game over screen

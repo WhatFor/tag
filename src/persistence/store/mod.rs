@@ -17,4 +17,5 @@ pub trait SaveStore: Send + Sync + 'static {
     fn read(&self, key: &str) -> Result<Option<String>, SaveError>;
     fn write(&self, key: &str, value: &str) -> Result<(), SaveError>;
     fn clear(&self, key: &str) -> Result<(), SaveError>;
+    fn keys(&self) -> Result<Vec<String>, SaveError>;
 }

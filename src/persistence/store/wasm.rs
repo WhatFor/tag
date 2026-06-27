@@ -45,4 +45,22 @@ impl SaveStore for LocalStorageStore {
             .remove_item(key)
             .map_err(|e| SaveError::Backend(format!("{e:?}")))
     }
+
+    fn keys(&self) -> Result<Vec<String>, SaveError> {
+        let storage = self.storage()?;
+        let len = storage
+            .length()
+            .map_err(|e| SaveError::Backend(format!("{e:?}")))?;
+
+        let mut keys = Vec::with_capacity(len as usize);
+        for i in 0..len {
+            if let Some(key) = storage
+                .key(i)
+                .map_err(|e| SaveError::Backend(format!("{e:?}")))?
+            {
+                keys.push(key);
+            }
+        }
+        Ok(keys)
+    }
 }

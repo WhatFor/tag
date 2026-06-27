@@ -66,3 +66,6 @@ pub use crate::ui::widgets::button::button;
 pub use crate::ui::widgets::panel::Panel;
 pub use crate::ui::widgets::scroll_area::scroll_area;
 pub use crate::ui::widgets::tooltip::Tooltip;
+
+// Traits
+pub use crate::world::inventory::GiveItemExt;

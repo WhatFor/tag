@@ -60,4 +60,24 @@ impl SaveStore for FileSystemStorageStore {
             Err(e) => Err(SaveError::Backend(format!("remove {path:?}: {e}"))),
         }
     }
+
+    fn keys(&self) -> Result<Vec<String>, SaveError> {
+        let entries = match fs::read_dir(&self.base) {
+            Ok(entries) => entries,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+            Err(e) => return Err(SaveError::Backend(format!("read_dir {:?}: {e}", self.base))),
+        };
+
+        let mut keys = Vec::new();
+        for entry in entries {
+            let entry = entry.map_err(|e| SaveError::Backend(format!("read_dir entry: {e}")))?;
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) == Some(FILE_EXT) {
+                if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                    keys.push(stem.to_string());
+                }
+            }
+        }
+        Ok(keys)
+    }
 }

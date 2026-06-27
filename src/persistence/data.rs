@@ -4,6 +4,12 @@ use crate::components::TakenPath;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
+pub struct CheckpointData {
+    pub checkpoint_area_id: String,
+    pub save_at_checkpoint: SaveData,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct SaveData {
     pub version: u32,
     pub current_area_id: String,
@@ -13,7 +19,7 @@ pub struct SaveData {
     pub path_taken: Vec<TakenPath>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct SavedItem {
     pub item_id: String,
     pub count: u32,
