@@ -12,7 +12,7 @@ pub enum GameState {
     SettingsMenu,
     Introduction,
     Playing,
-    GameOver,
+    Dead,
 }
 
 #[derive(SubStates, Debug, Clone, Copy, Default, Eq, PartialEq, Hash)]

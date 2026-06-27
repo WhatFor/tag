@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::game::progression::ProgressionPlugin;
 
 pub mod events;
+pub mod resources;
 
 mod progression;
 

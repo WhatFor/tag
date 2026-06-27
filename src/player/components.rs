@@ -3,6 +3,9 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct Player;
 
+#[derive(Component)]
+pub struct Hardcore(pub bool);
+
 #[derive(Component, Reflect, Deref, DerefMut)]
 #[reflect(Component)]
 pub struct CurrentArea(pub Entity);

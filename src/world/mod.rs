@@ -1,3 +1,5 @@
+use crate::game::resources::HardcoreMode;
+use crate::player::components::Hardcore;
 use crate::prelude::*;
 use bevy::prelude::*;
 
@@ -37,6 +39,7 @@ fn spawn_player(
     mut commands: Commands,
     areas: Query<(Entity, &AreaId), With<Area>>,
     store: Res<SaveBackend>,
+    hardcore: Res<HardcoreMode>,
 ) {
     info!("> Checking save state...");
     let save_data = store.read(SAVE_FILE_KEY);
@@ -54,6 +57,7 @@ fn spawn_player(
 
             SaveData {
                 version: SAVE_FORMAT_VERSION,
+                hardcore: hardcore.0,
                 health: 100,
                 current_area_id: START_AREA_ID.to_string(),
                 last_checkpoint_area_id: START_AREA_ID.to_string(),
@@ -97,6 +101,7 @@ fn spawn_player(
     player.insert((
         Health(start_data.health),
         FullPathTaken(start_data.path_taken.clone()),
+        Hardcore(hardcore.0),
     ));
 
     for item in &start_data.inventory {

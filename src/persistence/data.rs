@@ -12,6 +12,7 @@ pub struct CheckpointData {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SaveData {
     pub version: u32,
+    pub hardcore: bool,
     pub current_area_id: String,
     pub last_checkpoint_area_id: String,
     pub health: usize,

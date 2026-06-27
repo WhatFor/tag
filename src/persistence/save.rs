@@ -6,6 +6,7 @@ use crate::persistence::data::{CheckpointData, SaveData, SavedItem};
 use crate::persistence::events::{SaveDeleted, SaveRequested};
 use crate::persistence::resources::SaveBackend;
 use crate::persistence::{CHECKPOINT_KEY_PREFIX, SAVE_FILE_KEY, SAVE_FORMAT_VERSION};
+use crate::player::components::Hardcore;
 
 pub struct PersistenceSavePlugin;
 
@@ -26,6 +27,7 @@ fn on_save_requested(
             &CurrentArea,
             &LastCheckpointArea,
             &FullPathTaken,
+            &Hardcore,
         ),
         With<Player>,
     >,
@@ -34,7 +36,7 @@ fn on_save_requested(
 ) -> Result {
     info!("Saving game...");
 
-    let (health, inventory, current_area, last_checkpoint, path_taken) = *player;
+    let (health, inventory, current_area, last_checkpoint, path_taken, hardcore) = *player;
 
     let current_area_id = areas.get(current_area.entity())?.0.clone();
     let last_checkpoint_area_id = areas.get(last_checkpoint.entity())?.0.clone();
@@ -54,6 +56,7 @@ fn on_save_requested(
     let save_data = {
         let save_data = SaveData {
             version: SAVE_FORMAT_VERSION,
+            hardcore: hardcore.0,
             current_area_id: current_area_id.clone(),
             last_checkpoint_area_id: last_checkpoint_area_id,
             health: **health,

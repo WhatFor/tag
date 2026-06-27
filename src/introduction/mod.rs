@@ -1,7 +1,10 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::game::resources::HardcoreMode;
 use crate::ui::layout::GameArea;
+use bevy::ui::Checked;
+use bevy::ui_widgets::checkbox_self_update;
 
 pub struct IntroductionPlugin;
 
@@ -67,8 +70,37 @@ fn init(mut commands: Commands, game_area: Single<Entity, With<GameArea>>, fonts
                 }
             });
 
+            let mut hardcore_box = Entity::PLACEHOLDER;
+
+            p.spawn((
+                Name::from("Hardcore Row"),
+                Node {
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    column_gap: Val::Px(10.),
+                    ..default()
+                },
+            ))
+            .with_children(|row| {
+                hardcore_box = row.spawn(checkbox()).observe(checkbox_self_update).id();
+                row.spawn((
+                    Text::from("Hardcore mode"),
+                    Tooltip::basic(
+                        "If enabled, death is permanent and you cannot load checkpoints.",
+                    ),
+                    fonts.ui_font.clone().with_font_size(24.),
+                    fonts.ui_color.clone(),
+                ));
+            });
+
             p.spawn(button("Continue")).observe(
-                |_: On<Pointer<Click>>, mut next_state: ResMut<NextState<GameState>>| {
+                move |_: On<Pointer<Click>>,
+                      mut commands: Commands,
+                      mut next_state: ResMut<NextState<GameState>>,
+                      checked: Query<(), With<Checked>>| {
+                    let hardcore = checked.get(hardcore_box).is_ok();
+                    commands.insert_resource(HardcoreMode(hardcore));
+
                     next_state.set(GameState::Playing);
                 },
             );

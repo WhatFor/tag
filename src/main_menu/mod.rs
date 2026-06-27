@@ -10,7 +10,7 @@ pub struct MainMenuPlugin;
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::MainMenu), init);
-        app.add_systems(OnEnter(GameState::GameOver), reset_to_menu);
+        app.add_systems(OnEnter(GameState::Dead), reset_to_menu);
     }
 }
 

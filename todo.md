@@ -60,8 +60,7 @@
 
 ### Combat TODO
 - checkpoints:
-  - menu option to return to last checkpoint
   - on death, return to checkpoint
-  - hardcore mode to disable return to last checkpoint, don't return to checkpoint on death
+  - hardcore mode to disable return to checkpoint on death
 - revisitable areas
   - need to store what previous area was before going to revisitable area so can return

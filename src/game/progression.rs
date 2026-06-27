@@ -107,5 +107,5 @@ fn on_player_chose(
 fn on_player_game_over(_: On<PlayerGameOver>, mut next_game_state: ResMut<NextState<GameState>>) {
     info!("Game over!");
 
-    next_game_state.set(GameState::GameOver);
+    next_game_state.set(GameState::Dead);
 }

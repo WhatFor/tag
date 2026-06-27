@@ -1,4 +1,5 @@
 use crate::persistence::events::LoadCheckpoint;
+use crate::player::components::Hardcore;
 use crate::prelude::*;
 use bevy::prelude::*;
 
@@ -34,7 +35,7 @@ impl Plugin for PauseMenuPlugin {
     }
 }
 
-fn init(mut commands: Commands) {
+fn init(mut commands: Commands, hardcore: Single<&Hardcore, With<Player>>) {
     commands
         .spawn((
             GlobalZIndex(LAYER_PAUSE),
@@ -63,21 +64,23 @@ fn init(mut commands: Commands) {
                 },
             );
 
-            p.spawn(button("Reset to Checkpoint")).observe(
-                |_: On<Pointer<Click>>,
-                 mut commands: Commands,
-                 last_checkpoint: Single<&LastCheckpointArea, With<Player>>,
-                 areas: Query<&AreaId, With<Area>>,
-                 mut next_pause_state: ResMut<NextState<Pause>>|
-                 -> Result {
-                    let area_id = areas.get(last_checkpoint.0)?.0.clone();
-                    commands.trigger(LoadCheckpoint { area_id: area_id });
+            if hardcore.0 == false {
+                p.spawn(button("Reset to Checkpoint")).observe(
+                    |_: On<Pointer<Click>>,
+                     mut commands: Commands,
+                     last_checkpoint: Single<&LastCheckpointArea, With<Player>>,
+                     areas: Query<&AreaId, With<Area>>,
+                     mut next_pause_state: ResMut<NextState<Pause>>|
+                     -> Result {
+                        let area_id = areas.get(last_checkpoint.0)?.0.clone();
+                        commands.trigger(LoadCheckpoint { area_id: area_id });
 
-                    next_pause_state.set(Pause(false));
+                        next_pause_state.set(Pause(false));
 
-                    Ok(())
-                },
-            );
+                        Ok(())
+                    },
+                );
+            }
 
             // p.spawn(button("Settings")).observe(
             //     |_: On<Pointer<Click>>, mut next_game_state: ResMut<NextState<GameState>>| {

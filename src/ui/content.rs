@@ -409,7 +409,7 @@ fn wait_for_keyboard_input(
 fn show_game_over(mut commands: Commands) {
     commands
         .spawn((
-            DespawnOnExit(GameState::GameOver),
+            DespawnOnExit(GameState::Dead),
             GlobalZIndex(LAYER_MENU),
             Node {
                 position_type: PositionType::Absolute,
