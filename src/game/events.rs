@@ -12,3 +12,16 @@ pub struct PlayerChose {
     pub to: AreaId,
     pub chosen_id: String,
 }
+
+#[derive(EntityEvent)]
+pub struct Damage {
+    #[event_target]
+    pub damaged: Entity,
+    pub amount: usize,
+}
+
+#[derive(EntityEvent)]
+pub struct Died {
+    #[event_target]
+    pub died: Entity,
+}

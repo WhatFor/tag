@@ -6,6 +6,11 @@ pub use crate::assets::item_loader::ItemDef;
 pub use crate::assets::item_loader::ItemStore;
 pub use crate::assets::texture_loader::TextureAssets;
 
+// Combat
+pub use crate::game::components::Enemy;
+pub use crate::game::events::Damage;
+pub use crate::game::events::Died;
+
 // Audio
 pub use crate::audio::components::AudioChannel;
 pub use crate::audio::interaction::click_sfx::ClickSfx;
