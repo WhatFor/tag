@@ -1,7 +1,6 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
-use crate::game::events::PlayerGameOver;
 use crate::persistence::events::SaveRequested;
 
 pub struct ProgressionPlugin;
@@ -10,7 +9,6 @@ impl Plugin for ProgressionPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(on_player_continued);
         app.add_observer(on_player_chose);
-        app.add_observer(on_player_game_over);
     }
 }
 
@@ -34,7 +32,7 @@ fn on_player_continued(
                 // TODO: shouldn't be possible
                 todo!();
             }
-            Some(AreaExit::GameOver) => {
+            Some(AreaExit::GameOver(_)) => {
                 // TODO: shouldn't be possible
                 todo!()
             }
@@ -102,10 +100,4 @@ fn on_player_chose(
     commands.trigger(PlayerEnteredArea(next_entity));
     commands.trigger(SaveRequested);
     next_exploring_state.set(ExploringState::PresentingContent);
-}
-
-fn on_player_game_over(_: On<PlayerGameOver>, mut next_game_state: ResMut<NextState<GameState>>) {
-    info!("Game over!");
-
-    next_game_state.set(GameState::Dead);
 }

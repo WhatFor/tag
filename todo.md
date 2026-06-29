@@ -59,8 +59,5 @@
     - maybe add a hardcore mode that means auto-die and can't reset to checkpoint.
 
 ### Combat TODO
-- checkpoints:
-  - on death, return to checkpoint
-  - hardcore mode to disable return to checkpoint on death
 - revisitable areas
   - need to store what previous area was before going to revisitable area so can return

@@ -12,6 +12,3 @@ pub struct PlayerChose {
     pub to: AreaId,
     pub chosen_id: String,
 }
-
-#[derive(Event)]
-pub struct PlayerGameOver;

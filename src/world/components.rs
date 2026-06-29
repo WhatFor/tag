@@ -13,7 +13,7 @@ pub struct CheckpointArea;
 pub enum AreaExit {
     Continue(String),
     Choice(Vec<AreaExitOption>),
-    GameOver,
+    GameOver(String),
 }
 
 #[derive(Component, Deref)]

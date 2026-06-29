@@ -1,14 +1,15 @@
-use crate::game::resources::HardcoreMode;
-use crate::player::components::Hardcore;
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::game::resources::HardcoreMode;
 use crate::persistence::SAVE_FILE_KEY;
 use crate::persistence::SAVE_FORMAT_VERSION;
 use crate::persistence::data::SaveData;
 use crate::persistence::data::SavedItem;
+use crate::persistence::events::SaveRequested;
 use crate::persistence::resources::SaveBackend;
 use crate::player::components::CurrentArea;
+use crate::player::components::Hardcore;
 use crate::prelude::Health;
 use crate::sets::PlayingSet;
 use crate::state::GameState;
@@ -28,7 +29,9 @@ impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             OnEnter(GameState::Playing),
-            spawn_player.in_set(PlayingSet::SpawnPlayer),
+            spawn_player
+                .in_set(PlayingSet::SpawnPlayer)
+                .run_if(not(any_with_component::<Player>)),
         );
     }
 }
@@ -109,13 +112,7 @@ fn spawn_player(
     }
 
     // Write out a save file, just to ensure one exists
-    if let Ok(data) = ron::to_string(&start_data) {
-        info!("Writing save data...");
-
-        if let Err(e) = store.0.write(SAVE_FILE_KEY, &data) {
-            warn!("Failed to write save data: {}", e);
-        }
-    }
+    commands.trigger(SaveRequested);
 
     commands.trigger(PlayerEnteredArea(start_area));
 }

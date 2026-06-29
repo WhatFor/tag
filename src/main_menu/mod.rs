@@ -10,7 +10,6 @@ pub struct MainMenuPlugin;
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::MainMenu), init);
-        app.add_systems(OnEnter(GameState::Dead), reset_to_menu);
     }
 }
 
@@ -61,16 +60,4 @@ fn init(mut commands: Commands, save_store: Res<SaveBackend>) {
                 },
             );
         });
-}
-
-fn reset_to_menu(
-    mut next_game_state: ResMut<NextState<GameState>>,
-    mut next_exploring_state: ResMut<NextState<ExploringState>>,
-    save_store: Res<SaveBackend>,
-) -> Result {
-    next_game_state.set(GameState::MainMenu);
-    next_exploring_state.set(ExploringState::PresentingContent);
-    save_store.clear(SAVE_FILE_KEY)?;
-
-    Ok(())
 }

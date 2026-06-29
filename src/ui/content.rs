@@ -44,11 +44,6 @@ impl Plugin for ContentUIPlugin {
                 .run_if(in_state(ExploringState::AwaitingContentPrompt))
                 .in_set(PausableSystems),
         );
-
-        app.add_systems(
-            OnEnter(ExploringState::AwaitingGameOver),
-            show_game_over.in_set(PausableSystems),
-        );
     }
 }
 
@@ -236,12 +231,8 @@ fn on_content_display_completed(
     };
 
     match current_area_exits.first() {
-        Some(AreaExit::Continue(_)) | Some(AreaExit::Choice(_)) => {
+        Some(AreaExit::Continue(_)) | Some(AreaExit::Choice(_)) | Some(AreaExit::GameOver(_)) => {
             next_exploring_state.set(ExploringState::AwaitingContentPrompt);
-        }
-        Some(AreaExit::GameOver) => {
-            info!("Waiting for GameOver continue {}", **area_id);
-            next_exploring_state.set(ExploringState::AwaitingGameOver);
         }
         None => {
             warn!("on_dialogue_completed: area '{}' has no exits", **area_id);
@@ -270,104 +261,139 @@ fn show_content_prompt(
 
     let area_id = area_id.clone();
 
-    if let Some(AreaExit::Continue(_)) = current_area_exits.first() {
-        // Spawn 'Continue' button
-        commands
-            .spawn((
-                Name::new("Continue Button Container"),
-                AreaPromptRoot,
-                ChildOf(bottom_center_hud.entity()),
-                DespawnOnExit(ExploringState::AwaitingContentPrompt),
-                GlobalZIndex(LAYER_HUD),
-                Node {
-                    width: Val::Percent(100.),
-                    flex_direction: FlexDirection::Row,
-                    justify_content: JustifyContent::Center,
-                    ..default()
-                },
-            ))
-            .with_children(|p| {
-                p.spawn(button("Continue (space)")).observe(
-                    move |_: On<Pointer<Click>>, mut commands: Commands| {
-                        commands.trigger(PlayerContinued {
-                            from: area_id.clone(),
-                        });
+    match current_area_exits.first() {
+        Some(AreaExit::Continue(_)) => {
+            // Spawn 'Continue' button
+            commands
+                .spawn((
+                    Name::new("Continue Button Container"),
+                    AreaPromptRoot,
+                    ChildOf(bottom_center_hud.entity()),
+                    DespawnOnExit(ExploringState::AwaitingContentPrompt),
+                    GlobalZIndex(LAYER_HUD),
+                    Node {
+                        width: Val::Percent(100.),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::Center,
+                        ..default()
                     },
-                );
-            });
-    } else {
-        // Spawn 'Choice' buttons
-        commands
-            .spawn((
-                Name::new("Choice Buttons Container"),
-                AreaPromptRoot,
-                ChildOf(bottom_center_hud.entity()),
-                DespawnOnExit(ExploringState::AwaitingContentPrompt),
-                GlobalZIndex(LAYER_HUD),
-                Node {
-                    width: Val::Percent(100.),
-                    flex_direction: FlexDirection::Row,
-                    justify_content: JustifyContent::SpaceEvenly,
-                    align_items: AlignItems::Center,
-                    column_gap: Val::Px(8.),
-                    ..default()
-                },
-            ))
-            .with_children(|container| {
-                for exit in current_area_exits.iter() {
-                    match exit {
-                        AreaExit::Choice(area_exit_options) => {
-                            for (index, exit_option) in area_exit_options.iter().enumerate() {
-                                let requirements = exit_option.requires.clone();
+                ))
+                .with_children(|p| {
+                    p.spawn(button("Continue (space)")).observe(
+                        move |_: On<Pointer<Click>>, mut commands: Commands| {
+                            commands.trigger(PlayerContinued {
+                                from: area_id.clone(),
+                            });
+                        },
+                    );
+                });
+        }
+        Some(AreaExit::Choice(_)) => {
+            // Spawn 'Choice' buttons
+            commands
+                .spawn((
+                    Name::new("Choice Buttons Container"),
+                    AreaPromptRoot,
+                    ChildOf(bottom_center_hud.entity()),
+                    DespawnOnExit(ExploringState::AwaitingContentPrompt),
+                    GlobalZIndex(LAYER_HUD),
+                    Node {
+                        width: Val::Percent(100.),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceEvenly,
+                        align_items: AlignItems::Center,
+                        column_gap: Val::Px(8.),
+                        ..default()
+                    },
+                ))
+                .with_children(|container| {
+                    for exit in current_area_exits.iter() {
+                        match exit {
+                            AreaExit::Choice(area_exit_options) => {
+                                for (index, exit_option) in area_exit_options.iter().enumerate() {
+                                    let requirements = exit_option.requires.clone();
 
-                                // Check if any requirement has failed
-                                if requirements.is_some_and(|requirements| {
-                                    requirements.iter().any(|req| match req {
-                                        AreaExitRequirement::TookPath(taken_path) => {
-                                            // Must have taken path
-                                            full_path_taken.contains(taken_path) == false
-                                        }
-                                        AreaExitRequirement::HasItem(item_id, required_count) => {
-                                            // Must have the specified count of items
-                                            let item_held_count: u32 = inventory
-                                                .iter()
-                                                .filter_map(|&entity| items.get(entity).ok())
-                                                .filter_map(|(id, stack)| {
-                                                    (id == item_id)
-                                                        .then(|| stack.map_or(1, |s| s.0))
-                                                })
-                                                .sum();
+                                    // Check if any requirement has failed
+                                    if requirements.is_some_and(|requirements| {
+                                        requirements.iter().any(|req| match req {
+                                            AreaExitRequirement::TookPath(taken_path) => {
+                                                // Must have taken path
+                                                full_path_taken.contains(taken_path) == false
+                                            }
+                                            AreaExitRequirement::HasItem(
+                                                item_id,
+                                                required_count,
+                                            ) => {
+                                                // Must have the specified count of items
+                                                let item_held_count: u32 = inventory
+                                                    .iter()
+                                                    .filter_map(|&entity| items.get(entity).ok())
+                                                    .filter_map(|(id, stack)| {
+                                                        (id == item_id)
+                                                            .then(|| stack.map_or(1, |s| s.0))
+                                                    })
+                                                    .sum();
 
-                                            item_held_count < *required_count
-                                        }
-                                    })
-                                }) {
-                                    // Don't render the choice; Failed the req.
-                                    continue;
+                                                item_held_count < *required_count
+                                            }
+                                        })
+                                    }) {
+                                        // Don't render the choice; Failed the req.
+                                        continue;
+                                    }
+
+                                    let label = format!("{}. {}", index + 1, exit_option.label);
+                                    let to = exit_option.to.clone();
+                                    let chosen_id = exit_option.id.clone();
+                                    let area_id = area_id.clone();
+
+                                    container.spawn(button(label)).observe(
+                                        move |_: On<Pointer<Click>>, mut commands: Commands| {
+                                            commands.trigger(PlayerChose {
+                                                from: area_id.clone(),
+                                                to: to.clone(),
+                                                chosen_id: chosen_id.clone(),
+                                            });
+                                        },
+                                    );
                                 }
-
-                                let label = format!("{}. {}", index + 1, exit_option.label);
-                                let to = exit_option.to.clone();
-                                let chosen_id = exit_option.id.clone();
-                                let area_id = area_id.clone();
-
-                                container.spawn(button(label)).observe(
-                                    move |_: On<Pointer<Click>>, mut commands: Commands| {
-                                        commands.trigger(PlayerChose {
-                                            from: area_id.clone(),
-                                            to: to.clone(),
-                                            chosen_id: chosen_id.clone(),
-                                        });
-                                    },
-                                );
                             }
-                        }
-                        _ => {
-                            warn!("Should not be possible!");
-                        }
-                    };
-                }
-            });
+                            _ => {
+                                warn!("Should not be possible!");
+                            }
+                        };
+                    }
+                });
+        }
+        Some(AreaExit::GameOver(reason)) => {
+            let reason = reason.clone();
+            commands
+                .spawn((
+                    Name::new("Game Over Continue Container"),
+                    AreaPromptRoot,
+                    ChildOf(bottom_center_hud.entity()),
+                    DespawnOnExit(ExploringState::AwaitingContentPrompt),
+                    GlobalZIndex(LAYER_HUD),
+                    Node {
+                        width: Val::Percent(100.),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::Center,
+                        ..default()
+                    },
+                ))
+                .with_children(|p| {
+                    p.spawn(button("Continue (space)")).observe(
+                        move |_: On<Pointer<Click>>, mut commands: Commands| {
+                            commands.trigger(PlayerDied {
+                                reason: DeathReason::Ending(reason.clone()),
+                            });
+                        },
+                    );
+                });
+        }
+        None => {
+            warn!("Should not be possible!");
+        }
     };
 }
 
@@ -400,43 +426,15 @@ fn wait_for_keyboard_input(
                 }
             }
         }
+        Some(AreaExit::GameOver(reason)) => {
+            if keyboard.just_pressed(KeyCode::Space) {
+                commands.trigger(PlayerDied {
+                    reason: DeathReason::Ending(reason.clone()),
+                });
+            }
+        }
         _ => {
             // Ignore where no exits or choice exits
         }
     };
-}
-
-fn show_game_over(mut commands: Commands) {
-    commands
-        .spawn((
-            DespawnOnExit(GameState::Dead),
-            GlobalZIndex(LAYER_MENU),
-            Node {
-                position_type: PositionType::Absolute,
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
-            BackgroundColor::from(Color::srgb(0., 0., 0.)),
-        ))
-        .with_children(|p| {
-            p.spawn(Node {
-                width: Val::Percent(100.),
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                row_gap: Val::Px(20.),
-                ..default()
-            })
-            .with_children(|p| {
-                p.spawn(Text::new("Game over."));
-                p.spawn(button("Main menu")).observe(
-                    |_: On<Pointer<Click>>, mut commands: Commands| {
-                        commands.trigger(StopSoundtrack);
-                        commands.trigger(PlayerGameOver);
-                    },
-                );
-            });
-        });
 }

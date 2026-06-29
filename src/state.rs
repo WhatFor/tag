@@ -29,5 +29,4 @@ pub enum ExploringState {
     #[default]
     PresentingContent,
     AwaitingContentPrompt,
-    AwaitingGameOver,
 }

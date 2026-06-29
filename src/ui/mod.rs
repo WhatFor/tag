@@ -4,6 +4,7 @@ use bevy_asset_loader::prelude::*;
 
 use crate::ui::area::AreaUIPlugin;
 use crate::ui::content::ContentUIPlugin;
+use crate::ui::dead::DeadUIPlugin;
 use crate::ui::inventory::InventoryUIPlugin;
 use crate::ui::layout::UILayoutPlugin;
 use crate::ui::widgets::WidgetsPlugin;
@@ -17,6 +18,7 @@ pub mod widgets;
 
 mod area;
 mod content;
+mod dead;
 
 #[derive(AssetCollection, Resource)]
 pub struct FontHandles {
@@ -56,6 +58,7 @@ impl Plugin for UIPlugin {
         app.add_plugins(UILayoutPlugin);
         app.add_plugins(AreaUIPlugin);
         app.add_plugins(ContentUIPlugin);
+        app.add_plugins(DeadUIPlugin);
         app.add_plugins(InventoryUIPlugin);
 
         app.configure_loading_state(

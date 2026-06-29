@@ -9,6 +9,6 @@
       ]
     ),
     exits: [
-        GameOver
+        GameOver("The stranger whacks you, yo.")
     ]
 )

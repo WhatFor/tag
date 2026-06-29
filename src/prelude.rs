@@ -55,8 +55,10 @@ pub use crate::audio::soundtrack::PlaySoundtrack;
 pub use crate::audio::soundtrack::StopSoundtrack;
 pub use crate::game::events::PlayerChose;
 pub use crate::game::events::PlayerContinued;
-pub use crate::game::events::PlayerGameOver;
 pub use crate::persistence::events::SettingsUpdated;
+pub use crate::player::events::DeathReason;
+pub use crate::player::events::LastDeath;
+pub use crate::player::events::PlayerDied;
 pub use crate::world::events::PlayerEnteredArea;
 
 // UI
