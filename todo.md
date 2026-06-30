@@ -54,9 +54,60 @@
 - what does combat actually look like JRPG style? take turns whacking it?
 - or auto-battler, real time?
 
+### Time to figure out what exactly combat is
+- Simple but strategic and directed by 'style'.
+  - e.g. can choose to be a wizard, fighter, ranger
+    - each have a primary stat from which to derive power
+      - fighter => tanky, medium damage
+      - wizard  => squishy, high damage
+      - ranger  => middle ground
+    - these stats come from items
+      - ties theme with power
+
+'Iron longsword'
+ + 3 bonk
+   0 smarts
+ + 1 sneakin'
+
+    - where you can equip an item, 'You attack with your Iron longsword':
+      - has a 'type' of bonk, and so only benefits from bonk stat.
+    - other equipment can grant stats too. 'Ring of Intellect', +1 smarts.
+      - Quite OSRS style
+    - passive effects: ring of fire, 25% chance to burn for 1-3 fire on hit
+
+ - different damage types:
+  - normal stat line:
+    - bonk
+    - smarts
+    - sneakin'
+  - but others too:
+    - fire
+    - poison
+    - lightning, etc
+  - resistances to stats
+    - 1 resistance to fire reduces all fire damage taken by 1
+- all numbers are relatively small:
+  - 12 health
+  - 3 damage
+  - etc
+
+ - the problem is:
+  - does this mean combat is just 'attack', 'attack', 'attack'?
+  - how can i add in decision making and strategy?
+    - swapping items in combat could be good - respond to what works and what doesn't
+    - activating items (probably not strategy, probably just a 'do every fight', so not good)
+    - abilities?
+      - how gain? NOT levels. probably from items too
+        - but then, how do they become strategic?
+          - combat probably needs to be a bit like rock/paper/scissors
+            - but need some core resource in combat to work as a time gate or something
+              - like stamina? idk
+
+
 ### Combat TODO
 - Stats
 - Items with Stats
+- Shops (have inventory, have prices, can buy)
 
 ### Combat TODO - Maybe
 - revisitable areas
