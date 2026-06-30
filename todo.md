@@ -106,9 +106,39 @@
 
 ### Combat TODO
 - Stats
+  - Strength
+  - Dexterity
+  - Intelligence
+  - Speed
 - Items with Stats
-- Shops (have inventory, have prices, can buy)
+  - Bonus Stats as above
+  - Armour
+- Items with Effects
+  - Bleed, Burn, Poison, etc.
+  - Specials, like cleanse status effects
+  - Potions, one time use
+- DamageType
+- DamageResistance(Type)
+- Areas with combat instead of narration
+  - Enemies (1-3)
+    - Intro text ("A savage looking bear creeps out of the undergrowth, growling...")
+    - Health
+    - Armour
+    - Abilities
+      - Attack
+      - Defend
+      - Specials
+        - (with telegraph info, to warn the player allowing to preempt)
+    - Some kind of RNG system to decide what an enemy does
+  - UI to show enemies
+  - UI to show possible attacks
+  - Text log listing out the combat events
+- Speed to determine attack order
+- Some kind of resource (Stamina?) to constrain how hard the player can go
+  - Rewards holding off until a good time
+- Armour Penetration, allow punching through high Armour enemies
 
 ### Combat TODO - Maybe
 - revisitable areas
   - need to store what previous area was before going to revisitable area so can return
+- Shops (have inventory, have prices, can buy)
