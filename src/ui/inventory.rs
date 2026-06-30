@@ -153,6 +153,7 @@ fn on_keybind_open_inventory(
 fn spawn_inventory(
     mut commands: Commands,
     inventory: Single<&Inventory, With<Player>>,
+    gold: Single<&Gold, With<Player>>,
     items: Query<(&ItemId, Option<&ItemStack>)>,
     item_store: Res<ItemStore>,
     fonts: Res<FontAssets>,
@@ -203,33 +204,54 @@ fn spawn_inventory(
                 Node {
                     display: Display::Flex,
                     width: Val::Percent(100.),
-                    height: Val::Percent(100.),
+                    flex_grow: 1.,
                     padding: UiRect::all(Val::Px(20.)),
                     ..default()
                 },
-                children![scroll_area(move |p| {
-                    p.spawn(inventory_grid()).with_children(|grid| {
-                        for item in rows {
-                            grid.spawn(inventory_item(
-                                item.clone(),
-                                ui_font.clone(),
-                                ui_color.clone(),
-                            ))
-                            .with_children(|tile| {
-                                tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
+                children![scroll_area({
+                    let ui_font = ui_font.clone();
+                    let ui_color = ui_color.clone();
+                    move |p| {
+                        p.spawn(inventory_grid()).with_children(|grid| {
+                            for item in rows {
+                                grid.spawn(inventory_item(
+                                    item.clone(),
+                                    ui_font.clone(),
+                                    ui_color.clone(),
+                                ))
+                                .with_children(|tile| {
+                                    tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
 
-                                if let Some(count) = item.count.filter(|&c| c > 0) {
-                                    tile.spawn(item_count(
-                                        item.id.clone(),
-                                        count.to_string(),
-                                        ui_font.clone(),
-                                        ui_color.clone(),
-                                    ));
-                                }
-                            });
-                        }
-                    });
+                                    if let Some(count) = item.count.filter(|&c| c > 0) {
+                                        tile.spawn(item_count(
+                                            item.id.clone(),
+                                            count.to_string(),
+                                            ui_font.clone(),
+                                            ui_color.clone(),
+                                        ));
+                                    }
+                                });
+                            }
+                        });
+                    }
                 })],
+            ));
+
+            // Bottom row
+            p.spawn((
+                Node {
+                    display: Display::Flex,
+                    width: Val::Percent(100.),
+                    flex_shrink: 0.,
+                    padding: UiRect::all(Val::Px(10.)),
+                    ..default()
+                },
+                children![(
+                    Name::new("Gold Count"),
+                    Text::new(format!("{} Gold", gold.0)),
+                    ui_font.clone(),
+                    ui_color.clone(),
+                )],
             ));
         });
 }

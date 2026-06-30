@@ -62,6 +62,7 @@ fn spawn_player(
                 version: SAVE_FORMAT_VERSION,
                 hardcore: hardcore.0,
                 health: 100,
+                gold: 20,
                 current_area_id: START_AREA_ID.to_string(),
                 last_checkpoint_area_id: START_AREA_ID.to_string(),
                 path_taken: vec![],
@@ -103,6 +104,7 @@ fn spawn_player(
     // Must insert these after default spawn in order to replace specified components
     player.insert((
         Health(start_data.health),
+        Gold(start_data.gold),
         FullPathTaken(start_data.path_taken.clone()),
         Hardcore(hardcore.0),
     ));

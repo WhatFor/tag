@@ -15,6 +15,10 @@ pub struct Health(pub usize);
 
 #[derive(Component, Reflect, Deref)]
 #[reflect(Component)]
+pub struct Gold(pub u32);
+
+#[derive(Component, Reflect, Deref)]
+#[reflect(Component)]
 pub struct FullPathTaken(pub Vec<TakenPath>);
 
 #[derive(Serialize, Deserialize, Reflect, Clone, PartialEq, Eq)]

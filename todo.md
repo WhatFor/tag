@@ -54,10 +54,10 @@
 - what does combat actually look like JRPG style? take turns whacking it?
 - or auto-battler, real time?
 
-- what happens if hits 0 health? death? start again?
-  - maybe need concept of checkpoints at key areas for death. can also reset to checkpoint if not happy.
-    - maybe add a hardcore mode that means auto-die and can't reset to checkpoint.
-
 ### Combat TODO
+- Stats
+- Items with Stats
+
+### Combat TODO - Maybe
 - revisitable areas
   - need to store what previous area was before going to revisitable area so can return

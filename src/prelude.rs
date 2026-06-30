@@ -10,6 +10,7 @@ pub use crate::assets::texture_loader::TextureAssets;
 pub use crate::game::components::Enemy;
 pub use crate::game::events::Damage;
 pub use crate::game::events::Died;
+pub use crate::game::events::GiveGold;
 
 // Audio
 pub use crate::audio::components::AudioChannel;
@@ -25,6 +26,7 @@ pub use crate::world::bundles::item_stack;
 pub use crate::components::Description;
 pub use crate::components::DisplayName;
 pub use crate::components::FullPathTaken;
+pub use crate::components::Gold;
 pub use crate::components::Health;
 pub use crate::components::TakenPath;
 pub use crate::player::components::CurrentArea;

@@ -16,6 +16,7 @@ pub struct SaveData {
     pub current_area_id: String,
     pub last_checkpoint_area_id: String,
     pub health: usize,
+    pub gold: u32,
     pub inventory: Vec<SavedItem>,
     pub path_taken: Vec<TakenPath>,
 }

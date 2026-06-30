@@ -25,3 +25,10 @@ pub struct Died {
     #[event_target]
     pub died: Entity,
 }
+
+#[derive(EntityEvent)]
+pub struct GiveGold {
+    #[event_target]
+    pub beneficiary: Entity,
+    pub amount: u32,
+}

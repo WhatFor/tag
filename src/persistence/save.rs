@@ -23,6 +23,7 @@ fn on_save_requested(
     player: Single<
         (
             &Health,
+            &Gold,
             &Inventory,
             &CurrentArea,
             &LastCheckpointArea,
@@ -36,7 +37,7 @@ fn on_save_requested(
 ) -> Result {
     info!("Saving game...");
 
-    let (health, inventory, current_area, last_checkpoint, path_taken, hardcore) = *player;
+    let (health, gold, inventory, current_area, last_checkpoint, path_taken, hardcore) = *player;
 
     let current_area_id = areas.get(current_area.entity())?.0.clone();
     let last_checkpoint_area_id = areas.get(last_checkpoint.entity())?.0.clone();
@@ -59,6 +60,7 @@ fn on_save_requested(
             hardcore: hardcore.0,
             current_area_id: current_area_id.clone(),
             last_checkpoint_area_id: last_checkpoint_area_id,
+            gold: **gold,
             health: **health,
             inventory: inventory,
             path_taken: path_taken.0.clone(),
