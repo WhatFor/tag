@@ -38,6 +38,13 @@ impl Command for GiveItem {
             world.spawn(item(&def)).id()
         };
 
+        if let Some(slot) = def.slot {
+            world
+                .commands()
+                .entity(item_entity)
+                .insert(Equippable(slot));
+        };
+
         // Find the recipient
         let mut recipient = world.entity_mut(self.recipient);
 

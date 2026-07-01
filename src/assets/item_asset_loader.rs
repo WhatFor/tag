@@ -1,5 +1,7 @@
-use bevy::asset::{AssetLoader, LoadContext, io::Reader};
+use crate::prelude::*;
 use bevy::prelude::*;
+
+use bevy::asset::{AssetLoader, LoadContext, io::Reader};
 use serde::Deserialize;
 use thiserror::Error;
 
@@ -9,8 +11,7 @@ pub struct ItemData {
     pub name: String,
     pub description: String,
     pub stackable: bool,
-    #[allow(dead_code)]
-    pub icon: String,
+    pub slot: Option<EquipmentSlot>,
 }
 
 #[derive(Default, TypePath)]

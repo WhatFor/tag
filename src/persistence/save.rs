@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
-use crate::persistence::data::{CheckpointData, SaveData, SavedItem};
+use crate::persistence::data::{CheckpointData, EquippedItem, SaveData, SavedItem};
 use crate::persistence::events::{SaveDeleted, SaveRequested};
 use crate::persistence::resources::SaveBackend;
 use crate::persistence::{CHECKPOINT_KEY_PREFIX, SAVE_FILE_KEY, SAVE_FORMAT_VERSION};
@@ -23,8 +23,10 @@ fn on_save_requested(
     player: Single<
         (
             &Health,
+            &Stats,
             &Gold,
             &Inventory,
+            &Equipment,
             &CurrentArea,
             &LastCheckpointArea,
             &FullPathTaken,
@@ -34,10 +36,21 @@ fn on_save_requested(
     >,
     areas: Query<&AreaId, With<Area>>,
     items: Query<(&ItemId, Option<&ItemStack>), With<Item>>,
+    equippable_items: Query<(&ItemId, &Equippable), With<Item>>,
 ) -> Result {
     info!("Saving game...");
 
-    let (health, gold, inventory, current_area, last_checkpoint, path_taken, hardcore) = *player;
+    let (
+        health,
+        stats,
+        gold,
+        inventory,
+        equipment,
+        current_area,
+        last_checkpoint,
+        path_taken,
+        hardcore,
+    ) = *player;
 
     let current_area_id = areas.get(current_area.entity())?.0.clone();
     let last_checkpoint_area_id = areas.get(last_checkpoint.entity())?.0.clone();
@@ -54,6 +67,18 @@ fn on_save_requested(
         })
         .collect::<Result<Vec<_>, BevyError>>()?;
 
+    let equipped = equipment
+        .iter()
+        .map(|(_slot, entity)| {
+            let (id, slot) = equippable_items.get(*entity)?;
+
+            Ok(EquippedItem {
+                item_id: (**id).clone(),
+                slot: slot.0,
+            })
+        })
+        .collect::<Result<Vec<_>, BevyError>>()?;
+
     let save_data = {
         let save_data = SaveData {
             version: SAVE_FORMAT_VERSION,
@@ -62,7 +87,13 @@ fn on_save_requested(
             last_checkpoint_area_id: last_checkpoint_area_id,
             gold: **gold,
             health: **health,
+            strength: stats.strength,
+            agility: stats.agility,
+            intelligence: stats.intelligence,
+            speed: stats.speed,
+            armour: stats.armour,
             inventory: inventory,
+            equipped: equipped,
             path_taken: path_taken.0.clone(),
         };
 

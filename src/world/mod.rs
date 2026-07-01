@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use crate::game::resources::HardcoreMode;
 use crate::persistence::SAVE_FILE_KEY;
 use crate::persistence::SAVE_FORMAT_VERSION;
+use crate::persistence::data::EquippedItem;
 use crate::persistence::data::SaveData;
 use crate::persistence::data::SavedItem;
 use crate::persistence::events::SaveRequested;
@@ -16,10 +17,12 @@ use crate::state::GameState;
 use crate::world::bundles::default_player;
 use crate::world::components::Area;
 use crate::world::components::AreaId;
+use crate::world::equipment::EquipItemExt;
 use crate::world::events::PlayerEnteredArea;
 
 pub mod bundles;
 pub mod components;
+pub mod equipment;
 pub mod events;
 pub mod inventory;
 
@@ -62,6 +65,11 @@ fn spawn_player(
                 version: SAVE_FORMAT_VERSION,
                 hardcore: hardcore.0,
                 health: 100,
+                strength: 0,
+                agility: 0,
+                intelligence: 0,
+                speed: 0,
+                armour: 0,
                 gold: 20,
                 current_area_id: START_AREA_ID.to_string(),
                 last_checkpoint_area_id: START_AREA_ID.to_string(),
@@ -73,9 +81,13 @@ fn spawn_player(
                     },
                     SavedItem {
                         count: 1,
-                        item_id: String::from("iron_sword"),
+                        item_id: String::from("bronze_sword"),
                     },
                 ],
+                equipped: vec![EquippedItem {
+                    item_id: String::from("iron_sword"),
+                    slot: EquipmentSlot::MainHand,
+                }],
             }
         }
     };
@@ -104,6 +116,13 @@ fn spawn_player(
     // Must insert these after default spawn in order to replace specified components
     player.insert((
         Health(start_data.health),
+        Stats {
+            strength: start_data.strength,
+            agility: start_data.agility,
+            intelligence: start_data.intelligence,
+            speed: start_data.speed,
+            armour: start_data.armour,
+        },
         Gold(start_data.gold),
         FullPathTaken(start_data.path_taken.clone()),
         Hardcore(hardcore.0),
@@ -111,6 +130,10 @@ fn spawn_player(
 
     for item in &start_data.inventory {
         player.give(item.item_id.clone(), item.count);
+    }
+
+    for item in &start_data.equipped {
+        player.spawn_and_equip(item.item_id.clone());
     }
 
     // Write out a save file, just to ensure one exists

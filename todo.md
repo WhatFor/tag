@@ -105,13 +105,10 @@
 
 
 ### Combat TODO
-- Stats
-  - Strength
-  - Dexterity
-  - Intelligence
-  - Speed
+- Show item slot in item tooltip if equippable
+- Invent UI for slots
+
 - Items with Stats
-  - Bonus Stats as above
   - Armour
 - Items with Effects
   - Bleed, Burn, Poison, etc.

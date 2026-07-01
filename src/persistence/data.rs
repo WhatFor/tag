@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
 use crate::player::components::TakenPath;
@@ -16,8 +17,14 @@ pub struct SaveData {
     pub current_area_id: String,
     pub last_checkpoint_area_id: String,
     pub health: usize,
+    pub strength: i32,
+    pub agility: i32,
+    pub intelligence: i32,
+    pub speed: i32,
+    pub armour: i32,
     pub gold: u32,
     pub inventory: Vec<SavedItem>,
+    pub equipped: Vec<EquippedItem>,
     pub path_taken: Vec<TakenPath>,
 }
 
@@ -25,6 +32,12 @@ pub struct SaveData {
 pub struct SavedItem {
     pub item_id: String,
     pub count: u32,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct EquippedItem {
+    pub item_id: String,
+    pub slot: EquipmentSlot,
 }
 
 #[derive(Serialize, Deserialize)]

@@ -1,0 +1,7 @@
+(
+    id: "bronze_sword",
+    name: "Bronze sword",
+    description: "A bronze sword.",
+    stackable: false,
+    slot: Some(MainHand),
+)

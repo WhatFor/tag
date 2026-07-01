@@ -25,8 +25,14 @@ pub use crate::world::bundles::item_stack;
 // Components
 pub use crate::components::Description;
 pub use crate::components::DisplayName;
+pub use crate::game::components::ArmourBonus;
+pub use crate::game::components::Equipment;
+pub use crate::game::components::EquipmentSlot;
+pub use crate::game::components::Equippable;
 pub use crate::game::components::Gold;
 pub use crate::game::components::Health;
+pub use crate::game::components::StatBonus;
+pub use crate::game::components::Stats;
 pub use crate::player::components::CurrentArea;
 pub use crate::player::components::FullPathTaken;
 pub use crate::player::components::LastCheckpointArea;

@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use crate::ui::interaction::image_tint::ImageTint;
 use crate::ui::layout::HudAreaBottomRight;
 use crate::ui::widgets::panel::DespawnPanel;
+use crate::world::equipment::EquipItemExt;
 use bevy::input::common_conditions::input_just_pressed;
 
 const ITEM_BORDER_COLOUR: Color = Color::srgb(1., 1., 1.);
@@ -152,6 +153,7 @@ fn on_keybind_open_inventory(
 
 fn spawn_inventory(
     mut commands: Commands,
+    player: Single<Entity, With<Player>>,
     inventory: Single<&Inventory, With<Player>>,
     gold: Single<&Gold, With<Player>>,
     items: Query<(&ItemId, Option<&ItemStack>)>,
@@ -175,9 +177,11 @@ fn spawn_inventory(
 
             Some(ItemRow {
                 id: store_item.id.clone(),
+                entity: item_entity,
                 name: store_item.name.clone(),
                 description: store_item.description.clone(),
                 icon: store_item.icon.clone(),
+                slot: store_item.slot,
                 count: count,
             })
         })
@@ -211,15 +215,18 @@ fn spawn_inventory(
                 children![scroll_area({
                     let ui_font = ui_font.clone();
                     let ui_color = ui_color.clone();
+                    let player_entity = player.entity();
+
                     move |p| {
                         p.spawn(inventory_grid()).with_children(|grid| {
                             for item in rows {
-                                grid.spawn(inventory_item(
+                                let mut invent_item = grid.spawn(inventory_item(
                                     item.clone(),
                                     ui_font.clone(),
                                     ui_color.clone(),
-                                ))
-                                .with_children(|tile| {
+                                ));
+
+                                invent_item.with_children(|tile| {
                                     tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
 
                                     if let Some(count) = item.count.filter(|&c| c > 0) {
@@ -231,6 +238,18 @@ fn spawn_inventory(
                                         ));
                                     }
                                 });
+
+                                if item.slot.is_some() {
+                                    let item_entity = item.entity;
+
+                                    invent_item.observe(
+                                        move |_: On<Pointer<Click>>, mut commands: Commands| {
+                                            commands
+                                                .entity(player_entity)
+                                                .equip_from_inventory(item_entity);
+                                        },
+                                    );
+                                };
                             }
                         });
                     }
@@ -259,10 +278,12 @@ fn spawn_inventory(
 #[derive(Clone, Debug)]
 struct ItemRow {
     id: String,
+    entity: Entity,
     name: String,
     description: String,
     count: Option<u32>,
     icon: Handle<Image>,
+    slot: Option<EquipmentSlot>,
 }
 
 fn inventory_grid() -> impl Bundle {

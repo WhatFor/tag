@@ -1,15 +1,22 @@
 use crate::prelude::*;
-use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
-use bevy_asset_loader::mapped::AssetFileStem;
 use bevy_asset_loader::prelude::*;
 
-use crate::assets::item_asset_loader::{ItemAssetLoader, ItemData};
+use bevy::platform::collections::HashMap;
+use bevy_asset_loader::mapped::AssetFileStem;
+
+use crate::assets::item_asset_loader::ItemAssetLoader;
+use crate::assets::item_asset_loader::ItemData;
 
 #[derive(AssetCollection, Resource)]
 pub struct ItemIconAssets {
     #[asset(
-        paths("icons/_placeholder.png", "icons/iron_sword.png", "icons/potion.png"),
+        paths(
+            "icons/_placeholder.png",
+            "icons/bronze_sword.png",
+            "icons/iron_sword.png",
+            "icons/potion.png"
+        ),
         collection(typed, mapped)
     )]
     icons: HashMap<AssetFileStem, Handle<Image>>,
@@ -18,7 +25,11 @@ pub struct ItemIconAssets {
 #[derive(AssetCollection, Resource)]
 pub struct ItemAssets {
     #[asset(
-        paths("items/iron_sword.item.ron", "items/potion.item.ron"),
+        paths(
+            "items/bronze_sword.item.ron",
+            "items/iron_sword.item.ron",
+            "items/potion.item.ron"
+        ),
         collection(typed)
     )]
     handles: Vec<Handle<ItemData>>,
@@ -30,6 +41,7 @@ pub struct ItemDef {
     pub name: String,
     pub description: String,
     pub stackable: bool,
+    pub slot: Option<EquipmentSlot>,
     pub icon: Handle<Image>,
 }
 
@@ -92,6 +104,7 @@ fn add_item_store(
                 name: data.name.clone(),
                 description: data.description.clone(),
                 stackable: data.stackable,
+                slot: data.slot,
                 icon: icon_image,
             },
         );
