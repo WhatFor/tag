@@ -25,13 +25,13 @@ pub use crate::world::bundles::item_stack;
 // Components
 pub use crate::components::Description;
 pub use crate::components::DisplayName;
-pub use crate::components::FullPathTaken;
-pub use crate::components::Gold;
-pub use crate::components::Health;
-pub use crate::components::TakenPath;
+pub use crate::game::components::Gold;
+pub use crate::game::components::Health;
 pub use crate::player::components::CurrentArea;
+pub use crate::player::components::FullPathTaken;
 pub use crate::player::components::LastCheckpointArea;
 pub use crate::player::components::Player;
+pub use crate::player::components::TakenPath;
 pub use crate::world::components::Area;
 pub use crate::world::components::AreaContent;
 pub use crate::world::components::AreaExit;

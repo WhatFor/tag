@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::components::TakenPath;
+use crate::player::components::TakenPath;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

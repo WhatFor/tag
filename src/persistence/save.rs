@@ -1,11 +1,11 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
-use crate::components::FullPathTaken;
 use crate::persistence::data::{CheckpointData, SaveData, SavedItem};
 use crate::persistence::events::{SaveDeleted, SaveRequested};
 use crate::persistence::resources::SaveBackend;
 use crate::persistence::{CHECKPOINT_KEY_PREFIX, SAVE_FILE_KEY, SAVE_FORMAT_VERSION};
+use crate::player::components::FullPathTaken;
 use crate::player::components::Hardcore;
 
 pub struct PersistenceSavePlugin;
