@@ -1,0 +1,21 @@
+(
+    id: "test",
+    name: "Test Area",
+    is_checkpoint: false,
+    content: Combat(
+        start_lines: [
+            "Three small rats approach you.",
+            "Oh, how scary!"
+        ],
+        enemy_ids: ["small_rat", "small_rat", "small_rat"],
+        win_lines: [
+            "You slay the last of the rats.",
+            "Well done."
+        ],
+        lose_lines: [
+            "You fall at the hand of a couple small rats...",
+            "How pathetic."
+        ],
+    ),
+    exits: []
+)

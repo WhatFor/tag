@@ -217,6 +217,9 @@ fn on_player_enter_area(
                     commands.trigger(ContentDisplayCompleted);
                 });
         }
+        AreaContent::Combat { .. } => {
+            // TODO: ???
+        }
     }
 }
 

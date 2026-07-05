@@ -49,6 +49,12 @@ pub enum AreaContent {
     Narration {
         lines: Vec<String>,
     },
+    Combat {
+        start_lines: Vec<String>,
+        enemy_ids: Vec<String>,
+        win_lines: Vec<String>,
+        lose_lines: Vec<String>,
+    },
 }
 
 #[derive(Component, Reflect)]

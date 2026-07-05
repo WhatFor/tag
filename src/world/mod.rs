@@ -39,7 +39,8 @@ impl Plugin for WorldPlugin {
     }
 }
 
-const START_AREA_ID: &str = "intro_01";
+//const START_AREA_ID: &str = "intro_01";
+const START_AREA_ID: &str = "test";
 
 fn spawn_player(
     mut commands: Commands,

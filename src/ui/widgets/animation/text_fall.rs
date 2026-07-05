@@ -104,8 +104,11 @@ fn on_char_appeared(
             let pitch = random_pitch();
             commands.trigger(PlaySfx::with_speed(sfx.clone(), pitch));
         }
-        AreaContent::Narration { lines: _ } => {
+        AreaContent::Narration { .. } => {
             // TODO: No sound effect for narration. For now(?)
+        }
+        AreaContent::Combat { .. } => {
+            // TODO: Does not trigger for combat.
         }
     }
 }
