@@ -1,0 +1,14 @@
+(
+    id: "potato",
+    name: "A Test Potato",
+    description: "Very powerful. Don't eat it!",
+    stackable: true,
+    slot: None,
+    stats: Some(Stats(
+        strength: 1,
+        agility: 2,
+        intelligence: 3,
+        speed: 4,
+        armour: 5,
+    ))
+)

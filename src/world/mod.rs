@@ -76,6 +76,10 @@ fn spawn_player(
                 path_taken: vec![],
                 inventory: vec![
                     SavedItem {
+                        count: 10,
+                        item_id: String::from("potato"),
+                    },
+                    SavedItem {
                         count: 3,
                         item_id: String::from("potion"),
                     },

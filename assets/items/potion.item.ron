@@ -4,4 +4,5 @@
     description: "Looks healthy. Maybe.",
     stackable: true,
     slot: None,
+    stats: None,
 )

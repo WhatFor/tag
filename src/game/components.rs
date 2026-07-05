@@ -11,7 +11,7 @@ pub struct Enemy;
 pub struct Health(pub usize);
 
 // Base stats of an Entity
-#[derive(Component, Reflect, Default, Clone)]
+#[derive(Component, Debug, Reflect, Default, Clone, Copy, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct Stats {
     pub strength: i32,
@@ -42,6 +42,23 @@ pub enum EquipmentSlot {
     OffHand,
 }
 
+impl std::fmt::Display for EquipmentSlot {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let label = match self {
+            EquipmentSlot::Helm => "Helm",
+            EquipmentSlot::Cloak => "Cloak",
+            EquipmentSlot::Chest => "Chest",
+            EquipmentSlot::Legs => "Legs",
+            EquipmentSlot::Boots => "Boots",
+            EquipmentSlot::Ring => "Ring",
+            EquipmentSlot::MainHand => "Main hand",
+            EquipmentSlot::OffHand => "Off hand",
+        };
+
+        f.write_str(label)
+    }
+}
+
 #[derive(Component, Clone, Copy, Reflect)]
 #[reflect(Component)]
 pub struct Equippable(pub EquipmentSlot);
@@ -65,5 +82,45 @@ impl std::ops::Add for Stats {
             speed: self.speed + rhs.speed,
             armour: self.armour + rhs.armour,
         }
+    }
+}
+
+impl Stats {
+    pub fn non_zero_stats(&self) -> Vec<(&'static str, String, &'static str)> {
+        let mut vec = Vec::new();
+
+        if self.strength != 0 {
+            vec.push(("Strength", stat_to_string(self.strength), "strength"));
+        }
+
+        if self.agility != 0 {
+            vec.push(("Agility", stat_to_string(self.agility), "agility"));
+        }
+
+        if self.intelligence != 0 {
+            vec.push((
+                "Intelligence",
+                stat_to_string(self.intelligence),
+                "intelligence",
+            ));
+        }
+
+        if self.speed != 0 {
+            vec.push(("Speed", stat_to_string(self.speed), "speed"));
+        }
+
+        if self.armour != 0 {
+            vec.push(("Armour", stat_to_string(self.armour), "armour"));
+        }
+
+        vec
+    }
+}
+
+fn stat_to_string(stat: i32) -> String {
+    if stat == 0 {
+        String::from("0")
+    } else {
+        format!("{stat:+}")
     }
 }

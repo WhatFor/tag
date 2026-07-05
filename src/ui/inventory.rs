@@ -160,6 +160,7 @@ fn collect_rows(
     inventory: &Inventory,
     items: Query<(&ItemId, Option<&ItemStack>)>,
     item_store: Res<ItemStore>,
+    icon_assets: Res<IconAssets>,
 ) -> Vec<ItemRow> {
     inventory
         .iter()
@@ -172,6 +173,24 @@ fn collect_rows(
                 None => None,
             };
 
+            let stats = store_item
+                .stats
+                .map(|stats| {
+                    stats
+                        .non_zero_stats()
+                        .into_iter()
+                        .filter_map(|(label, value, icon)| {
+                            let icon = icon_assets.icons.get(icon)?.clone();
+                            Some(StatLine {
+                                label: label.to_string(),
+                                value,
+                                icon,
+                            })
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+
             Some(ItemRow {
                 id: store_item.id.clone(),
                 entity: item_entity,
@@ -179,6 +198,7 @@ fn collect_rows(
                 description: store_item.description.clone(),
                 icon: store_item.icon.clone(),
                 slot: store_item.slot,
+                stats: stats,
                 count: count,
             })
         })
@@ -269,13 +289,14 @@ fn spawn_inventory(
     gold: Single<&Gold, With<Player>>,
     items: Query<(&ItemId, Option<&ItemStack>)>,
     item_store: Res<ItemStore>,
+    icon_store: Res<IconAssets>,
     fonts: Res<FontAssets>,
 ) {
     if inventory.is_empty() {
         return;
     }
 
-    let rows = collect_rows(&inventory, items, item_store);
+    let rows = collect_rows(&inventory, items, item_store, icon_store);
 
     let ui_font = fonts.ui_font.clone();
     let ui_color = fonts.ui_color.clone();
@@ -317,11 +338,12 @@ fn refresh_inventory(
     >,
     items: Query<(&ItemId, Option<&ItemStack>)>,
     item_store: Res<ItemStore>,
+    icon_store: Res<IconAssets>,
     fonts: Res<FontAssets>,
     content: Single<Entity, With<InventoryContent>>,
 ) {
     let (player_entity, inventory, gold) = *player;
-    let rows = collect_rows(inventory, items, item_store);
+    let rows = collect_rows(inventory, items, item_store, icon_store);
 
     // Clear existing inventory items
     commands.entity(*content).despawn_children();
@@ -340,6 +362,13 @@ fn refresh_inventory(
 }
 
 #[derive(Clone, Debug)]
+struct StatLine {
+    label: String,
+    value: String,
+    icon: Handle<Image>,
+}
+
+#[derive(Clone, Debug)]
 struct ItemRow {
     id: String,
     entity: Entity,
@@ -348,6 +377,7 @@ struct ItemRow {
     count: Option<u32>,
     icon: Handle<Image>,
     slot: Option<EquipmentSlot>,
+    stats: Vec<StatLine>,
 }
 
 fn inventory_grid() -> impl Bundle {
@@ -381,14 +411,17 @@ fn inventory_item(item: ItemRow, font: TextFont, color: TextColor) -> impl Bundl
         BorderColor::all(ITEM_BORDER_COLOUR),
         Tooltip::new_sized(
             move |p| {
-                p.spawn(tooltip(
+                build_tooltip(
+                    p,
                     item.id.clone(),
                     tooltip_label.clone(),
                     item.description.clone(),
                     item.icon.clone(),
+                    item.slot,
+                    item.stats.clone(),
                     font.clone(),
                     color.clone(),
-                ));
+                );
             },
             TOOLTIP_SIZE,
         ),
@@ -419,57 +452,97 @@ fn item_count(item_id: String, count: String, font: TextFont, color: TextColor) 
     )
 }
 
-fn tooltip(
+fn build_tooltip(
+    parent: &mut RelatedSpawnerCommands<'_, ChildOf>,
     tooltip_id: String,
-    tooltip_label: String,
-    tooltip_desc: String,
-    tooltip_icon: Handle<Image>,
+    label: String,
+    description: String,
+    icon: Handle<Image>,
+    slot: Option<EquipmentSlot>,
+    stats: Vec<StatLine>,
     font: TextFont,
     color: TextColor,
-) -> impl Bundle {
-    (
-        Name::new(format!("Inventory Item Tooltip (ID: {})", tooltip_id)),
-        // -- Column of toolip (1st row + description)
-        Node {
-            display: Display::Flex,
-            flex_direction: FlexDirection::Column,
-            row_gap: Val::Px(5.),
-            ..default()
-        },
-        children![
-            (
-                // -- First row of tooltip (icon + label)
-                Node {
-                    display: Display::Flex,
-                    flex_direction: FlexDirection::Row,
-                    column_gap: Val::Px(10.),
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
-                children![
-                    // -- Icon
-                    (
+) {
+    parent
+        .spawn((
+            Name::new(format!("Inventory Item Tooltip (ID: {})", tooltip_id)),
+            // -- Column of toolip (1st row + description)
+            Node {
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(5.),
+                ..default()
+            },
+        ))
+        .with_children(|p| {
+            // -- First row of tooltip (icon + label)
+            p.spawn((Node {
+                display: Display::Flex,
+                flex_direction: FlexDirection::Row,
+                column_gap: Val::Px(10.),
+                align_items: AlignItems::Center,
+                ..default()
+            },))
+                .with_children(|row| {
+                    // Icon
+                    row.spawn((
                         Node {
                             width: Val::Px(TOOLTIP_ITEM_SIZE),
                             height: Val::Px(TOOLTIP_ITEM_SIZE),
                             ..default()
                         },
-                        ImageNode::new(tooltip_icon),
-                    ),
-                    // -- Label
-                    (
+                        ImageNode::new(icon),
+                    ));
+
+                    // Label
+                    row.spawn((
                         font.clone().with_font_size(TOOLTIP_LABEL_FONT_SIZE),
                         color.clone(),
-                        Text::new(tooltip_label)
-                    ),
-                ],
-            ),
+                        Text::new(label),
+                    ));
+                });
+
             // -- Description
-            (
-                font.with_font_size(TOOLTIP_DESC_FONT_SIZE),
+            p.spawn((
+                font.clone().with_font_size(TOOLTIP_DESC_FONT_SIZE),
                 color,
-                Text::new(tooltip_desc)
-            ),
-        ],
-    )
+                Text::new(description),
+            ));
+
+            // Slot
+            if let Some(slot) = slot {
+                p.spawn((
+                    font.clone().with_font_size(TOOLTIP_DESC_FONT_SIZE),
+                    color,
+                    Text::new(slot.to_string()),
+                ));
+            }
+
+            // Stats
+            for stat in stats {
+                p.spawn((
+                    Node {
+                        flex_direction: FlexDirection::Row,
+                        align_items: AlignItems::Center,
+                        column_gap: Val::Px(8.),
+                        ..default()
+                    },
+                    children![
+                        (
+                            Node {
+                                width: Val::Px(16.),
+                                height: Val::Px(16.),
+                                ..default()
+                            },
+                            ImageNode::new(stat.icon),
+                        ),
+                        (
+                            font.clone().with_font_size(TOOLTIP_DESC_FONT_SIZE),
+                            color,
+                            Text::new(format!("{} {}", stat.value, stat.label)),
+                        )
+                    ],
+                ));
+            }
+        });
 }

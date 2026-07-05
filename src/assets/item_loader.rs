@@ -28,7 +28,8 @@ pub struct ItemAssets {
         paths(
             "items/bronze_sword.item.ron",
             "items/iron_sword.item.ron",
-            "items/potion.item.ron"
+            "items/potion.item.ron",
+            "items/potato.item.ron"
         ),
         collection(typed)
     )]
@@ -42,6 +43,7 @@ pub struct ItemDef {
     pub description: String,
     pub stackable: bool,
     pub slot: Option<EquipmentSlot>,
+    pub stats: Option<Stats>,
     pub icon: Handle<Image>,
 }
 
@@ -105,6 +107,7 @@ fn add_item_store(
                 description: data.description.clone(),
                 stackable: data.stackable,
                 slot: data.slot,
+                stats: data.stats,
                 icon: icon_image,
             },
         );

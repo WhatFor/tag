@@ -12,6 +12,7 @@ pub struct ItemData {
     pub description: String,
     pub stackable: bool,
     pub slot: Option<EquipmentSlot>,
+    pub stats: Option<Stats>,
 }
 
 #[derive(Default, TypePath)]

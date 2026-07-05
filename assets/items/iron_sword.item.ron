@@ -4,4 +4,11 @@
     description: "A beat-up, old iron sword. I wonder who it belonged to?",
     stackable: false,
     slot: Some(MainHand),
+    stats: Some(Stats(
+        strength: 2,
+        agility: 0,
+        intelligence: 0,
+        speed: 0,
+        armour: 0,
+    ))
 )
