@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::prelude::*;
 
 use crate::ui::interaction::image_tint::ImageTint;
@@ -31,6 +32,9 @@ pub enum InventoryState {
     Open,
 }
 
+#[derive(Component)]
+pub struct InventoryContent;
+
 pub struct InventoryUIPlugin;
 
 impl Plugin for InventoryUIPlugin {
@@ -39,6 +43,7 @@ impl Plugin for InventoryUIPlugin {
         app.add_systems(OnEnter(GameState::Playing), button_init);
         app.add_systems(OnEnter(InventoryState::Open), spawn_inventory);
         app.add_systems(OnEnter(InventoryState::Closed), despawn_inventory);
+        app.add_systems(Update, refresh_inventory);
 
         app.add_systems(
             Update,
@@ -151,20 +156,12 @@ fn on_keybind_open_inventory(
     };
 }
 
-fn spawn_inventory(
-    mut commands: Commands,
-    player: Single<Entity, With<Player>>,
-    inventory: Single<&Inventory, With<Player>>,
-    gold: Single<&Gold, With<Player>>,
+fn collect_rows(
+    inventory: &Inventory,
     items: Query<(&ItemId, Option<&ItemStack>)>,
     item_store: Res<ItemStore>,
-    fonts: Res<FontAssets>,
-) {
-    if inventory.is_empty() {
-        return;
-    }
-
-    let rows: Vec<ItemRow> = inventory
+) -> Vec<ItemRow> {
+    inventory
         .iter()
         .filter_map(|&item_entity| {
             let (id, stack) = items.get(item_entity).ok()?;
@@ -185,7 +182,100 @@ fn spawn_inventory(
                 count: count,
             })
         })
-        .collect();
+        .collect()
+}
+
+fn build_inventory_content(
+    parent: &mut RelatedSpawnerCommands<'_, ChildOf>,
+    rows: Vec<ItemRow>,
+    gold: &Gold,
+    ui_font: &TextFont,
+    ui_color: &TextColor,
+    player_entity: Entity,
+) {
+    parent.spawn((
+        Node {
+            display: Display::Flex,
+            width: Val::Percent(100.),
+            flex_grow: 1.,
+            padding: UiRect::all(Val::Px(20.)),
+            ..default()
+        },
+        children![scroll_area({
+            let ui_font = ui_font.clone();
+            let ui_color = ui_color.clone();
+
+            move |p| {
+                p.spawn(inventory_grid()).with_children(|grid| {
+                    for item in rows {
+                        let mut invent_item = grid.spawn(inventory_item(
+                            item.clone(),
+                            ui_font.clone(),
+                            ui_color.clone(),
+                        ));
+
+                        invent_item.with_children(|tile| {
+                            tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
+
+                            if let Some(count) = item.count.filter(|&c| c > 0) {
+                                tile.spawn(item_count(
+                                    item.id.clone(),
+                                    count.to_string(),
+                                    ui_font.clone(),
+                                    ui_color.clone(),
+                                ));
+                            }
+                        });
+
+                        if item.slot.is_some() {
+                            let item_entity = item.entity;
+
+                            invent_item.observe(
+                                move |_: On<Pointer<Click>>, mut commands: Commands| {
+                                    commands
+                                        .entity(player_entity)
+                                        .equip_from_inventory(item_entity);
+                                },
+                            );
+                        };
+                    }
+                });
+            }
+        })],
+    ));
+
+    // Bottom row
+    parent.spawn((
+        Node {
+            display: Display::Flex,
+            width: Val::Percent(100.),
+            flex_shrink: 0.,
+            padding: UiRect::all(Val::Px(10.)),
+            ..default()
+        },
+        children![(
+            Name::new("Gold Count"),
+            Text::new(format!("{} Gold", gold.0)),
+            ui_font.clone(),
+            ui_color.clone(),
+        )],
+    ));
+}
+
+fn spawn_inventory(
+    mut commands: Commands,
+    player: Single<Entity, With<Player>>,
+    inventory: Single<&Inventory, With<Player>>,
+    gold: Single<&Gold, With<Player>>,
+    items: Query<(&ItemId, Option<&ItemStack>)>,
+    item_store: Res<ItemStore>,
+    fonts: Res<FontAssets>,
+) {
+    if inventory.is_empty() {
+        return;
+    }
+
+    let rows = collect_rows(&inventory, items, item_store);
 
     let ui_font = fonts.ui_font.clone();
     let ui_color = fonts.ui_color.clone();
@@ -205,74 +295,48 @@ fn spawn_inventory(
         )
         .with_children(|p| {
             p.spawn((
+                InventoryContent,
                 Node {
-                    display: Display::Flex,
                     width: Val::Percent(100.),
                     flex_grow: 1.,
-                    padding: UiRect::all(Val::Px(20.)),
+                    flex_direction: FlexDirection::Column,
                     ..default()
                 },
-                children![scroll_area({
-                    let ui_font = ui_font.clone();
-                    let ui_color = ui_color.clone();
-                    let player_entity = player.entity();
-
-                    move |p| {
-                        p.spawn(inventory_grid()).with_children(|grid| {
-                            for item in rows {
-                                let mut invent_item = grid.spawn(inventory_item(
-                                    item.clone(),
-                                    ui_font.clone(),
-                                    ui_color.clone(),
-                                ));
-
-                                invent_item.with_children(|tile| {
-                                    tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
-
-                                    if let Some(count) = item.count.filter(|&c| c > 0) {
-                                        tile.spawn(item_count(
-                                            item.id.clone(),
-                                            count.to_string(),
-                                            ui_font.clone(),
-                                            ui_color.clone(),
-                                        ));
-                                    }
-                                });
-
-                                if item.slot.is_some() {
-                                    let item_entity = item.entity;
-
-                                    invent_item.observe(
-                                        move |_: On<Pointer<Click>>, mut commands: Commands| {
-                                            commands
-                                                .entity(player_entity)
-                                                .equip_from_inventory(item_entity);
-                                        },
-                                    );
-                                };
-                            }
-                        });
-                    }
-                })],
-            ));
-
-            // Bottom row
-            p.spawn((
-                Node {
-                    display: Display::Flex,
-                    width: Val::Percent(100.),
-                    flex_shrink: 0.,
-                    padding: UiRect::all(Val::Px(10.)),
-                    ..default()
-                },
-                children![(
-                    Name::new("Gold Count"),
-                    Text::new(format!("{} Gold", gold.0)),
-                    ui_font.clone(),
-                    ui_color.clone(),
-                )],
-            ));
+            ))
+            .with_children(|content| {
+                build_inventory_content(content, rows, &gold, &ui_font, &ui_color, player.entity());
+            });
         });
+}
+
+fn refresh_inventory(
+    mut commands: Commands,
+    player: Single<
+        (Entity, &Inventory, &Gold),
+        (With<Player>, Or<(Changed<Inventory>, Changed<Equipment>)>),
+    >,
+    items: Query<(&ItemId, Option<&ItemStack>)>,
+    item_store: Res<ItemStore>,
+    fonts: Res<FontAssets>,
+    content: Single<Entity, With<InventoryContent>>,
+) {
+    let (player_entity, inventory, gold) = *player;
+    let rows = collect_rows(inventory, items, item_store);
+
+    // Clear existing inventory items
+    commands.entity(*content).despawn_children();
+
+    // Replace with new items
+    commands.entity(*content).with_children(|content| {
+        build_inventory_content(
+            content,
+            rows,
+            gold,
+            &fonts.ui_font.clone(),
+            &fonts.ui_color,
+            player_entity,
+        );
+    });
 }
 
 #[derive(Clone, Debug)]
