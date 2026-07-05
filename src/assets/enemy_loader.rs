@@ -17,6 +17,9 @@ pub struct EnemyAssets {
 pub struct EnemyDef {
     pub id: String,
     pub display_name: String,
+    pub max_health: i32,
+    pub stats: Stats,
+    pub attacks: Vec<EnemyAttack>,
 }
 
 #[derive(Resource, Default, Debug, Deref, DerefMut)]
@@ -55,6 +58,9 @@ fn add_resource(
             EnemyDef {
                 id: data.id.clone(),
                 display_name: data.display_name.clone(),
+                max_health: data.max_health,
+                stats: data.stats,
+                attacks: data.attacks.clone(),
             },
         );
     }

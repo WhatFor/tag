@@ -7,6 +7,7 @@ pub fn default_player() -> impl Bundle {
         FullPathTaken(vec![]),
         Name::new("Player"),
         Health(100),
+        MaxHealth(100),
         Inventory(vec![]),
         Statuses(vec![]),
         Equipment::default(),

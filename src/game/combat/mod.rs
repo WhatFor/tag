@@ -1,13 +1,18 @@
 use crate::prelude::*;
 use bevy::prelude::*;
-use rand::RngExt;
 
+use crate::game::combat::fsm::CombatPhasePlugin;
+use rand::RngExt;
 use std::cmp::{max, min};
+
+mod fsm;
 
 pub struct CombatPlugin;
 
 impl Plugin for CombatPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(CombatPhasePlugin);
+
         app.add_observer(on_heal);
         app.add_observer(on_damage);
         app.add_observer(on_player_died);

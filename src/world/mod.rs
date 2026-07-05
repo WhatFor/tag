@@ -66,6 +66,7 @@ fn spawn_player(
                 version: SAVE_FORMAT_VERSION,
                 hardcore: hardcore.0,
                 health: 100,
+                max_health: 100,
                 strength: 0,
                 agility: 0,
                 intelligence: 0,

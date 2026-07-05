@@ -6,6 +6,12 @@ use std::collections::HashMap;
 #[derive(Component)]
 pub struct Enemy;
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct EnemyAttack {
+    pub potency: i32,
+    pub damage_type: DamageType,
+}
+
 #[derive(Component, Reflect, Deref)]
 #[reflect(Component)]
 pub struct Health(pub i32);

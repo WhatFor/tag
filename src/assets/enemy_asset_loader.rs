@@ -1,5 +1,7 @@
-use bevy::asset::{AssetLoader, LoadContext, io::Reader};
+use crate::prelude::*;
 use bevy::prelude::*;
+
+use bevy::asset::{AssetLoader, LoadContext, io::Reader};
 use serde::Deserialize;
 use thiserror::Error;
 
@@ -7,6 +9,9 @@ use thiserror::Error;
 pub struct EnemyData {
     pub id: String,
     pub display_name: String,
+    pub max_health: i32,
+    pub stats: Stats,
+    pub attacks: Vec<EnemyAttack>,
 }
 
 #[derive(Default, TypePath)]

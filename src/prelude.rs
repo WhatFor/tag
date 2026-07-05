@@ -1,6 +1,7 @@
 // Assets
 pub use crate::assets::audio_loader::AudioAssets;
 pub use crate::assets::character_loader::CharacterStore;
+pub use crate::assets::enemy_loader::EnemyStore;
 pub use crate::assets::icon_loader::IconAssets;
 pub use crate::assets::item_loader::ItemDef;
 pub use crate::assets::item_loader::ItemStore;
@@ -13,6 +14,7 @@ pub use crate::game::components::DamageType;
 pub use crate::game::components::DotKind;
 pub use crate::game::components::Effect;
 pub use crate::game::components::Enemy;
+pub use crate::game::components::EnemyAttack;
 pub use crate::game::components::StatusEffect;
 pub use crate::game::components::Statuses;
 pub use crate::game::events::ApplyEffect;

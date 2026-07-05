@@ -17,6 +17,7 @@ pub struct SaveData {
     pub current_area_id: String,
     pub last_checkpoint_area_id: String,
     pub health: i32,
+    pub max_health: i32,
     pub strength: i32,
     pub agility: i32,
     pub intelligence: i32,

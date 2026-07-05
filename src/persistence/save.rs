@@ -23,6 +23,7 @@ fn on_save_requested(
     player: Single<
         (
             &Health,
+            &MaxHealth,
             &Stats,
             &Gold,
             &Inventory,
@@ -42,6 +43,7 @@ fn on_save_requested(
 
     let (
         health,
+        max_health,
         stats,
         gold,
         inventory,
@@ -87,6 +89,7 @@ fn on_save_requested(
             last_checkpoint_area_id: last_checkpoint_area_id,
             gold: **gold,
             health: **health,
+            max_health: **max_health,
             strength: stats.strength,
             agility: stats.agility,
             intelligence: stats.intelligence,
