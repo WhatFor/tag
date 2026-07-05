@@ -14,10 +14,18 @@ pub struct PlayerChose {
 }
 
 #[derive(EntityEvent)]
+pub struct Heal {
+    #[event_target]
+    pub healed: Entity,
+    pub amount: i32,
+}
+
+#[derive(EntityEvent)]
 pub struct Damage {
     #[event_target]
     pub damaged: Entity,
-    pub amount: usize,
+    pub amount: i32,
+    pub damage_type: DamageType,
 }
 
 #[derive(EntityEvent)]

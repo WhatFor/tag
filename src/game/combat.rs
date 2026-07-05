@@ -1,12 +1,14 @@
 use crate::prelude::*;
 use bevy::prelude::*;
+use rand::RngExt;
 
-use std::cmp::max;
+use std::cmp::{max, min};
 
 pub struct CombatPlugin;
 
 impl Plugin for CombatPlugin {
     fn build(&self, app: &mut App) {
+        app.add_observer(on_heal);
         app.add_observer(on_damage);
         app.add_observer(on_player_died);
         app.add_observer(on_enemy_died);
@@ -14,12 +16,38 @@ impl Plugin for CombatPlugin {
     }
 }
 
-fn on_damage(trigger: On<Damage>, mut commands: Commands, mut healths: Query<&mut Health>) {
-    let Ok(mut health) = healths.get_mut(trigger.damaged) else {
+fn on_heal(trigger: On<Heal>, mut healths: Query<(&mut Health, &MaxHealth)>) {
+    let Ok((mut health, max_health)) = healths.get_mut(trigger.healed) else {
         return;
     };
 
-    health.0 = max(0, health.0 - trigger.amount);
+    health.0 = min(max_health.0, health.0 + trigger.amount);
+}
+
+fn on_damage(
+    trigger: On<Damage>,
+    mut commands: Commands,
+    mut healths: Query<(&mut Health, &Statuses)>,
+) {
+    let Ok((mut health, statuses)) = healths.get_mut(trigger.damaged) else {
+        return;
+    };
+
+    let resistance_amount: i32 = statuses
+        .0
+        .iter()
+        .filter_map(|f| match f.effect {
+            StatusEffect::DamageResistance {
+                damage_type,
+                potency,
+            } if damage_type == trigger.damage_type => Some(potency),
+            _ => None,
+        })
+        .sum();
+
+    let reduced_damage = max(0, trigger.amount - resistance_amount);
+
+    health.0 = max(0, health.0 - reduced_damage);
 
     if health.0 == 0 {
         commands.trigger(Died {
@@ -49,7 +77,7 @@ fn on_enemy_died(trigger: On<Died>, enemies: Query<(), With<Enemy>>, mut command
 fn on_apply_effect(
     trigger: On<ApplyEffect>,
     mut statuses: Query<&mut Statuses>,
-    mut healths: Query<&mut Health>,
+    mut rng: ResMut<GameRng>,
     mut commands: Commands,
 ) {
     let target = trigger.target;
@@ -61,16 +89,66 @@ fn on_apply_effect(
             duration,
             chance,
         } => {
-            info!("Inflicting {:?} on target", status);
+            let Ok(mut target_statuses) = statuses.get_mut(target) else {
+                return;
+            };
+
+            if !rng.0.random_bool((*chance as f64).clamp(0.0, 1.0)) {
+                return;
+            }
+
+            target_statuses.0.push(ActiveStatus {
+                effect: StatusEffect::DamageOverTime {
+                    kind: *status,
+                    potency: *potency,
+                },
+                turns: *duration,
+            });
         }
         Effect::Heal { amount } => {
-            info!("Healing target {} health", amount);
+            commands.trigger(Heal {
+                amount: *amount,
+                healed: target,
+            });
         }
         Effect::Buff { stats, duration } => {
-            info!("Applying buff for {} of {:?}", duration, stats);
+            let Ok(mut target_statuses) = statuses.get_mut(target) else {
+                return;
+            };
+
+            target_statuses.0.push(ActiveStatus {
+                effect: StatusEffect::StatModifier { stats: *stats },
+                turns: *duration,
+            });
+        }
+        Effect::Resistance {
+            damage_type,
+            potency,
+            duration,
+        } => {
+            let Ok(mut target_statuses) = statuses.get_mut(target) else {
+                return;
+            };
+
+            target_statuses.0.push(ActiveStatus {
+                effect: StatusEffect::DamageResistance {
+                    damage_type: *damage_type,
+                    potency: *potency,
+                },
+                turns: *duration,
+            });
         }
         Effect::Cleanse { status } => {
-            info!("Removing {:?} status via cleanse", status);
+            let Ok(mut target_statuses) = statuses.get_mut(target) else {
+                return;
+            };
+
+            target_statuses.0.retain(|e| {
+                !matches!(
+                    e.effect,
+                    StatusEffect::DamageOverTime { kind, .. } if kind == *status
+                )
+            });
         }
     }
 }

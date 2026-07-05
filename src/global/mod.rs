@@ -1,7 +1,13 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use rand::SeedableRng;
+use rand::rngs::SmallRng;
+
 pub mod dynamic_content;
+
+#[derive(Resource)]
+pub struct GameRng(pub SmallRng);
 
 /// A system set for systems that shouldn't run while the game is paused
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -15,6 +21,8 @@ impl Plugin for GlobalPlugin {
         app.init_resource::<AudioSettings>();
         app.add_sub_state::<PlayState>();
         app.add_sub_state::<ExploringState>();
+
+        app.insert_resource(GameRng(SmallRng::seed_from_u64(0xC0C4E4)));
 
         app.init_state::<Pause>();
         app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));

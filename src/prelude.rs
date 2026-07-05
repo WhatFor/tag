@@ -8,14 +8,18 @@ pub use crate::assets::texture_loader::TextureAssets;
 
 // Combat
 pub use crate::game::components::ActiveStatus;
+pub use crate::game::components::DamageKind;
+pub use crate::game::components::DamageType;
+pub use crate::game::components::DotKind;
 pub use crate::game::components::Effect;
 pub use crate::game::components::Enemy;
-pub use crate::game::components::StatusKind;
+pub use crate::game::components::StatusEffect;
 pub use crate::game::components::Statuses;
 pub use crate::game::events::ApplyEffect;
 pub use crate::game::events::Damage;
 pub use crate::game::events::Died;
 pub use crate::game::events::GiveGold;
+pub use crate::game::events::Heal;
 
 // Audio
 pub use crate::audio::components::AudioChannel;
@@ -36,6 +40,7 @@ pub use crate::game::components::EquipmentSlot;
 pub use crate::game::components::Equippable;
 pub use crate::game::components::Gold;
 pub use crate::game::components::Health;
+pub use crate::game::components::MaxHealth;
 pub use crate::game::components::StatBonus;
 pub use crate::game::components::Stats;
 pub use crate::player::components::CurrentArea;
@@ -57,6 +62,7 @@ pub use crate::world::components::ItemStack;
 
 // Global
 pub use crate::debug_tools::GLOBAL_ANIMATION_SPEED;
+pub use crate::global::GameRng;
 pub use crate::global::PausableSystems;
 pub use crate::global::dynamic_content::DynamicContent;
 

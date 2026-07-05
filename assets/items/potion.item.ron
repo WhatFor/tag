@@ -5,7 +5,7 @@
     stackable: true,
     slot: None,
     stats: None,
-    on_hit: [],
+    on_hit: [ Heal(amount: 10) ],
     on_use: [],
     consumable: true,
 )

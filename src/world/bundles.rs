@@ -8,6 +8,7 @@ pub fn default_player() -> impl Bundle {
         Name::new("Player"),
         Health(100),
         Inventory(vec![]),
+        Statuses(vec![]),
         Equipment::default(),
         DespawnOnEnter(GameState::MainMenu),
     )

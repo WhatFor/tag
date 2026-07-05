@@ -8,12 +8,16 @@ pub struct Enemy;
 
 #[derive(Component, Reflect, Deref)]
 #[reflect(Component)]
-pub struct Health(pub usize);
+pub struct Health(pub i32);
+
+#[derive(Component, Reflect, Deref)]
+#[reflect(Component)]
+pub struct MaxHealth(pub i32);
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum Effect {
     Inflict {
-        status: StatusKind,
+        status: DotKind,
         potency: i32,
         duration: u32,
         chance: f32,
@@ -25,21 +29,59 @@ pub enum Effect {
         stats: Stats,
         duration: u32,
     },
+    Resistance {
+        damage_type: DamageType,
+        potency: i32,
+        duration: u32,
+    },
     Cleanse {
-        status: StatusKind,
+        status: DotKind,
     },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
-pub enum StatusKind {
+pub enum DotKind {
     Burn,
     Bleed,
     Poison,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub enum DamageKind {
+    None,
+    Physical,
+    Magical,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub enum DamageType {
+    None,
+    Slash,
+    Stab,
+    Smash,
+    Fire,
+    Ice,
+    Poison,
+    Necrotic,
+    Lightning,
+}
+
+pub enum StatusEffect {
+    DamageOverTime {
+        kind: DotKind,
+        potency: i32,
+    },
+    StatModifier {
+        stats: Stats,
+    },
+    DamageResistance {
+        damage_type: DamageType,
+        potency: i32,
+    },
+}
+
 pub struct ActiveStatus {
-    pub kind: StatusKind,
-    pub potency: i32,
+    pub effect: StatusEffect,
     pub turns: u32,
 }
 
@@ -159,5 +201,31 @@ fn stat_to_string(stat: i32) -> String {
         String::from("0")
     } else {
         format!("{stat:+}")
+    }
+}
+
+impl DotKind {
+    pub fn get_damage_type(&self) -> DamageType {
+        match self {
+            DotKind::Burn => DamageType::Fire,
+            DotKind::Bleed => DamageType::None,
+            DotKind::Poison => DamageType::Poison,
+        }
+    }
+}
+
+impl DamageType {
+    pub fn get_damage_kind(&self) -> DamageKind {
+        match self {
+            DamageType::None => DamageKind::None,
+            DamageType::Slash => DamageKind::Physical,
+            DamageType::Stab => DamageKind::Physical,
+            DamageType::Smash => DamageKind::Physical,
+            DamageType::Fire => DamageKind::Magical,
+            DamageType::Ice => DamageKind::Magical,
+            DamageType::Poison => DamageKind::Magical,
+            DamageType::Necrotic => DamageKind::Magical,
+            DamageType::Lightning => DamageKind::Magical,
+        }
     }
 }

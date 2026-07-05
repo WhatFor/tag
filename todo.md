@@ -108,12 +108,15 @@
 - Show item slot in item tooltip if equippable
 - Invent UI for slots
 
+### Half Finished (not tested/used)
 - Items with Effects
   - Bleed, Burn, Poison, etc.
   - Specials, like cleanse status effects
   - Potions, one time use
 - DamageType
 - DamageResistance(Type)
+
+### Not started
 - Areas with combat instead of narration
   - Enemies (1-3)
     - Intro text ("A savage looking bear creeps out of the undergrowth, growling...")
