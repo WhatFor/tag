@@ -58,6 +58,7 @@ fn on_player_enter_area(
     game_area: Single<Entity, With<GameArea>>,
     hud_area_top: Single<Entity, With<HudAreaTop>>,
     dyn_content: DynamicContent,
+    mut next_play_state: ResMut<NextState<PlayState>>,
 ) {
     let Ok(content) = all_area_content.get(**event) else {
         return;
@@ -218,7 +219,8 @@ fn on_player_enter_area(
                 });
         }
         AreaContent::Combat { .. } => {
-            // TODO: ???
+            // Just move into InCombat state, handled elsewhere.
+            next_play_state.set(PlayState::InCombat);
         }
     }
 }

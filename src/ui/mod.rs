@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
 use crate::ui::area::AreaUIPlugin;
+use crate::ui::combat::CombatUIPlugin;
 use crate::ui::content::ContentUIPlugin;
 use crate::ui::dead::DeadUIPlugin;
 use crate::ui::inventory::InventoryUIPlugin;
@@ -17,6 +18,7 @@ pub mod layout;
 pub mod widgets;
 
 mod area;
+mod combat;
 mod content;
 mod dead;
 
@@ -57,6 +59,7 @@ impl Plugin for UIPlugin {
         app.add_plugins(WidgetsPlugin);
         app.add_plugins(UILayoutPlugin);
         app.add_plugins(AreaUIPlugin);
+        app.add_plugins(CombatUIPlugin);
         app.add_plugins(ContentUIPlugin);
         app.add_plugins(DeadUIPlugin);
         app.add_plugins(InventoryUIPlugin);

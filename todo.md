@@ -2,6 +2,7 @@
 
 - keybind settings
 - settings menu from pause
+- move font assets out of ui/mod.rs into assets mod.
 
 # Nice to haves, not important
 - better game over screen
