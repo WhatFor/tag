@@ -1,0 +1,13 @@
+(
+    id: "sword_of_fire",
+    name: "Sword of Fire",
+    description: "A flaming sword.",
+    stackable: false,
+    slot: Some(MainHand),
+    stats: Some(Stats(
+        strength: 3
+    )),
+    on_hit: [ Inflict(status: Burn, potency: 2, duration: 3, chance: 0.1) ],
+    on_use: [],
+    consumable: false,
+)

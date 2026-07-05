@@ -45,6 +45,9 @@ pub struct ItemDef {
     pub slot: Option<EquipmentSlot>,
     pub stats: Option<Stats>,
     pub icon: Handle<Image>,
+    pub on_hit: Vec<Effect>,
+    pub on_use: Vec<Effect>,
+    pub consumable: bool,
 }
 
 #[derive(Resource, Default, Debug, Deref, DerefMut)]
@@ -109,6 +112,9 @@ fn add_item_store(
                 slot: data.slot,
                 stats: data.stats,
                 icon: icon_image,
+                on_hit: data.on_hit.clone(),
+                on_use: data.on_use.clone(),
+                consumable: data.consumable,
             },
         );
     }

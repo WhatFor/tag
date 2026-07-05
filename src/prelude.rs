@@ -7,7 +7,12 @@ pub use crate::assets::item_loader::ItemStore;
 pub use crate::assets::texture_loader::TextureAssets;
 
 // Combat
+pub use crate::game::components::ActiveStatus;
+pub use crate::game::components::Effect;
 pub use crate::game::components::Enemy;
+pub use crate::game::components::StatusKind;
+pub use crate::game::components::Statuses;
+pub use crate::game::events::ApplyEffect;
 pub use crate::game::events::Damage;
 pub use crate::game::events::Died;
 pub use crate::game::events::GiveGold;

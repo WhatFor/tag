@@ -13,6 +13,9 @@ pub struct ItemData {
     pub stackable: bool,
     pub slot: Option<EquipmentSlot>,
     pub stats: Option<Stats>,
+    pub on_hit: Vec<Effect>,
+    pub on_use: Vec<Effect>,
+    pub consumable: bool,
 }
 
 #[derive(Default, TypePath)]

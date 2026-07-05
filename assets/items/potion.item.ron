@@ -5,4 +5,7 @@
     stackable: true,
     slot: None,
     stats: None,
+    on_hit: [],
+    on_use: [],
+    consumable: true,
 )

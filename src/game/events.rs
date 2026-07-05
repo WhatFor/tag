@@ -32,3 +32,10 @@ pub struct GiveGold {
     pub beneficiary: Entity,
     pub amount: u32,
 }
+
+#[derive(EntityEvent)]
+pub struct ApplyEffect {
+    #[event_target]
+    pub target: Entity,
+    pub effect: Effect,
+}

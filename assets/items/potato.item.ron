@@ -10,5 +10,8 @@
         intelligence: 3,
         speed: 4,
         armour: 5,
-    ))
+    )),
+    on_hit: [],
+    on_use: [],
+    consumable: false,
 )

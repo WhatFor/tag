@@ -10,9 +10,46 @@ pub struct Enemy;
 #[reflect(Component)]
 pub struct Health(pub usize);
 
+#[derive(Debug, Clone, Deserialize)]
+pub enum Effect {
+    Inflict {
+        status: StatusKind,
+        potency: i32,
+        duration: u32,
+        chance: f32,
+    },
+    Heal {
+        amount: i32,
+    },
+    Buff {
+        stats: Stats,
+        duration: u32,
+    },
+    Cleanse {
+        status: StatusKind,
+    },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub enum StatusKind {
+    Burn,
+    Bleed,
+    Poison,
+}
+
+pub struct ActiveStatus {
+    pub kind: StatusKind,
+    pub potency: i32,
+    pub turns: u32,
+}
+
+#[derive(Component, Default)]
+pub struct Statuses(pub Vec<ActiveStatus>);
+
 // Base stats of an Entity
 #[derive(Component, Debug, Reflect, Default, Clone, Copy, Serialize, Deserialize)]
 #[reflect(Component)]
+#[serde(default)]
 pub struct Stats {
     pub strength: i32,
     pub agility: i32,

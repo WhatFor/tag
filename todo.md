@@ -108,8 +108,6 @@
 - Show item slot in item tooltip if equippable
 - Invent UI for slots
 
-- Items with Stats
-  - Armour
 - Items with Effects
   - Bleed, Burn, Poison, etc.
   - Specials, like cleanse status effects

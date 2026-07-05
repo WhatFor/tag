@@ -5,10 +5,9 @@
     stackable: false,
     slot: Some(MainHand),
     stats: Some(Stats(
-        strength: 2,
-        agility: 0,
-        intelligence: 0,
-        speed: 0,
-        armour: 0,
-    ))
+        strength: 2
+    )),
+    on_hit: [],
+    on_use: [],
+    consumable: false,
 )

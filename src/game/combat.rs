@@ -10,6 +10,7 @@ impl Plugin for CombatPlugin {
         app.add_observer(on_damage);
         app.add_observer(on_player_died);
         app.add_observer(on_enemy_died);
+        app.add_observer(on_apply_effect);
     }
 }
 
@@ -43,4 +44,33 @@ fn on_enemy_died(trigger: On<Died>, enemies: Query<(), With<Enemy>>, mut command
     }
 
     commands.entity(trigger.died).despawn();
+}
+
+fn on_apply_effect(
+    trigger: On<ApplyEffect>,
+    mut statuses: Query<&mut Statuses>,
+    mut healths: Query<&mut Health>,
+    mut commands: Commands,
+) {
+    let target = trigger.target;
+
+    match &trigger.effect {
+        Effect::Inflict {
+            status,
+            potency,
+            duration,
+            chance,
+        } => {
+            info!("Inflicting {:?} on target", status);
+        }
+        Effect::Heal { amount } => {
+            info!("Healing target {} health", amount);
+        }
+        Effect::Buff { stats, duration } => {
+            info!("Applying buff for {} of {:?}", duration, stats);
+        }
+        Effect::Cleanse { status } => {
+            info!("Removing {:?} status via cleanse", status);
+        }
+    }
 }
