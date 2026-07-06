@@ -80,7 +80,6 @@ fn spawn_layout(mut commands: Commands) {
                     flex_shrink: 0.,
                     flex_direction: FlexDirection::Row,
                     align_items: AlignItems::Center,
-                    justify_content: JustifyContent::SpaceBetween,
                     padding: UiRect::axes(Val::Px(30.), Val::Px(0.)),
                     ..default()
                 },
@@ -90,7 +89,10 @@ fn spawn_layout(mut commands: Commands) {
                         Name::new("HUD Bottom Left"),
                         Node {
                             flex_direction: FlexDirection::Row,
+                            justify_content: JustifyContent::FlexStart,
                             align_items: AlignItems::Center,
+                            flex_grow: 1.,
+                            flex_basis: Val::Px(0.),
                             ..default()
                         },
                     ),
@@ -99,7 +101,10 @@ fn spawn_layout(mut commands: Commands) {
                         Name::new("HUD Bottom Center"),
                         Node {
                             flex_direction: FlexDirection::Row,
+                            justify_content: JustifyContent::Center,
                             align_items: AlignItems::Center,
+                            flex_grow: 1.,
+                            flex_basis: Val::Px(0.),
                             ..default()
                         },
                     ),
@@ -108,7 +113,10 @@ fn spawn_layout(mut commands: Commands) {
                         Name::new("HUD Bottom Right"),
                         Node {
                             flex_direction: FlexDirection::Row,
+                            justify_content: JustifyContent::FlexEnd,
                             align_items: AlignItems::Center,
+                            flex_grow: 1.,
+                            flex_basis: Val::Px(0.),
                             ..default()
                         },
                     ),

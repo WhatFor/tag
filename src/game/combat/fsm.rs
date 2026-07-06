@@ -1,21 +1,6 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
-#[derive(Default, Debug, Eq, PartialEq)]
-pub enum CombatPhase {
-    #[default]
-    StartOfCombat,
-    StartOfRound,
-    RoundCombat,
-    EndOfRound,
-    EndOfCombat,
-}
-
-#[derive(Resource, Default)]
-pub struct CombatState {
-    phase: CombatPhase,
-}
-
 #[derive(Resource, Default)]
 pub struct TurnOrder {
     queue: Vec<Entity>,
@@ -29,16 +14,6 @@ pub struct CombatLog {
 
 pub enum CombatLogLine {
     Text(String),
-}
-
-#[derive(Resource, Default)]
-pub struct AwaitingPlayerAction(pub bool);
-
-#[derive(Event)]
-enum PlayerAction {
-    Attack, // todo: target
-    Defend,
-    // todo: specials, other stuff(?)
 }
 
 pub struct CombatPhasePlugin;
@@ -161,8 +136,6 @@ fn round_combat(
     mut state: ResMut<CombatState>,
     mut awaiting_player: ResMut<AwaitingPlayerAction>,
 ) {
-    info!("[Combat] Entered RoundCombat");
-
     let Some(&active_combatant) = turn_order.queue.get(turn_order.cursor) else {
         info!("[Combat] At end of Turn order queue. Moving to end of round...");
         state.phase = CombatPhase::EndOfRound;
@@ -243,7 +216,7 @@ fn end_combat(
 }
 
 fn on_player_action(
-    trigger: On<PlayerAction>,
+    trigger: On<PlayerCombatAction>,
     mut commands: Commands,
     mut log: ResMut<CombatLog>,
     mut awaiting_player: ResMut<AwaitingPlayerAction>,
@@ -254,13 +227,13 @@ fn on_player_action(
     }
 
     match *trigger {
-        PlayerAction::Attack => {
+        PlayerCombatAction::Attack => {
             // TODO: who you attackin?
             //
             log.lines
                 .push(CombatLogLine::Text(format!("You atack something.")));
         }
-        PlayerAction::Defend => {
+        PlayerCombatAction::Defend => {
             log.lines
                 .push(CombatLogLine::Text(format!("You defend, or something.")));
         }

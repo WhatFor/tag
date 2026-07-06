@@ -5,11 +5,11 @@ use crate::game::economy::EconomyPlugin;
 use crate::game::progression::ProgressionPlugin;
 use crate::game::resources::HardcoreMode;
 
+pub mod combat;
 pub mod components;
 pub mod events;
 pub mod resources;
 
-mod combat;
 mod economy;
 mod progression;
 

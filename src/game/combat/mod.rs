@@ -7,6 +7,9 @@ use std::cmp::{max, min};
 
 mod fsm;
 
+pub mod events;
+pub mod resources;
+
 pub struct CombatPlugin;
 
 impl Plugin for CombatPlugin {
