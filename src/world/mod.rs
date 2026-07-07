@@ -129,6 +129,7 @@ fn spawn_player(
             speed: start_data.speed,
             armour: start_data.armour,
         },
+        EffectiveStats::default(),
         Gold(start_data.gold),
         FullPathTaken(start_data.path_taken.clone()),
         Hardcore(hardcore.0),

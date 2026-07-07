@@ -95,7 +95,9 @@ pub struct ActiveStatus {
 pub struct Statuses(pub Vec<ActiveStatus>);
 
 // Base stats of an Entity
-#[derive(Component, Debug, Reflect, Default, Clone, Copy, Serialize, Deserialize)]
+#[derive(
+    Component, Debug, Reflect, Default, Clone, Copy, Serialize, Deserialize, Eq, PartialEq,
+)]
 #[reflect(Component)]
 #[serde(default)]
 pub struct Stats {
@@ -109,6 +111,10 @@ pub struct Stats {
 // Used when an item or effect modifies base stats
 #[derive(Component, Clone)]
 pub struct StatBonus(pub Stats);
+
+// A 'cached' result of the effective stats (base + equipment + buffs)
+#[derive(Component, Default)]
+pub struct EffectiveStats(pub Stats);
 
 // Used when an item or effect modifies armour
 #[derive(Component, Reflect, Deref)]

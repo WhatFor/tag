@@ -16,11 +16,36 @@ impl Plugin for CombatPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(CombatPhasePlugin);
 
+        app.add_systems(
+            Update,
+            recompute_effective_player_stats.run_if(in_state(GameState::Playing)),
+        );
+
         app.add_observer(on_heal);
         app.add_observer(on_damage);
         app.add_observer(on_player_died);
         app.add_observer(on_enemy_died);
         app.add_observer(on_apply_effect);
+    }
+}
+
+fn recompute_effective_player_stats(
+    mut player: Query<
+        (&Stats, &Equipment, &Statuses, &mut EffectiveStats),
+        (
+            With<Player>,
+            Or<(Changed<Stats>, Changed<Equipment>, Changed<Statuses>)>,
+        ),
+    >,
+    //bonuses: Query<&StatBonus>,
+) {
+    for (base, _equipment, _statuses, mut out) in &mut player {
+        // TODO: Real calc
+        let next = *base;
+
+        if out.0 != next {
+            out.0 = next;
+        }
     }
 }
 

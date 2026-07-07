@@ -48,6 +48,11 @@ impl Plugin for CombatUIPlugin {
 
         app.add_systems(
             Update,
+            draw_player_stats.run_if(in_state(PlayState::InCombat)),
+        );
+
+        app.add_systems(
+            Update,
             player_action_buttons.run_if(in_state(PlayState::InCombat)),
         );
     }
@@ -258,6 +263,35 @@ fn autoscroll_combat_log(
     }
 
     *last_height = content_height;
+}
+
+fn draw_player_stats(
+    mut commands: Commands,
+    player: Single<
+        (&Health, &MaxHealth, &EffectiveStats),
+        (
+            With<Player>,
+            Or<(Changed<Health>, Changed<MaxHealth>, Changed<EffectiveStats>)>,
+        ),
+    >,
+    panel: Single<Entity, With<PlayerCombatantContainer>>,
+    fonts: Res<FontAssets>,
+) {
+    let (health, max, stats) = *player;
+
+    // TODO: This replaces the entire content of the panel, including the title.
+
+    commands
+        .entity(*panel)
+        .despawn_children()
+        .with_children(|panel| {
+            panel.spawn((
+                Text::new(format!("HP: {}/{}", health.0, max.0)),
+                fonts.ui_font.clone(),
+                fonts.ui_color.clone(),
+            ));
+            // TODO: Draw stats
+        });
 }
 
 fn player_action_buttons(
