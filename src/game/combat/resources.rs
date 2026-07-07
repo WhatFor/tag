@@ -17,3 +17,18 @@ pub enum CombatPhase {
 pub struct CombatState {
     pub phase: CombatPhase,
 }
+
+#[derive(Resource, Default)]
+pub struct CombatLog {
+    pub lines: Vec<CombatLogLine>,
+}
+
+pub enum CombatLogLine {
+    Text(String),
+}
+
+#[derive(Resource, Default)]
+pub struct TurnOrder {
+    pub queue: Vec<Entity>,
+    pub cursor: usize,
+}

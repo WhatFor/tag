@@ -10,8 +10,11 @@ pub use crate::assets::texture_loader::TextureAssets;
 // Combat
 pub use crate::game::combat::events::PlayerCombatAction;
 pub use crate::game::combat::resources::AwaitingPlayerAction;
+pub use crate::game::combat::resources::CombatLog;
+pub use crate::game::combat::resources::CombatLogLine;
 pub use crate::game::combat::resources::CombatPhase;
 pub use crate::game::combat::resources::CombatState;
+pub use crate::game::combat::resources::TurnOrder;
 pub use crate::game::components::ActiveStatus;
 pub use crate::game::components::DamageKind;
 pub use crate::game::components::DamageType;

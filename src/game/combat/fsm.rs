@@ -1,21 +1,6 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
-#[derive(Resource, Default)]
-pub struct TurnOrder {
-    queue: Vec<Entity>,
-    cursor: usize,
-}
-
-#[derive(Resource, Default)]
-pub struct CombatLog {
-    lines: Vec<CombatLogLine>,
-}
-
-pub enum CombatLogLine {
-    Text(String),
-}
-
 pub struct CombatPhasePlugin;
 
 impl Plugin for CombatPhasePlugin {
