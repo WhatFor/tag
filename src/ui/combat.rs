@@ -3,6 +3,7 @@ use bevy::prelude::*;
 
 use crate::ui::layout::GameArea;
 use crate::ui::layout::HudAreaBottomCenter;
+use bevy::ecs::relationship::RelatedSpawnerCommands;
 
 #[derive(Component)]
 pub struct PlayerCombatButtonContainer;
@@ -24,6 +25,9 @@ pub struct EnemyCombatantContainer;
 
 #[derive(Component)]
 pub struct PlayerCombatantContainer;
+
+#[derive(Component)]
+pub struct PlayerCombatantContent;
 
 pub struct CombatUIPlugin;
 
@@ -122,6 +126,8 @@ fn init_layout(mut commands: Commands, game_area: Single<Entity, With<GameArea>>
                             width: Val::Percent(100.),
                             flex_grow: 1.,
                             flex_basis: Val::Px(0.),
+                            flex_direction: FlexDirection::Column,
+                            row_gap: Val::Px(8.),
                             justify_content: JustifyContent::Center,
                             align_items: AlignItems::Center,
                             ..default()
@@ -207,7 +213,7 @@ fn init_player(
     fonts: Res<FontAssets>,
 ) {
     commands.spawn((
-        Name::new("Player Combatants Area Title"),
+        Name::new("Player Combatant Area Title"),
         Text::new("You"),
         ChildOf(container.entity()),
         fonts.ui_font.clone(),
@@ -216,6 +222,22 @@ fn init_player(
             align_self: AlignSelf::Center,
             ..default()
         },
+    ));
+
+    commands.spawn((
+        PlayerCombatantContent,
+        Name::new("Player Combatant Content"),
+        ChildOf(container.entity()),
+        Node {
+            flex_direction: FlexDirection::Row,
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            column_gap: Val::Px(16.),
+            height: Val::Px(100.),
+            border: UiRect::all(Val::Px(4.)),
+            ..default()
+        },
+        BorderColor::all(Color::srgb(1., 1., 1.)),
     ));
 }
 
@@ -274,24 +296,137 @@ fn draw_player_stats(
             Or<(Changed<Health>, Changed<MaxHealth>, Changed<EffectiveStats>)>,
         ),
     >,
-    panel: Single<Entity, With<PlayerCombatantContainer>>,
+    panel: Single<Entity, With<PlayerCombatantContent>>,
     fonts: Res<FontAssets>,
+    icons: Res<IconAssets>,
 ) {
     let (health, max, stats) = *player;
-
-    // TODO: This replaces the entire content of the panel, including the title.
 
     commands
         .entity(*panel)
         .despawn_children()
         .with_children(|panel| {
-            panel.spawn((
-                Text::new(format!("HP: {}/{}", health.0, max.0)),
-                fonts.ui_font.clone(),
-                fonts.ui_color.clone(),
-            ));
-            // TODO: Draw stats
+            // Left: Draw HP
+            panel
+                .spawn(Node {
+                    flex_direction: FlexDirection::Column,
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    row_gap: Val::Px(8.),
+                    padding: UiRect::all(Val::Px(8.)),
+                    ..default()
+                })
+                .with_children(|hp| {
+                    // Current HP
+                    hp.spawn((
+                        Text::new(health.0.to_string()),
+                        fonts.ui_font.clone(),
+                        fonts.ui_color.clone(),
+                    ));
+
+                    // Divider
+                    hp.spawn((
+                        Node {
+                            width: Val::Percent(80.),
+                            height: Val::Px(2.),
+                            ..default()
+                        },
+                        BackgroundColor(Color::srgb(1., 1., 1.)),
+                    ));
+
+                    // Total HP
+                    hp.spawn((
+                        Text::new(max.0.to_string()),
+                        fonts.ui_font.clone(),
+                        fonts.ui_color.clone(),
+                    ));
+                });
+
+            // Right: Draw Stats
+            panel
+                .spawn(Node {
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    column_gap: Val::Px(16.),
+                    padding: UiRect::all(Val::Px(8.)),
+                    ..default()
+                })
+                .with_children(|stats_wrapper| {
+                    draw_stat(
+                        stats_wrapper,
+                        "Strength",
+                        stats.0.strength.to_string(),
+                        "strength",
+                        &icons,
+                        &fonts,
+                    );
+                    draw_stat(
+                        stats_wrapper,
+                        "Agility",
+                        stats.0.agility.to_string(),
+                        "agility",
+                        &icons,
+                        &fonts,
+                    );
+                    draw_stat(
+                        stats_wrapper,
+                        "Intelligence",
+                        stats.0.intelligence.to_string(),
+                        "intelligence",
+                        &icons,
+                        &fonts,
+                    );
+                    draw_stat(
+                        stats_wrapper,
+                        "Speed",
+                        stats.0.speed.to_string(),
+                        "speed",
+                        &icons,
+                        &fonts,
+                    );
+                    draw_stat(
+                        stats_wrapper,
+                        "Armour",
+                        stats.0.armour.to_string(),
+                        "armour",
+                        &icons,
+                        &fonts,
+                    );
+                });
         });
+}
+
+fn draw_stat(
+    parent: &mut RelatedSpawnerCommands<'_, ChildOf>,
+    label: &str,
+    value: String,
+    icon_key: &str,
+    icon_store: &Res<IconAssets>,
+    font_store: &Res<FontAssets>,
+) {
+    let Some(icon) = icon_store.icons.get(icon_key) else {
+        return;
+    };
+
+    parent.spawn((
+        Tooltip::basic(label), // TODO: Detailed breakdown (base + buffs + equip)
+        Node {
+            flex_direction: FlexDirection::Row,
+            column_gap: Val::Px(4.),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            ..default()
+        },
+        children![
+            (
+                Text::new(value),
+                font_store.ui_font.clone(),
+                font_store.ui_color.clone(),
+                Pickable::IGNORE
+            ),
+            (ImageNode::new(icon.clone()), Pickable::IGNORE)
+        ],
+    ));
 }
 
 fn player_action_buttons(
