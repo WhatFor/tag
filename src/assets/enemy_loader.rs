@@ -19,7 +19,7 @@ pub struct EnemyDef {
     pub display_name: String,
     pub max_health: i32,
     pub stats: Stats,
-    pub attacks: Vec<EnemyAttack>,
+    pub moves: Vec<EnemyMove>,
 }
 
 #[derive(Resource, Default, Debug, Deref, DerefMut)]
@@ -60,7 +60,7 @@ fn add_resource(
                 display_name: data.display_name.clone(),
                 max_health: data.max_health,
                 stats: data.stats,
-                attacks: data.attacks.clone(),
+                moves: data.moves.clone(),
             },
         );
     }

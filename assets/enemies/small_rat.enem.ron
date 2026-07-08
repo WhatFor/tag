@@ -8,10 +8,23 @@
         speed: 1,
         armour: 1,
     ),
-    attacks: [
-        EnemyAttack(
+    moves: [
+        BasicAttack(
+            name: "Slash",
             potency: 1,
             damage_type: Slash,
+        ),
+        SpecialAttack(
+            name: "Hyper Fang",
+            potency: 3,
+            damage_type: Poison,
+            cooldown: 5,
+            start_on_cooldown: true,
+            telegraph: Some("The Small Rat prepares to bite..."),
+        ),
+        Defend(
+            potency: 1,
+            cooldown: 2,
         )
     ]
 )

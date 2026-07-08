@@ -7,10 +7,28 @@ use std::collections::HashMap;
 pub struct Enemy;
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct EnemyAttack {
-    pub potency: i32,
-    pub damage_type: DamageType,
+pub enum EnemyMove {
+    BasicAttack {
+        name: String,
+        potency: i32,
+        damage_type: DamageType,
+    },
+    SpecialAttack {
+        name: String,
+        potency: i32,
+        damage_type: DamageType,
+        cooldown: i32,
+        start_on_cooldown: bool,
+        telegraph: Option<String>,
+    },
+    Defend {
+        potency: i32,
+        cooldown: i32,
+    },
 }
+
+#[derive(Component, Default)]
+pub struct MoveSet(pub Vec<EnemyMove>);
 
 #[derive(Component, Reflect, Deref)]
 #[reflect(Component)]

@@ -76,7 +76,7 @@ fn start_combat(
             enemy.stats,
             EffectiveStats::default(),
             DespawnOnExit(PlayState::InCombat),
-            // TODO: Do I want to spawn Attacks here?
+            MoveSet(enemy.moves.clone()),
         ));
     }
 
