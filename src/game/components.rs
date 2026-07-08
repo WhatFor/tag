@@ -90,6 +90,24 @@ pub enum DamageType {
     Lightning,
 }
 
+impl std::fmt::Display for DamageType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let label = match self {
+            DamageType::None => "Typeless",
+            DamageType::Slash => "Slashing",
+            DamageType::Stab => "Stabbing",
+            DamageType::Smash => "Smashing",
+            DamageType::Fire => "Fire",
+            DamageType::Ice => "Ice",
+            DamageType::Poison => "Poison",
+            DamageType::Necrotic => "Necrotic",
+            DamageType::Lightning => "Lightning",
+        };
+
+        f.write_str(label)
+    }
+}
+
 pub enum StatusEffect {
     DamageOverTime {
         kind: DotKind,

@@ -7,7 +7,7 @@
             "Three small rats approach you.",
             "Oh, how scary!"
         ],
-        enemy_ids: ["small_rat", "small_rat", "small_rat"],
+        enemy_ids: ["small_rat", "small_rat"],
         win_lines: [
             "You slay the last of the rats.",
             "Well done."

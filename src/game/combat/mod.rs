@@ -8,6 +8,7 @@ use std::cmp::{max, min};
 mod fsm;
 
 pub mod events;
+pub mod move_plan;
 pub mod resources;
 
 pub struct CombatPlugin;

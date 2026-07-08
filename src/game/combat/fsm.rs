@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::game::combat::move_plan::MovePlan;
 use crate::game::combat::resources::TurnTimer;
 
 pub struct CombatPhasePlugin;
@@ -46,6 +47,7 @@ fn start_combat(
     area: Single<&CurrentArea, With<Player>>,
     all_area_content: Query<&AreaContent, With<Area>>,
     enemy_store: Res<EnemyStore>,
+    mut rng: ResMut<GameRng>,
 ) {
     info!("[Combat] Entered StartCombat");
 
@@ -75,8 +77,9 @@ fn start_combat(
             Statuses::default(),
             enemy.stats,
             EffectiveStats::default(),
-            DespawnOnExit(PlayState::InCombat),
             MoveSet(enemy.moves.clone()),
+            MovePlan::new(&enemy.moves, &mut rng.0),
+            DespawnOnExit(PlayState::InCombat),
         ));
     }
 
@@ -121,11 +124,12 @@ fn round_combat(
     mut turn_order: ResMut<TurnOrder>,
     mut log: ResMut<CombatLog>,
     player: Single<Entity, With<Player>>,
-    enemies: Query<(), With<Enemy>>,
+    mut enemies: Query<(Entity, &DisplayName, &MoveSet, &mut MovePlan), With<Enemy>>,
     mut state: ResMut<CombatState>,
     mut awaiting_player: ResMut<AwaitingPlayerAction>,
     time: Res<Time>,
     mut turn_timer: ResMut<TurnTimer>,
+    mut rng: ResMut<GameRng>,
 ) {
     let Some(&active_combatant) = turn_order.queue.get(turn_order.cursor) else {
         info!("[Combat] At end of Turn order queue. Moving to end of round...");
@@ -156,19 +160,71 @@ fn round_combat(
         return;
     }
 
-    if let Ok(enemy) = enemies.get(active_combatant) {
-        info!("[Combat] Enemy {:?} turn...", enemy);
+    if let Ok((entity, display_name, move_set, mut move_plan)) = enemies.get_mut(active_combatant) {
+        info!("[Combat] Enemy {:?} turn...", entity);
 
-        // TODO: Attack details hardcoded
-        commands.trigger(Damage {
-            damaged: *player,
-            amount: 1,
-            damage_type: DamageType::Slash,
-        });
+        let next_move_index = *move_plan.queue.front().unwrap();
 
-        log.lines.push(CombatLogLine::Text(format!(
-            "The enemy hit you for 1 slashing damage."
-        )));
+        match &move_set.0[next_move_index] {
+            EnemyMove::BasicAttack {
+                name,
+                potency,
+                damage_type,
+            } => {
+                // TODO: need to take into account buffs and stats
+                let dmg = *potency;
+
+                commands.trigger(Damage {
+                    damaged: *player,
+                    amount: dmg,
+                    damage_type: *damage_type,
+                });
+
+                log.lines.push(CombatLogLine::Text(format!(
+                    "The {}'s {} hit you for {} {} damage.",
+                    display_name.0, name, dmg, *damage_type
+                )));
+            }
+            EnemyMove::SpecialAttack {
+                name,
+                potency,
+                damage_type,
+                ..
+            } => {
+                // TODO: need to take into account buffs and stats
+                let dmg = *potency;
+
+                commands.trigger(Damage {
+                    damaged: *player,
+                    amount: dmg,
+                    damage_type: *damage_type,
+                });
+
+                log.lines.push(CombatLogLine::Text(format!(
+                    "The {}'s {} hit you for {} {} damage.",
+                    display_name.0, name, dmg, *damage_type
+                )));
+            }
+            EnemyMove::Defend { potency, .. } => {
+                // TODO: Actually defend (with a buff for 1 turn?)
+
+                log.lines.push(CombatLogLine::Text(format!(
+                    "The {} defends, improving it's armour by {}.",
+                    display_name.0, potency
+                )));
+            }
+        }
+
+        move_plan.advance(&move_set.0, &mut rng.0);
+
+        // If the next move is a special, telegraph it!
+        if let EnemyMove::SpecialAttack {
+            telegraph: Some(msg),
+            ..
+        } = &move_set.0[*move_plan.queue.front().unwrap()]
+        {
+            log.lines.push(CombatLogLine::Text(msg.clone()));
+        }
 
         turn_order.cursor += 1;
         turn_timer.0.reset();
