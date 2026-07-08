@@ -32,3 +32,12 @@ pub struct TurnOrder {
     pub queue: Vec<Entity>,
     pub cursor: usize,
 }
+
+#[derive(Resource)]
+pub struct TurnTimer(pub Timer);
+
+impl Default for TurnTimer {
+    fn default() -> Self {
+        Self(Timer::from_seconds(0.6, TimerMode::Once))
+    }
+}

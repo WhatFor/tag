@@ -1,6 +1,8 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::game::combat::resources::TurnTimer;
+
 pub struct CombatPhasePlugin;
 
 impl Plugin for CombatPhasePlugin {
@@ -30,6 +32,7 @@ fn in_phase(phase: CombatPhase) -> impl Fn(Option<Res<CombatState>>) -> bool {
 }
 
 fn init(mut commands: Commands) {
+    commands.init_resource::<TurnTimer>();
     commands.init_resource::<TurnOrder>();
     commands.init_resource::<CombatLog>();
     commands.init_resource::<AwaitingPlayerAction>();
@@ -121,6 +124,8 @@ fn round_combat(
     enemies: Query<(), With<Enemy>>,
     mut state: ResMut<CombatState>,
     mut awaiting_player: ResMut<AwaitingPlayerAction>,
+    time: Res<Time>,
+    mut turn_timer: ResMut<TurnTimer>,
 ) {
     let Some(&active_combatant) = turn_order.queue.get(turn_order.cursor) else {
         info!("[Combat] At end of Turn order queue. Moving to end of round...");
@@ -136,7 +141,22 @@ fn round_combat(
             info!("[Combat] Player turn...");
             awaiting_player.0 = true;
         }
-    } else if let Ok(enemy) = enemies.get(active_combatant) {
+
+        return;
+    }
+
+    if enemies.get(active_combatant).is_err() {
+        turn_order.cursor += 1;
+
+        return;
+    }
+
+    turn_timer.0.tick(time.delta());
+    if !turn_timer.0.is_finished() {
+        return;
+    }
+
+    if let Ok(enemy) = enemies.get(active_combatant) {
         info!("[Combat] Enemy {:?} turn...", enemy);
 
         // TODO: Attack details hardcoded
@@ -151,6 +171,7 @@ fn round_combat(
         )));
 
         turn_order.cursor += 1;
+        turn_timer.0.reset();
     } else {
         info!("[Combat] Entity no longer exists. Skipping...");
         turn_order.cursor += 1;
@@ -231,6 +252,7 @@ fn on_player_action(
 }
 
 fn destroy(mut commands: Commands) {
+    commands.remove_resource::<TurnTimer>();
     commands.remove_resource::<TurnOrder>();
     commands.remove_resource::<CombatLog>();
     commands.remove_resource::<AwaitingPlayerAction>();

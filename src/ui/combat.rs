@@ -5,6 +5,9 @@ use crate::ui::layout::GameArea;
 use crate::ui::layout::HudAreaBottomCenter;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
 
+const BORDER_IDLE: Color = Color::srgb(1., 1., 1.);
+const BORDER_ACTIVE: Color = Color::srgb(1., 0.85, 0.2);
+
 #[derive(Component)]
 pub struct PlayerCombatButtonContainer;
 
@@ -31,6 +34,9 @@ pub struct PlayerCombatantContainer;
 
 #[derive(Component)]
 pub struct PlayerCombatantContent;
+
+#[derive(Component)]
+pub struct CombatantPanel(pub Entity);
 
 pub struct CombatUIPlugin;
 
@@ -61,6 +67,11 @@ impl Plugin for CombatUIPlugin {
         app.add_systems(
             Update,
             draw_player_stats.run_if(in_state(PlayState::InCombat)),
+        );
+
+        app.add_systems(
+            Update,
+            highlight_active_combatant.run_if(in_state(PlayState::InCombat)),
         );
 
         app.add_systems(
@@ -231,6 +242,7 @@ fn init_enemies(
 fn init_player(
     mut commands: Commands,
     container: Single<Entity, With<PlayerCombatantContainer>>,
+    player: Single<Entity, With<Player>>,
     fonts: Res<FontAssets>,
 ) {
     commands.spawn((
@@ -247,6 +259,7 @@ fn init_player(
 
     commands.spawn((
         PlayerCombatantContent,
+        CombatantPanel(*player),
         Name::new("Player Combatant Content"),
         ChildOf(container.entity()),
         Node {
@@ -316,7 +329,7 @@ fn draw_enemy_stats(
             Or<(Changed<Health>, Changed<MaxHealth>, Changed<EffectiveStats>)>,
         ),
     >,
-    enemies: Query<(&Health, &MaxHealth, &EffectiveStats, &DisplayName), With<Enemy>>,
+    enemies: Query<(Entity, &Health, &MaxHealth, &EffectiveStats, &DisplayName), With<Enemy>>,
     panel: Single<Entity, With<EnemyCombatantContent>>,
     fonts: Res<FontAssets>,
     icons: Res<IconAssets>,
@@ -330,10 +343,11 @@ fn draw_enemy_stats(
         .despawn_children()
         .with_children(|panel| {
             for enemy in enemies {
-                let (health, max, stats, name) = enemy;
+                let (entity, health, max, stats, name) = enemy;
 
                 panel
                     .spawn((
+                        CombatantPanel(entity),
                         Node {
                             flex_direction: FlexDirection::Column,
                             row_gap: Val::Px(8.),
@@ -395,6 +409,25 @@ fn draw_player_stats(
             draw_hp(panel, health.0, max.0, &fonts);
             draw_stats(panel, stats.0, &icons, &fonts);
         });
+}
+
+fn highlight_active_combatant(
+    turn_order: Res<TurnOrder>,
+    mut panels: Query<(&CombatantPanel, &mut BorderColor)>,
+) {
+    let active = turn_order.queue.get(turn_order.cursor).copied();
+
+    for (combatant, mut border) in &mut panels {
+        let desired = BorderColor::all(if Some(combatant.0) == active {
+            BORDER_ACTIVE
+        } else {
+            BORDER_IDLE
+        });
+
+        if *border != desired {
+            *border = desired;
+        }
+    }
 }
 
 fn draw_hp(
