@@ -71,6 +71,7 @@ fn start_combat(
             DisplayName(enemy.display_name.clone()),
             Statuses::default(),
             enemy.stats,
+            EffectiveStats::default(),
             DespawnOnExit(PlayState::InCombat),
             // TODO: Do I want to spawn Attacks here?
         ));

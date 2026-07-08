@@ -24,6 +24,9 @@ pub struct CombatantContainer;
 pub struct EnemyCombatantContainer;
 
 #[derive(Component)]
+pub struct EnemyCombatantContent;
+
+#[derive(Component)]
 pub struct PlayerCombatantContainer;
 
 #[derive(Component)]
@@ -48,6 +51,11 @@ impl Plugin for CombatUIPlugin {
             autoscroll_combat_log
                 .after(bevy::ui::UiSystems::Layout)
                 .run_if(in_state(PlayState::InCombat)),
+        );
+
+        app.add_systems(
+            Update,
+            draw_enemy_stats.run_if(in_state(PlayState::InCombat)),
         );
 
         app.add_systems(
@@ -111,10 +119,10 @@ fn init_layout(mut commands: Commands, game_area: Single<Entity, With<GameArea>>
                             width: Val::Percent(100.),
                             flex_grow: 1.,
                             flex_basis: Val::Px(0.),
-                            flex_direction: FlexDirection::Row,
+                            flex_direction: FlexDirection::Column,
+                            row_gap: Val::Px(8.),
                             justify_content: JustifyContent::Center,
                             align_items: AlignItems::Center,
-                            column_gap: Val::Px(8.),
                             ..default()
                         }
                     ),
@@ -205,6 +213,19 @@ fn init_enemies(
             ..default()
         },
     ));
+
+    commands.spawn((
+        EnemyCombatantContent,
+        Name::new("Enemy Combatant Content"),
+        ChildOf(container.entity()),
+        Node {
+            flex_direction: FlexDirection::Row,
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            column_gap: Val::Px(16.),
+            ..default()
+        },
+    ));
 }
 
 fn init_player(
@@ -233,7 +254,6 @@ fn init_player(
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
             column_gap: Val::Px(16.),
-            height: Val::Px(100.),
             border: UiRect::all(Val::Px(4.)),
             ..default()
         },
@@ -287,6 +307,72 @@ fn autoscroll_combat_log(
     *last_height = content_height;
 }
 
+fn draw_enemy_stats(
+    mut commands: Commands,
+    changed: Query<
+        (),
+        (
+            With<Enemy>,
+            Or<(Changed<Health>, Changed<MaxHealth>, Changed<EffectiveStats>)>,
+        ),
+    >,
+    enemies: Query<(&Health, &MaxHealth, &EffectiveStats, &DisplayName), With<Enemy>>,
+    panel: Single<Entity, With<EnemyCombatantContent>>,
+    fonts: Res<FontAssets>,
+    icons: Res<IconAssets>,
+) {
+    if changed.is_empty() {
+        return;
+    }
+
+    commands
+        .entity(*panel)
+        .despawn_children()
+        .with_children(|panel| {
+            for enemy in enemies {
+                let (health, max, stats, name) = enemy;
+
+                panel
+                    .spawn((
+                        Node {
+                            flex_direction: FlexDirection::Column,
+                            row_gap: Val::Px(8.),
+                            align_items: AlignItems::Center,
+                            padding: UiRect::all(Val::Px(8.)),
+                            border: UiRect::all(Val::Px(4.)),
+                            ..default()
+                        },
+                        BorderColor::all(Color::srgb(1., 1., 1.)),
+                    ))
+                    .with_children(|enemy_panel| {
+                        // Top: Name
+                        enemy_panel.spawn((
+                            Text::new(name.0.clone()),
+                            fonts.ui_font.clone(),
+                            fonts.ui_color,
+                            Node {
+                                align_self: AlignSelf::Center,
+                                ..default()
+                            },
+                        ));
+
+                        // Bottom: HP + Stats
+                        enemy_panel
+                            .spawn(Node {
+                                flex_direction: FlexDirection::Row,
+                                column_gap: Val::Px(8.),
+                                justify_content: JustifyContent::Center,
+                                ..default()
+                            })
+                            .with_children(|stats_area| {
+                                draw_hp(stats_area, health.0, max.0, &fonts);
+                                draw_stats(stats_area, stats.0, &icons, &fonts);
+                            });
+                    });
+            }
+        });
+}
+
 fn draw_player_stats(
     mut commands: Commands,
     player: Single<
@@ -306,93 +392,50 @@ fn draw_player_stats(
         .entity(*panel)
         .despawn_children()
         .with_children(|panel| {
-            // Left: Draw HP
-            panel
-                .spawn(Node {
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    row_gap: Val::Px(8.),
-                    padding: UiRect::all(Val::Px(8.)),
+            draw_hp(panel, health.0, max.0, &fonts);
+            draw_stats(panel, stats.0, &icons, &fonts);
+        });
+}
+
+fn draw_hp(
+    parent: &mut RelatedSpawnerCommands<'_, ChildOf>,
+    current: i32,
+    max: i32,
+    font_store: &Res<FontAssets>,
+) {
+    parent
+        .spawn(Node {
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            row_gap: Val::Px(8.),
+            padding: UiRect::all(Val::Px(8.)),
+            ..default()
+        })
+        .with_children(|hp| {
+            // Current HP
+            hp.spawn((
+                Text::new(current.to_string()),
+                font_store.ui_font.clone(),
+                font_store.ui_color.clone(),
+            ));
+
+            // Divider
+            hp.spawn((
+                Node {
+                    width: Val::Percent(80.),
+                    height: Val::Px(2.),
                     ..default()
-                })
-                .with_children(|hp| {
-                    // Current HP
-                    hp.spawn((
-                        Text::new(health.0.to_string()),
-                        fonts.ui_font.clone(),
-                        fonts.ui_color.clone(),
-                    ));
+                },
+                BackgroundColor(Color::srgb(1., 1., 1.)),
+            ));
 
-                    // Divider
-                    hp.spawn((
-                        Node {
-                            width: Val::Percent(80.),
-                            height: Val::Px(2.),
-                            ..default()
-                        },
-                        BackgroundColor(Color::srgb(1., 1., 1.)),
-                    ));
-
-                    // Total HP
-                    hp.spawn((
-                        Text::new(max.0.to_string()),
-                        fonts.ui_font.clone(),
-                        fonts.ui_color.clone(),
-                    ));
-                });
-
-            // Right: Draw Stats
-            panel
-                .spawn(Node {
-                    flex_direction: FlexDirection::Row,
-                    align_items: AlignItems::Center,
-                    column_gap: Val::Px(16.),
-                    padding: UiRect::all(Val::Px(8.)),
-                    ..default()
-                })
-                .with_children(|stats_wrapper| {
-                    draw_stat(
-                        stats_wrapper,
-                        "Strength",
-                        stats.0.strength.to_string(),
-                        "strength",
-                        &icons,
-                        &fonts,
-                    );
-                    draw_stat(
-                        stats_wrapper,
-                        "Agility",
-                        stats.0.agility.to_string(),
-                        "agility",
-                        &icons,
-                        &fonts,
-                    );
-                    draw_stat(
-                        stats_wrapper,
-                        "Intelligence",
-                        stats.0.intelligence.to_string(),
-                        "intelligence",
-                        &icons,
-                        &fonts,
-                    );
-                    draw_stat(
-                        stats_wrapper,
-                        "Speed",
-                        stats.0.speed.to_string(),
-                        "speed",
-                        &icons,
-                        &fonts,
-                    );
-                    draw_stat(
-                        stats_wrapper,
-                        "Armour",
-                        stats.0.armour.to_string(),
-                        "armour",
-                        &icons,
-                        &fonts,
-                    );
-                });
+            // Total HP
+            hp.spawn((
+                Text::new(max.to_string()),
+                font_store.ui_font.clone(),
+                font_store.ui_color.clone(),
+            ));
         });
 }
 
@@ -427,6 +470,64 @@ fn draw_stat(
             (ImageNode::new(icon.clone()), Pickable::IGNORE)
         ],
     ));
+}
+
+fn draw_stats(
+    parent: &mut RelatedSpawnerCommands<'_, ChildOf>,
+    stats: Stats,
+    icon_store: &Res<IconAssets>,
+    font_store: &Res<FontAssets>,
+) {
+    parent
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            align_items: AlignItems::Center,
+            column_gap: Val::Px(16.),
+            padding: UiRect::all(Val::Px(8.)),
+            ..default()
+        })
+        .with_children(|stats_wrapper| {
+            draw_stat(
+                stats_wrapper,
+                "Strength",
+                stats.strength.to_string(),
+                "strength",
+                &icon_store,
+                &font_store,
+            );
+            draw_stat(
+                stats_wrapper,
+                "Agility",
+                stats.agility.to_string(),
+                "agility",
+                &icon_store,
+                &font_store,
+            );
+            draw_stat(
+                stats_wrapper,
+                "Intelligence",
+                stats.intelligence.to_string(),
+                "intelligence",
+                &icon_store,
+                &font_store,
+            );
+            draw_stat(
+                stats_wrapper,
+                "Speed",
+                stats.speed.to_string(),
+                "speed",
+                &icon_store,
+                &font_store,
+            );
+            draw_stat(
+                stats_wrapper,
+                "Armour",
+                stats.armour.to_string(),
+                "armour",
+                &icon_store,
+                &font_store,
+            );
+        });
 }
 
 fn player_action_buttons(

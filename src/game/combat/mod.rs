@@ -21,6 +21,11 @@ impl Plugin for CombatPlugin {
             recompute_effective_player_stats.run_if(in_state(GameState::Playing)),
         );
 
+        app.add_systems(
+            Update,
+            recompute_effective_enemy_stats.run_if(in_state(PlayState::InCombat)),
+        );
+
         app.add_observer(on_heal);
         app.add_observer(on_damage);
         app.add_observer(on_player_died);
@@ -40,6 +45,23 @@ fn recompute_effective_player_stats(
     //bonuses: Query<&StatBonus>,
 ) {
     for (base, _equipment, _statuses, mut out) in &mut player {
+        // TODO: Real calc
+        let next = *base;
+
+        if out.0 != next {
+            out.0 = next;
+        }
+    }
+}
+
+fn recompute_effective_enemy_stats(
+    mut player: Query<
+        (&Stats, &Statuses, &mut EffectiveStats),
+        (With<Enemy>, Or<(Changed<Stats>, Changed<Statuses>)>),
+    >,
+    //bonuses: Query<&StatBonus>,
+) {
+    for (base, _statuses, mut out) in &mut player {
         // TODO: Real calc
         let next = *base;
 
