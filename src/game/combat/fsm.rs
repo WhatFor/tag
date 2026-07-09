@@ -256,12 +256,7 @@ fn end_combat(
 ) {
     info!("[Combat] Entered EndCombat");
 
-    let Ok(AreaContent::Combat {
-        win_lines,
-        lose_lines,
-        ..
-    }) = all_area_content.get(area.1.0)
-    else {
+    let Ok(AreaContent::Combat { win_lines, .. }) = all_area_content.get(area.1.0) else {
         return;
     };
 
@@ -281,7 +276,6 @@ fn end_combat(
 
 fn on_player_action(
     trigger: On<PlayerCombatAction>,
-    mut commands: Commands,
     mut log: ResMut<CombatLog>,
     mut awaiting_player: ResMut<AwaitingPlayerAction>,
     mut turn_order: ResMut<TurnOrder>,

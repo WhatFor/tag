@@ -1,6 +1,5 @@
 use crate::prelude::*;
 use bevy::prelude::*;
-use bevy::text::LineHeight;
 
 use crate::ui::layout::GameArea;
 use crate::ui::layout::HudAreaBottomCenter;
@@ -982,17 +981,17 @@ fn player_action_buttons(
                 commands.trigger(PlayerCombatAction::Defend);
             });
 
-        commands
-            .spawn((button("Special"), ChildOf(button_container)))
-            .observe(|_: On<Pointer<Click>>, mut commands: Commands| {
-                todo!();
-            });
+        // commands
+        //     .spawn((button("Special"), ChildOf(button_container)))
+        //     .observe(|_: On<Pointer<Click>>, mut commands: Commands| {
+        //         todo!();
+        //     });
 
-        commands
-            .spawn((button("Other"), ChildOf(button_container)))
-            .observe(|_: On<Pointer<Click>>, mut commands: Commands| {
-                todo!();
-            });
+        // commands
+        //     .spawn((button("Other"), ChildOf(button_container)))
+        //     .observe(|_: On<Pointer<Click>>, mut commands: Commands| {
+        //         todo!();
+        //     });
     } else {
         for e in &existing {
             commands.entity(e).despawn();
