@@ -8,6 +8,10 @@ use bevy::ecs::relationship::RelatedSpawnerCommands;
 const BORDER_IDLE: Color = Color::srgb(1., 1., 1.);
 const BORDER_ACTIVE: Color = Color::srgb(1., 0.85, 0.2);
 
+const MOVE_ATTACK: Color = Color::srgb(0.30, 0.20, 0.10);
+const MOVE_DEFEND: Color = Color::srgb(0.15, 0.40, 0.70);
+const MOVE_SPECIAL: Color = Color::srgb(0.50, 0.15, 0.20);
+
 #[derive(Component)]
 pub struct PlayerCombatButtonContainer;
 
@@ -395,7 +399,12 @@ fn draw_enemy_stats(
         (),
         (
             With<Enemy>,
-            Or<(Changed<Health>, Changed<MaxHealth>, Changed<EffectiveStats>)>,
+            Or<(
+                Changed<Health>,
+                Changed<MaxHealth>,
+                Changed<EffectiveStats>,
+                Changed<MovePlan>,
+            )>,
         ),
     >,
     enemies: Query<
@@ -406,6 +415,8 @@ fn draw_enemy_stats(
             &EffectiveStats,
             &DisplayName,
             &EnemyId,
+            &MoveSet,
+            &MovePlan,
         ),
         With<Enemy>,
     >,
@@ -423,7 +434,7 @@ fn draw_enemy_stats(
         .despawn_children()
         .with_children(|panel| {
             for enemy in enemies {
-                let (entity, health, max, stats, name, id) = enemy;
+                let (entity, health, max, stats, name, id, move_set, move_plan) = enemy;
 
                 panel
                     .spawn((
@@ -432,7 +443,6 @@ fn draw_enemy_stats(
                             flex_direction: FlexDirection::Column,
                             row_gap: Val::Px(8.),
                             align_items: AlignItems::Center,
-                            padding: UiRect::all(Val::Px(8.)),
                             border: UiRect::all(Val::Px(4.)),
                             ..default()
                         },
@@ -445,6 +455,12 @@ fn draw_enemy_stats(
                                 flex_direction: FlexDirection::Row,
                                 justify_content: JustifyContent::Center,
                                 align_items: AlignItems::Center,
+                                padding: UiRect::new(
+                                    Val::Px(8.),
+                                    Val::Px(8.),
+                                    Val::Px(8.),
+                                    Val::Px(0.),
+                                ),
                                 column_gap: Val::Px(8.),
                                 ..default()
                             })
@@ -493,6 +509,7 @@ fn draw_enemy_stats(
                             .spawn(Node {
                                 flex_direction: FlexDirection::Row,
                                 column_gap: Val::Px(8.),
+                                padding: UiRect::horizontal(Val::Px(8.)),
                                 justify_content: JustifyContent::Center,
                                 ..default()
                             })
@@ -500,8 +517,123 @@ fn draw_enemy_stats(
                                 draw_hp(stats_area, health.0, max.0, &fonts);
                                 draw_stats(stats_area, stats.0, &ui_icons, &fonts);
                             });
+
+                        // Moves
+                        draw_enemy_moves(enemy_panel, move_set, move_plan, &fonts);
                     });
             }
+        });
+}
+
+fn move_display(enemy_move: &EnemyMove) -> (String, i32, Color) {
+    match enemy_move {
+        EnemyMove::BasicAttack { name, potency, .. } => (name.clone(), *potency, MOVE_ATTACK),
+        EnemyMove::SpecialAttack { name, potency, .. } => (name.clone(), *potency, MOVE_SPECIAL),
+        EnemyMove::Defend { potency, .. } => ("Defend".to_string(), *potency, MOVE_DEFEND),
+    }
+}
+
+fn draw_enemy_moves(
+    parent: &mut RelatedSpawnerCommands<'_, ChildOf>,
+    move_set: &MoveSet,
+    move_plan: &MovePlan,
+    font_store: &Res<FontAssets>,
+) {
+    parent
+        .spawn(Node {
+            flex_direction: FlexDirection::Column,
+            align_self: AlignSelf::Stretch,
+            align_items: AlignItems::Center,
+            row_gap: Val::Px(4.),
+            ..default()
+        })
+        .with_children(|list| {
+            // Divider
+            list.spawn((
+                Node {
+                    width: Val::Percent(100.),
+                    height: Val::Px(2.),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(1., 1., 1.)),
+            ));
+
+            // Wrapper around moves for padding
+            list.spawn(Node {
+                flex_direction: FlexDirection::Column,
+                align_self: AlignSelf::Stretch,
+                align_items: AlignItems::Center,
+                row_gap: Val::Px(4.),
+                padding: UiRect {
+                    left: Val::Px(4.),
+                    right: Val::Px(4.),
+                    bottom: Val::Px(4.),
+                    ..default()
+                },
+                ..default()
+            })
+            .with_children(|moves| {
+                // Title
+                moves.spawn((
+                    Text::new("Upcoming Moves"),
+                    font_store.ui_font.clone().with_font_size(20.),
+                    font_store.ui_color,
+                ));
+
+                // Moves
+                for (position, move_index) in move_plan.queue.iter().enumerate() {
+                    let Some(enemy_move) = move_set.0.get(*move_index) else {
+                        continue;
+                    };
+                    let (name, potency, colour) = move_display(enemy_move);
+
+                    moves
+                        .spawn((
+                            Node {
+                                flex_direction: FlexDirection::Row,
+                                align_self: AlignSelf::Stretch,
+                                align_items: AlignItems::Center,
+                                column_gap: Val::Px(8.),
+                                ..default()
+                            },
+                            BackgroundColor(Color::srgba(1., 1., 1., 0.15)),
+                        ))
+                        .with_children(|row| {
+                            row.spawn((
+                                Text::new((position + 1).to_string()),
+                                font_store.ui_font.clone(),
+                                font_store.ui_color,
+                            ));
+
+                            row.spawn((
+                                Text::new(name),
+                                font_store.ui_font.clone(),
+                                font_store.ui_color,
+                                Node {
+                                    flex_grow: 1.,
+                                    ..default()
+                                },
+                            ));
+
+                            row.spawn((
+                                Node {
+                                    width: Val::Px(28.),
+                                    height: Val::Px(28.),
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    border_radius: BorderRadius::all(Val::Percent(50.)),
+                                    ..default()
+                                },
+                                BackgroundColor(colour),
+                                children![(
+                                    Text::new(potency.to_string()),
+                                    font_store.ui_font.clone(),
+                                    TextColor(Color::WHITE),
+                                )],
+                            ));
+                        });
+                }
+            });
         });
 }
 
@@ -647,6 +779,7 @@ fn draw_hp(
             // Current HP
             hp.spawn((
                 Text::new(current.to_string()),
+                Tooltip::basic("Current Health"),
                 font_store.ui_font.clone(),
                 font_store.ui_color.clone(),
             ));
@@ -664,6 +797,7 @@ fn draw_hp(
             // Total HP
             hp.spawn((
                 Text::new(max.to_string()),
+                Tooltip::basic("Maximum Health"),
                 font_store.ui_font.clone(),
                 font_store.ui_color.clone(),
             ));

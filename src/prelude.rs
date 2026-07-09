@@ -10,6 +10,7 @@ pub use crate::assets::ui_icon_loader::UiIconAssets;
 
 // Combat
 pub use crate::game::combat::events::PlayerCombatAction;
+pub use crate::game::combat::move_plan::MovePlan;
 pub use crate::game::combat::resources::AwaitingPlayerAction;
 pub use crate::game::combat::resources::CombatLog;
 pub use crate::game::combat::resources::CombatLogLine;
