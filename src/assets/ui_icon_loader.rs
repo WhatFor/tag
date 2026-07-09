@@ -5,7 +5,7 @@ use bevy_asset_loader::mapped::AssetFileStem;
 use bevy_asset_loader::prelude::*;
 
 #[derive(AssetCollection, Resource)]
-pub struct IconAssets {
+pub struct UiIconAssets {
     #[asset(
         paths(
             "icons/ui/inventory.png",
@@ -21,12 +21,12 @@ pub struct IconAssets {
     pub icons: HashMap<AssetFileStem, Handle<Image>>,
 }
 
-pub struct IconLoaderPlugin;
+pub struct UiIconLoaderPlugin;
 
-impl Plugin for IconLoaderPlugin {
+impl Plugin for UiIconLoaderPlugin {
     fn build(&self, app: &mut App) {
         app.configure_loading_state(
-            LoadingStateConfig::new(GameState::Initialising).load_collection::<IconAssets>(),
+            LoadingStateConfig::new(GameState::Initialising).load_collection::<UiIconAssets>(),
         );
     }
 }

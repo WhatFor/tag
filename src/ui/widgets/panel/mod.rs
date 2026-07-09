@@ -54,7 +54,7 @@ pub fn init(
     mut commands: Commands,
     query: Query<(Entity, &Panel), Added<Panel>>,
     fonts: Res<FontAssets>,
-    icon_store: Res<IconAssets>,
+    icon_store: Res<UiIconAssets>,
     audio_store: Res<AudioAssets>,
     texture_store: Res<TextureAssets>,
 ) {

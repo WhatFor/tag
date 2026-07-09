@@ -329,10 +329,21 @@ fn draw_enemy_stats(
             Or<(Changed<Health>, Changed<MaxHealth>, Changed<EffectiveStats>)>,
         ),
     >,
-    enemies: Query<(Entity, &Health, &MaxHealth, &EffectiveStats, &DisplayName), With<Enemy>>,
+    enemies: Query<
+        (
+            Entity,
+            &Health,
+            &MaxHealth,
+            &EffectiveStats,
+            &DisplayName,
+            &EnemyId,
+        ),
+        With<Enemy>,
+    >,
     panel: Single<Entity, With<EnemyCombatantContent>>,
     fonts: Res<FontAssets>,
-    icons: Res<IconAssets>,
+    ui_icons: Res<UiIconAssets>,
+    enemy_icons: Res<EnemyIconAssets>,
 ) {
     if changed.is_empty() {
         return;
@@ -343,7 +354,7 @@ fn draw_enemy_stats(
         .despawn_children()
         .with_children(|panel| {
             for enemy in enemies {
-                let (entity, health, max, stats, name) = enemy;
+                let (entity, health, max, stats, name, id) = enemy;
 
                 panel
                     .spawn((
@@ -359,16 +370,54 @@ fn draw_enemy_stats(
                         BorderColor::all(Color::srgb(1., 1., 1.)),
                     ))
                     .with_children(|enemy_panel| {
-                        // Top: Name
-                        enemy_panel.spawn((
-                            Text::new(name.0.clone()),
-                            fonts.ui_font.clone(),
-                            fonts.ui_color,
-                            Node {
-                                align_self: AlignSelf::Center,
+                        // Top: Name + Icon
+                        enemy_panel
+                            .spawn(Node {
+                                flex_direction: FlexDirection::Row,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
+                                column_gap: Val::Px(8.),
                                 ..default()
-                            },
-                        ));
+                            })
+                            .with_children(|row| {
+                                let Some(icon) = enemy_icons.icons.get(id.0.as_str()) else {
+                                    panic!("NO ICON!");
+                                };
+
+                                row.spawn((
+                                    Node {
+                                        flex_direction: FlexDirection::Row,
+                                        justify_content: JustifyContent::Center,
+                                        align_items: AlignItems::Center,
+                                        border: UiRect::all(Val::Px(2.)),
+                                        border_radius: BorderRadius::all(Val::Percent(100.)),
+                                        padding: UiRect::all(Val::Px(4.)),
+                                        ..default()
+                                    },
+                                    Tooltip::basic(name.0.clone()),
+                                    BackgroundColor(Color::srgb(0.5, 0.5, 0.5)),
+                                    BorderColor::all(Color::srgb(1., 1., 1.)),
+                                    children![(
+                                        ImageNode::new(icon.clone()),
+                                        Node {
+                                            width: Val::Px(32.),
+                                            height: Val::Px(32.),
+                                            ..default()
+                                        },
+                                        Pickable::IGNORE,
+                                    )],
+                                ));
+
+                                row.spawn((
+                                    Text::new(name.0.clone()),
+                                    fonts.ui_font.clone(),
+                                    fonts.ui_color,
+                                    Node {
+                                        align_self: AlignSelf::Center,
+                                        ..default()
+                                    },
+                                ));
+                            });
 
                         // Bottom: HP + Stats
                         enemy_panel
@@ -380,7 +429,7 @@ fn draw_enemy_stats(
                             })
                             .with_children(|stats_area| {
                                 draw_hp(stats_area, health.0, max.0, &fonts);
-                                draw_stats(stats_area, stats.0, &icons, &fonts);
+                                draw_stats(stats_area, stats.0, &ui_icons, &fonts);
                             });
                     });
             }
@@ -398,7 +447,7 @@ fn draw_player_stats(
     >,
     panel: Single<Entity, With<PlayerCombatantContent>>,
     fonts: Res<FontAssets>,
-    icons: Res<IconAssets>,
+    icons: Res<UiIconAssets>,
 ) {
     let (health, max, stats) = *player;
 
@@ -477,7 +526,7 @@ fn draw_stat(
     label: &str,
     value: String,
     icon_key: &str,
-    icon_store: &Res<IconAssets>,
+    icon_store: &Res<UiIconAssets>,
     font_store: &Res<FontAssets>,
 ) {
     let Some(icon) = icon_store.icons.get(icon_key) else {
@@ -508,7 +557,7 @@ fn draw_stat(
 fn draw_stats(
     parent: &mut RelatedSpawnerCommands<'_, ChildOf>,
     stats: Stats,
-    icon_store: &Res<IconAssets>,
+    icon_store: &Res<UiIconAssets>,
     font_store: &Res<FontAssets>,
 ) {
     parent

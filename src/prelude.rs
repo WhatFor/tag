@@ -1,11 +1,12 @@
 // Assets
 pub use crate::assets::audio_loader::AudioAssets;
 pub use crate::assets::character_loader::CharacterStore;
+pub use crate::assets::enemy_icon_loader::EnemyIconAssets;
 pub use crate::assets::enemy_loader::EnemyStore;
-pub use crate::assets::icon_loader::IconAssets;
 pub use crate::assets::item_loader::ItemDef;
 pub use crate::assets::item_loader::ItemStore;
 pub use crate::assets::texture_loader::TextureAssets;
+pub use crate::assets::ui_icon_loader::UiIconAssets;
 
 // Combat
 pub use crate::game::combat::events::PlayerCombatAction;
@@ -42,6 +43,7 @@ pub use crate::game::components::DotKind;
 pub use crate::game::components::Effect;
 pub use crate::game::components::EffectiveStats;
 pub use crate::game::components::Enemy;
+pub use crate::game::components::EnemyId;
 pub use crate::game::components::EnemyMove;
 pub use crate::game::components::Equipment;
 pub use crate::game::components::EquipmentSlot;

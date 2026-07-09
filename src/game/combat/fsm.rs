@@ -71,6 +71,7 @@ fn start_combat(
 
         commands.spawn((
             Enemy,
+            EnemyId(id.clone()),
             Health(enemy.max_health),
             MaxHealth(enemy.max_health),
             DisplayName(enemy.display_name.clone()),

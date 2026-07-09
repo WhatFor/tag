@@ -6,6 +6,9 @@ use std::collections::HashMap;
 #[derive(Component)]
 pub struct Enemy;
 
+#[derive(Component)]
+pub struct EnemyId(pub String);
+
 #[derive(Debug, Clone, Deserialize)]
 pub enum EnemyMove {
     BasicAttack {

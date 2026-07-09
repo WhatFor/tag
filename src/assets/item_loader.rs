@@ -13,9 +13,9 @@ pub struct ItemIconAssets {
     #[asset(
         paths(
             "icons/_placeholder.png",
-            "icons/bronze_sword.png",
-            "icons/iron_sword.png",
-            "icons/potion.png"
+            "icons/items/bronze_sword.png",
+            "icons/items/iron_sword.png",
+            "icons/items/potion.png"
         ),
         collection(typed, mapped)
     )]

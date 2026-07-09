@@ -68,7 +68,7 @@ impl Plugin for InventoryUIPlugin {
 
 fn button_init(
     mut commands: Commands,
-    icon_store: Res<IconAssets>,
+    icon_store: Res<UiIconAssets>,
     audio_store: Res<AudioAssets>,
     hud_area: Single<Entity, With<HudAreaBottomRight>>,
 ) {
@@ -160,7 +160,7 @@ fn collect_rows(
     inventory: &Inventory,
     items: Query<(&ItemId, Option<&ItemStack>)>,
     item_store: Res<ItemStore>,
-    icon_assets: Res<IconAssets>,
+    icon_assets: Res<UiIconAssets>,
 ) -> Vec<ItemRow> {
     inventory
         .iter()
@@ -289,7 +289,7 @@ fn spawn_inventory(
     gold: Single<&Gold, With<Player>>,
     items: Query<(&ItemId, Option<&ItemStack>)>,
     item_store: Res<ItemStore>,
-    icon_store: Res<IconAssets>,
+    icon_store: Res<UiIconAssets>,
     fonts: Res<FontAssets>,
 ) {
     if inventory.is_empty() {
@@ -338,7 +338,7 @@ fn refresh_inventory(
     >,
     items: Query<(&ItemId, Option<&ItemStack>)>,
     item_store: Res<ItemStore>,
-    icon_store: Res<IconAssets>,
+    icon_store: Res<UiIconAssets>,
     fonts: Res<FontAssets>,
     content: Single<Entity, With<InventoryContent>>,
 ) {
