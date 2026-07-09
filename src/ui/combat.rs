@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use bevy::prelude::*;
+use bevy::text::LineHeight;
 
 use crate::ui::layout::GameArea;
 use crate::ui::layout::HudAreaBottomCenter;
@@ -7,10 +8,6 @@ use bevy::ecs::relationship::RelatedSpawnerCommands;
 
 const BORDER_IDLE: Color = Color::srgb(1., 1., 1.);
 const BORDER_ACTIVE: Color = Color::srgb(1., 0.85, 0.2);
-
-const MOVE_ATTACK: Color = Color::srgb(0.30, 0.20, 0.10);
-const MOVE_DEFEND: Color = Color::srgb(0.15, 0.40, 0.70);
-const MOVE_SPECIAL: Color = Color::srgb(0.50, 0.15, 0.20);
 
 #[derive(Component)]
 pub struct PlayerCombatButtonContainer;
@@ -148,7 +145,7 @@ fn init_layout(mut commands: Commands, game_area: Single<Entity, With<GameArea>>
                     flex_basis: Val::Px(0.),
                     height: Val::Percent(100.),
                     flex_direction: FlexDirection::Row,
-                    row_gap: Val::Px(16.),
+                    column_gap: Val::Px(16.),
                     ..default()
                 },
                 children![
@@ -519,17 +516,17 @@ fn draw_enemy_stats(
                             });
 
                         // Moves
-                        draw_enemy_moves(enemy_panel, move_set, move_plan, &fonts);
+                        draw_enemy_moves(enemy_panel, move_set, move_plan, &fonts, &ui_icons);
                     });
             }
         });
 }
 
-fn move_display(enemy_move: &EnemyMove) -> (String, i32, Color) {
+fn move_display(enemy_move: &EnemyMove) -> (String, i32, &str) {
     match enemy_move {
-        EnemyMove::BasicAttack { name, potency, .. } => (name.clone(), *potency, MOVE_ATTACK),
-        EnemyMove::SpecialAttack { name, potency, .. } => (name.clone(), *potency, MOVE_SPECIAL),
-        EnemyMove::Defend { potency, .. } => ("Defend".to_string(), *potency, MOVE_DEFEND),
+        EnemyMove::BasicAttack { name, potency, .. } => (name.clone(), *potency, "attack"),
+        EnemyMove::SpecialAttack { name, potency, .. } => (name.clone(), *potency, "special"),
+        EnemyMove::Defend { potency, .. } => ("Defend".to_string(), *potency, "defend"),
     }
 }
 
@@ -538,6 +535,7 @@ fn draw_enemy_moves(
     move_set: &MoveSet,
     move_plan: &MovePlan,
     font_store: &Res<FontAssets>,
+    ui_icons: &Res<UiIconAssets>,
 ) {
     parent
         .spawn(Node {
@@ -585,7 +583,13 @@ fn draw_enemy_moves(
                     let Some(enemy_move) = move_set.0.get(*move_index) else {
                         continue;
                     };
-                    let (name, potency, colour) = move_display(enemy_move);
+                    let (name, potency, icon_id) = move_display(enemy_move);
+
+                    let Some(icon) = ui_icons.icons.get(icon_id) else {
+                        return;
+                    };
+
+                    let bg_alpha = (move_plan.queue.len() - position) as f32 * 0.02;
 
                     moves
                         .spawn((
@@ -593,43 +597,56 @@ fn draw_enemy_moves(
                                 flex_direction: FlexDirection::Row,
                                 align_self: AlignSelf::Stretch,
                                 align_items: AlignItems::Center,
+                                padding: UiRect::axes(Val::Px(8.), Val::Px(2.)),
                                 column_gap: Val::Px(8.),
                                 ..default()
                             },
-                            BackgroundColor(Color::srgba(1., 1., 1., 0.15)),
+                            BackgroundColor(Color::srgba(1., 1., 1., bg_alpha)),
                         ))
                         .with_children(|row| {
-                            row.spawn((
-                                Text::new((position + 1).to_string()),
-                                font_store.ui_font.clone(),
-                                font_store.ui_color,
-                            ));
-
+                            // Move name
                             row.spawn((
                                 Text::new(name),
                                 font_store.ui_font.clone(),
                                 font_store.ui_color,
                                 Node {
                                     flex_grow: 1.,
+                                    position_type: PositionType::Relative,
+                                    bottom: Val::Px(2.), // Bump font up slightly
                                     ..default()
                                 },
                             ));
 
+                            // Move potency + icon
                             row.spawn((
                                 Node {
-                                    width: Val::Px(28.),
-                                    height: Val::Px(28.),
+                                    flex_direction: FlexDirection::Row,
                                     justify_content: JustifyContent::Center,
                                     align_items: AlignItems::Center,
-                                    border_radius: BorderRadius::all(Val::Percent(50.)),
+                                    column_gap: Val::Px(4.),
                                     ..default()
                                 },
-                                BackgroundColor(colour),
-                                children![(
-                                    Text::new(potency.to_string()),
-                                    font_store.ui_font.clone(),
-                                    TextColor(Color::WHITE),
-                                )],
+                                children![
+                                    (
+                                        ImageNode::new(icon.clone()),
+                                        Node {
+                                            width: Val::Px(32.),
+                                            height: Val::Px(32.),
+                                            ..default()
+                                        },
+                                        Pickable::IGNORE,
+                                    ),
+                                    (
+                                        Text::new(potency.to_string()),
+                                        font_store.ui_font.clone(),
+                                        TextColor(Color::WHITE),
+                                        Node {
+                                            position_type: PositionType::Relative,
+                                            bottom: Val::Px(2.), // Bump font up slightly
+                                            ..default()
+                                        },
+                                    )
+                                ],
                             ));
                         });
                 }
@@ -832,7 +849,15 @@ fn draw_stat(
                 font_store.ui_color.clone(),
                 Pickable::IGNORE
             ),
-            (ImageNode::new(icon.clone()), Pickable::IGNORE)
+            (
+                ImageNode::new(icon.clone()),
+                Node {
+                    width: Val::Px(32.),
+                    height: Val::Px(32.),
+                    ..default()
+                },
+                Pickable::IGNORE
+            )
         ],
     ));
 }
@@ -845,53 +870,74 @@ fn draw_stats(
 ) {
     parent
         .spawn(Node {
-            flex_direction: FlexDirection::Row,
+            flex_direction: FlexDirection::Column,
             align_items: AlignItems::Center,
-            column_gap: Val::Px(16.),
+            row_gap: Val::Px(4.),
             padding: UiRect::all(Val::Px(8.)),
             ..default()
         })
         .with_children(|stats_wrapper| {
-            draw_stat(
-                stats_wrapper,
-                "Strength",
-                stats.strength.to_string(),
-                "strength",
-                &icon_store,
-                &font_store,
-            );
-            draw_stat(
-                stats_wrapper,
-                "Agility",
-                stats.agility.to_string(),
-                "agility",
-                &icon_store,
-                &font_store,
-            );
-            draw_stat(
-                stats_wrapper,
-                "Intelligence",
-                stats.intelligence.to_string(),
-                "intelligence",
-                &icon_store,
-                &font_store,
-            );
-            draw_stat(
-                stats_wrapper,
-                "Speed",
-                stats.speed.to_string(),
-                "speed",
-                &icon_store,
-                &font_store,
-            );
-            draw_stat(
-                stats_wrapper,
-                "Armour",
-                stats.armour.to_string(),
-                "armour",
-                &icon_store,
-                &font_store,
-            );
+            stats_wrapper
+                .spawn(Node {
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    column_gap: Val::Px(16.),
+                    ..default()
+                })
+                .with_children(|row| {
+                    draw_stat(
+                        row,
+                        "Strength",
+                        stats.strength.to_string(),
+                        "strength",
+                        icon_store,
+                        font_store,
+                    );
+                    draw_stat(
+                        row,
+                        "Agility",
+                        stats.agility.to_string(),
+                        "agility",
+                        icon_store,
+                        font_store,
+                    );
+                    draw_stat(
+                        row,
+                        "Intelligence",
+                        stats.intelligence.to_string(),
+                        "intelligence",
+                        icon_store,
+                        font_store,
+                    );
+                });
+
+            stats_wrapper
+                .spawn(Node {
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    column_gap: Val::Px(16.),
+                    ..default()
+                })
+                .with_children(|row| {
+                    draw_stat(
+                        row,
+                        "Speed",
+                        stats.speed.to_string(),
+                        "speed",
+                        icon_store,
+                        font_store,
+                    );
+                    draw_stat(
+                        row,
+                        "Armour",
+                        stats.armour.to_string(),
+                        "armour",
+                        icon_store,
+                        font_store,
+                    );
+                });
         });
 }
 

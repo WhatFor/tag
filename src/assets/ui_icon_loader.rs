@@ -15,6 +15,9 @@ pub struct UiIconAssets {
             "icons/ui/intelligence.png",
             "icons/ui/speed.png",
             "icons/ui/armour.png",
+            "icons/ui/attack.png",
+            "icons/ui/defend.png",
+            "icons/ui/special.png",
         ),
         collection(typed, mapped)
     )]
