@@ -24,6 +24,9 @@ pub struct CombatLogScrollArea;
 pub struct CombatantContainer;
 
 #[derive(Component)]
+pub struct TurnOrderContainer;
+
+#[derive(Component)]
 pub struct EnemyCombatantContainer;
 
 #[derive(Component)]
@@ -36,7 +39,13 @@ pub struct PlayerCombatantContainer;
 pub struct PlayerCombatantContent;
 
 #[derive(Component)]
+pub struct TurnOrderContent;
+
+#[derive(Component)]
 pub struct CombatantPanel(pub Entity);
+
+#[derive(Component)]
+pub struct CombatantTurnIcon(pub Entity);
 
 pub struct CombatUIPlugin;
 
@@ -44,7 +53,14 @@ impl Plugin for CombatUIPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             OnEnter(PlayState::InCombat),
-            (init_layout, init_log, init_enemies, init_player).chain(),
+            (
+                init_layout,
+                init_log,
+                init_enemies,
+                init_player,
+                init_turn_order,
+            )
+                .chain(),
         );
 
         app.add_systems(
@@ -71,7 +87,17 @@ impl Plugin for CombatUIPlugin {
 
         app.add_systems(
             Update,
+            draw_turn_order.run_if(in_state(PlayState::InCombat)),
+        );
+
+        app.add_systems(
+            Update,
             highlight_active_combatant.run_if(in_state(PlayState::InCombat)),
+        );
+
+        app.add_systems(
+            Update,
+            highlight_active_combatant_icon.run_if(in_state(PlayState::InCombat)),
         );
 
         app.add_systems(
@@ -109,7 +135,7 @@ fn init_layout(mut commands: Commands, game_area: Single<Entity, With<GameArea>>
                     ..default()
                 }
             ),
-            // Combatants
+            // Combatants + Turn Indicator
             (
                 CombatantContainer,
                 Name::new("Combatant Container"),
@@ -117,63 +143,71 @@ fn init_layout(mut commands: Commands, game_area: Single<Entity, With<GameArea>>
                     flex_grow: 1.,
                     flex_basis: Val::Px(0.),
                     height: Val::Percent(100.),
-                    flex_direction: FlexDirection::Column,
+                    flex_direction: FlexDirection::Row,
                     row_gap: Val::Px(16.),
                     ..default()
                 },
                 children![
-                    // Enemies
+                    // Enemies + Player
                     (
-                        EnemyCombatantContainer,
-                        Name::new("Enemy Combatant Container"),
+                        Name::new("Combatant Content"),
                         Node {
-                            width: Val::Percent(100.),
                             flex_grow: 1.,
                             flex_basis: Val::Px(0.),
+                            height: Val::Percent(100.),
                             flex_direction: FlexDirection::Column,
-                            row_gap: Val::Px(8.),
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
+                            row_gap: Val::Px(16.),
                             ..default()
-                        }
+                        },
+                        children![
+                            // Enemies
+                            (
+                                EnemyCombatantContainer,
+                                Name::new("Enemy Combatant Container"),
+                                Node {
+                                    width: Val::Percent(100.),
+                                    flex_grow: 1.,
+                                    flex_basis: Val::Px(0.),
+                                    flex_direction: FlexDirection::Column,
+                                    row_gap: Val::Px(8.),
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    ..default()
+                                }
+                            ),
+                            // Player
+                            (
+                                PlayerCombatantContainer,
+                                Name::new("Player Combatant Container"),
+                                Node {
+                                    width: Val::Percent(100.),
+                                    flex_grow: 1.,
+                                    flex_basis: Val::Px(0.),
+                                    flex_direction: FlexDirection::Column,
+                                    row_gap: Val::Px(8.),
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    ..default()
+                                }
+                            )
+                        ]
                     ),
-                    // Player
+                    // Turn Order
                     (
-                        PlayerCombatantContainer,
-                        Name::new("Player Combatant Container"),
+                        TurnOrderContainer,
+                        Name::new("Turn Order Container"),
                         Node {
-                            width: Val::Percent(100.),
-                            flex_grow: 1.,
-                            flex_basis: Val::Px(0.),
+                            flex_shrink: 0.,
+                            height: Val::Percent(100.),
                             flex_direction: FlexDirection::Column,
-                            row_gap: Val::Px(8.),
                             justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
                             ..default()
-                        }
-                    )
+                        },
+                    ),
                 ]
             )
         ],
     ));
-
-    // let Ok(content) = all_area_content.get(area.0) else {
-    //     return;
-    // };
-
-    // if let AreaContent::Combat {
-    //     start_lines,
-    //     enemy_ids,
-    //     win_lines,
-    //     lose_lines,
-    // } = content
-    // {
-    //     for line in start_lines {
-    //         info!(line);
-    //     }
-    // } else {
-    //     warn!("Player is in combat state but not in a combat area!");
-    // }
 }
 
 fn init_log(
@@ -268,6 +302,41 @@ fn init_player(
             justify_content: JustifyContent::Center,
             column_gap: Val::Px(16.),
             border: UiRect::all(Val::Px(4.)),
+            ..default()
+        },
+        BorderColor::all(Color::srgb(1., 1., 1.)),
+    ));
+}
+
+fn init_turn_order(
+    mut commands: Commands,
+    container: Single<Entity, With<TurnOrderContainer>>,
+    fonts: Res<FontAssets>,
+) {
+    commands.spawn((
+        Name::new("Turn Order Title"),
+        Text::new("Order"),
+        Tooltip::basic("The turn order for this combat. Higher attacks first."),
+        ChildOf(container.entity()),
+        fonts.ui_font.clone(),
+        fonts.ui_color,
+        Node {
+            align_self: AlignSelf::Center,
+            ..default()
+        },
+    ));
+
+    commands.spawn((
+        TurnOrderContent,
+        Name::new("Turn Order Content"),
+        ChildOf(container.entity()),
+        Node {
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            row_gap: Val::Px(8.),
+            padding: UiRect::all(Val::Px(8.)),
+            border: UiRect::all(Val::Px(2.)),
             ..default()
         },
         BorderColor::all(Color::srgb(1., 1., 1.)),
@@ -460,9 +529,89 @@ fn draw_player_stats(
         });
 }
 
+fn draw_turn_order(
+    mut commands: Commands,
+    turn_order: Res<TurnOrder>,
+    panel: Single<Entity, With<TurnOrderContent>>,
+    enemies: Query<(Entity, &DisplayName, &EnemyId), With<Enemy>>,
+    player: Single<Entity, With<Player>>,
+    enemy_icons: Res<EnemyIconAssets>,
+) {
+    if !turn_order.is_changed() {
+        return;
+    }
+
+    let mut combatants = vec![(player.entity(), String::from("You"), String::from("player"))];
+
+    combatants.extend(
+        enemies
+            .iter()
+            .map(|(e, name, id)| (e, name.0.clone(), id.0.clone())),
+    );
+
+    commands
+        .entity(*panel)
+        .despawn_children()
+        .with_children(|p| {
+            for entity in turn_order.queue.iter() {
+                let Some((e, name, id)) = combatants.iter().find(|c| c.0 == *entity) else {
+                    return;
+                };
+
+                let Some(icon) = enemy_icons.icons.get(id.as_str()) else {
+                    panic!("NO ICON!");
+                };
+
+                p.spawn((
+                    CombatantTurnIcon(*e),
+                    Node {
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        border: UiRect::all(Val::Px(2.)),
+                        border_radius: BorderRadius::all(Val::Percent(100.)),
+                        padding: UiRect::all(Val::Px(4.)),
+                        ..default()
+                    },
+                    Tooltip::basic(name.clone()),
+                    BackgroundColor(Color::srgb(0.5, 0.5, 0.5)),
+                    BorderColor::all(Color::srgb(1., 1., 1.)),
+                    children![(
+                        ImageNode::new(icon.clone()),
+                        Node {
+                            width: Val::Px(32.),
+                            height: Val::Px(32.),
+                            ..default()
+                        },
+                        Pickable::IGNORE,
+                    )],
+                ));
+            }
+        });
+}
+
 fn highlight_active_combatant(
     turn_order: Res<TurnOrder>,
     mut panels: Query<(&CombatantPanel, &mut BorderColor)>,
+) {
+    let active = turn_order.queue.get(turn_order.cursor).copied();
+
+    for (combatant, mut border) in &mut panels {
+        let desired = BorderColor::all(if Some(combatant.0) == active {
+            BORDER_ACTIVE
+        } else {
+            BORDER_IDLE
+        });
+
+        if *border != desired {
+            *border = desired;
+        }
+    }
+}
+
+fn highlight_active_combatant_icon(
+    turn_order: Res<TurnOrder>,
+    mut panels: Query<(&CombatantTurnIcon, &mut BorderColor)>,
 ) {
     let active = turn_order.queue.get(turn_order.cursor).copied();
 

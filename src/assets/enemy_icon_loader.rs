@@ -6,7 +6,10 @@ use bevy_asset_loader::prelude::*;
 
 #[derive(AssetCollection, Resource)]
 pub struct EnemyIconAssets {
-    #[asset(paths("icons/enemies/small_rat.png",), collection(typed, mapped))]
+    #[asset(
+        paths("icons/enemies/small_rat.png", "icons/enemies/player.png"),
+        collection(typed, mapped)
+    )]
     pub icons: HashMap<AssetFileStem, Handle<Image>>,
 }
 
