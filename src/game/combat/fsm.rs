@@ -1,3 +1,4 @@
+use crate::game::combat::resources::CombatLogDefend;
 use crate::prelude::*;
 use bevy::prelude::*;
 
@@ -219,7 +220,10 @@ fn round_combat(
             EnemyMove::Defend { potency, .. } => {
                 // TODO: Actually defend (with a buff for 1 turn?)
 
-                log.lines.push(CombatLogLine::Defend(*potency));
+                log.lines.push(CombatLogLine::Defend(CombatLogDefend {
+                    entity: entity,
+                    potency: *potency,
+                }));
             }
         }
 

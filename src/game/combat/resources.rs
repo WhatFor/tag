@@ -27,8 +27,8 @@ pub struct CombatLog {
 pub enum CombatLogLine {
     Text(String),
     Attack(CombatLogAttack),
-    Defend(i32),
-    Effect(Effect),
+    Defend(CombatLogDefend),
+    Effect(CombatLogEffect),
     CombatResult(CombatLogResult),
 }
 
@@ -39,6 +39,16 @@ pub struct CombatLogAttack {
     pub attack_type: AttackType,
     pub attack_damage: i32,
     pub damage_type: DamageType,
+}
+
+pub struct CombatLogDefend {
+    pub entity: Entity,
+    pub potency: i32,
+}
+
+pub struct CombatLogEffect {
+    pub entity: Entity,
+    pub effect: Effect,
 }
 
 pub struct CombatLogResult {

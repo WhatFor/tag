@@ -2,6 +2,8 @@ use crate::prelude::*;
 use bevy::prelude::*;
 
 use crate::game::combat::resources::CombatLogAttack;
+use crate::game::combat::resources::CombatLogDefend;
+use crate::game::combat::resources::CombatLogResult;
 use crate::ui::layout::GameArea;
 use crate::ui::layout::HudAreaBottomCenter;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
@@ -378,22 +380,13 @@ fn draw_combat_log(
                             attack_damage,
                             from,
                             to,
-                            damage_type,
+                            .. // TODO: probably want to show damage_type in UI
                         } = attack;
 
                         // Container
-                        c.spawn((
-                            Node {
-                                flex_direction: FlexDirection::Row,
-                                column_gap: Val::Px(8.),
-                                justify_content: JustifyContent::Stretch,
-                                border: UiRect::all(Val::Px(2.)),
-                                padding: UiRect::all(Val::Px(8.)),
-                                margin: UiRect::all(Val::Px(2.)),
-                                ..default()
-                            },
-                            BorderColor::all(Color::srgb(8., 0.1, 0.1)),
-                        ))
+                        c.spawn(
+                            combat_log_container(Color::srgb(1.0, 0.1, 0.1))
+                        )
                         .with_children(|container| {
                             // From
                             let (from_name, from_icon) = match enemies.get(*from) {
@@ -478,12 +471,114 @@ fn draw_combat_log(
                             draw_portrait(container, &enemy_icons, &to_name, &to_icon);
                         });
                     }
-                    CombatLogLine::Effect(effect) => {},
-                    CombatLogLine::Defend(_) => {},
-                    CombatLogLine::CombatResult(combat_log_result) => {},
+                    CombatLogLine::Effect(effect) => {
+                        // TODO: Not implemented effects yet.
+                    },
+                    CombatLogLine::Defend(CombatLogDefend { entity, potency }) => {
+                        // Container
+                        c.spawn(combat_log_container(Color::srgb(0.1, 0.1, 1.0)))
+                        .with_children(|container| {
+                            // From
+                            let (entity_name, entity_icon) = match enemies.get(*entity) {
+                                Ok((name, id)) => (name.0.clone(), id.0.clone()),
+
+                                Err(_) if player.entity() == *entity => {
+                                    (String::from("You"), String::from("player"))
+                                }
+
+                                Err(_) => {
+                                    panic!("combat log defend source was neither enemy nor player: {entity:?}");
+                                }
+                            };
+
+                            draw_portrait(container, &enemy_icons, &entity_name, &entity_icon);
+
+                            // Defend Text
+                            container.spawn((
+                                Text::new(format!("{} prepares for an attack", entity_name)),
+                                fonts.ui_font.clone(),
+                                fonts.ui_color,
+                                Node {
+                                    flex_grow: 1.,
+                                    position_type: PositionType::Relative,
+                                    ..default()
+                                },
+                            ));
+
+                            let Some(defend_icon) = ui_icons.icons.get("defend") else {
+                                return;
+                            };
+
+                            container.spawn((
+                                Node {
+                                    flex_direction: FlexDirection::Row,
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    column_gap: Val::Px(4.),
+                                    ..default()
+                                },
+                                children![
+                                    (
+                                        ImageNode::new(defend_icon.clone()),
+                                        Node {
+                                            width: Val::Px(32.),
+                                            height: Val::Px(32.),
+                                            ..default()
+                                        },
+                                        Pickable::IGNORE,
+                                    ),
+                                    (
+                                        Text::new(potency.to_string()),
+                                        fonts.ui_font.clone(),
+                                        TextColor(Color::WHITE),
+                                        Node {
+                                            position_type: PositionType::Relative,
+                                            bottom: Val::Px(2.), // Bump font up slightly
+                                            ..default()
+                                        },
+                                    )
+                                ],
+                            ));
+                        });
+                    },
+                    CombatLogLine::CombatResult(CombatLogResult { message, player_won }) => {
+                        let container_colour = match player_won {
+                            true => Color::srgb(0.1, 0.1, 1.0),
+                            false => Color::srgb(1.0, 0.1, 0.1),
+                        };
+
+                        c.spawn(combat_log_container(container_colour))
+                            .with_children(|container| {
+                                container.spawn((
+                                    Text::new(message),
+                                    fonts.ui_font.clone(),
+                                    fonts.ui_color,
+                                    Node {
+                                        flex_grow: 1.,
+                                        position_type: PositionType::Relative,
+                                        ..default()
+                                    },
+                                ));
+                            });
+                    },
                 }
             }
         });
+}
+
+fn combat_log_container(border_colour: Color) -> impl Bundle {
+    (
+        Node {
+            flex_direction: FlexDirection::Row,
+            column_gap: Val::Px(8.),
+            justify_content: JustifyContent::Stretch,
+            border: UiRect::all(Val::Px(2.)),
+            padding: UiRect::all(Val::Px(8.)),
+            margin: UiRect::all(Val::Px(2.)),
+            ..default()
+        },
+        BorderColor::all(border_colour),
+    )
 }
 
 fn autoscroll_combat_log(
