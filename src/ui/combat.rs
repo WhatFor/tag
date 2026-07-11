@@ -471,7 +471,7 @@ fn draw_combat_log(
                             draw_portrait(container, &enemy_icons, &to_name, &to_icon);
                         });
                     }
-                    CombatLogLine::Effect(effect) => {
+                    CombatLogLine::Effect(_) => {
                         // TODO: Not implemented effects yet.
                     },
                     CombatLogLine::Defend(CombatLogDefend { entity, potency }) => {

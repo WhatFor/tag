@@ -128,7 +128,7 @@ fn round_combat(
     mut turn_order: ResMut<TurnOrder>,
     mut log: ResMut<CombatLog>,
     player: Single<Entity, With<Player>>,
-    mut enemies: Query<(Entity, &DisplayName, &MoveSet, &mut MovePlan), With<Enemy>>,
+    mut enemies: Query<(Entity, &MoveSet, &mut MovePlan), With<Enemy>>,
     mut state: ResMut<CombatState>,
     mut awaiting_player: ResMut<AwaitingPlayerAction>,
     time: Res<Time>,
@@ -164,7 +164,7 @@ fn round_combat(
         return;
     }
 
-    if let Ok((entity, display_name, move_set, mut move_plan)) = enemies.get_mut(active_combatant) {
+    if let Ok((entity, move_set, mut move_plan)) = enemies.get_mut(active_combatant) {
         info!("[Combat] Enemy {:?} turn...", entity);
 
         let next_move_index = *move_plan.queue.front().unwrap();
