@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
 #[derive(Resource, Default)]
@@ -25,6 +26,23 @@ pub struct CombatLog {
 
 pub enum CombatLogLine {
     Text(String),
+    Attack(CombatLogAttack),
+    Defend(i32),
+    Effect(Effect),
+    CombatResult(CombatLogResult),
+}
+
+pub struct CombatLogAttack {
+    pub from: Entity,
+    pub to: Entity,
+    pub attack_name: String,
+    pub attack_damage: i32,
+    pub damage_type: DamageType,
+}
+
+pub struct CombatLogResult {
+    pub message: String,
+    pub player_won: bool,
 }
 
 #[derive(Resource, Default)]

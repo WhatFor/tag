@@ -2,6 +2,8 @@ use crate::prelude::*;
 use bevy::prelude::*;
 
 use crate::game::combat::move_plan::MovePlan;
+use crate::game::combat::resources::CombatLogAttack;
+use crate::game::combat::resources::CombatLogResult;
 use crate::game::combat::resources::TurnTimer;
 
 pub struct CombatPhasePlugin;
@@ -181,10 +183,13 @@ fn round_combat(
                     damage_type: *damage_type,
                 });
 
-                log.lines.push(CombatLogLine::Text(format!(
-                    "The {}'s {} hit you for {} {} damage.",
-                    display_name.0, name, dmg, *damage_type
-                )));
+                log.lines.push(CombatLogLine::Attack(CombatLogAttack {
+                    from: entity,
+                    to: player.entity(),
+                    attack_name: name.clone(),
+                    attack_damage: dmg,
+                    damage_type: *damage_type,
+                }));
             }
             EnemyMove::SpecialAttack {
                 name,
@@ -201,18 +206,18 @@ fn round_combat(
                     damage_type: *damage_type,
                 });
 
-                log.lines.push(CombatLogLine::Text(format!(
-                    "The {}'s {} hit you for {} {} damage.",
-                    display_name.0, name, dmg, *damage_type
-                )));
+                log.lines.push(CombatLogLine::Attack(CombatLogAttack {
+                    from: entity,
+                    to: player.entity(),
+                    attack_name: name.clone(),
+                    attack_damage: dmg,
+                    damage_type: *damage_type,
+                }));
             }
             EnemyMove::Defend { potency, .. } => {
                 // TODO: Actually defend (with a buff for 1 turn?)
 
-                log.lines.push(CombatLogLine::Text(format!(
-                    "The {} defends, improving it's armour by {}.",
-                    display_name.0, potency
-                )));
+                log.lines.push(CombatLogLine::Defend(*potency));
             }
         }
 
@@ -262,7 +267,10 @@ fn end_combat(
 
     // TODO: pushing 'win_lines", but need to check if player lost or not
     for line in win_lines {
-        log.lines.push(CombatLogLine::Text(line.clone()));
+        log.lines.push(CombatLogLine::CombatResult(CombatLogResult {
+            message: line.clone(),
+            player_won: true,
+        }));
     }
 
     // TODO: looting
@@ -289,11 +297,12 @@ fn on_player_action(
             // TODO: who you attackin?
             //
             log.lines
-                .push(CombatLogLine::Text(format!("You atack something.")));
+                .push(CombatLogLine::Text(format!("TODO You atack something.")));
         }
         PlayerCombatAction::Defend => {
-            log.lines
-                .push(CombatLogLine::Text(format!("You defend, or something.")));
+            log.lines.push(CombatLogLine::Text(format!(
+                "TODO You defend, or something."
+            )));
         }
     }
 

@@ -366,6 +366,10 @@ fn draw_combat_log(
                             fonts.ui_color.clone(),
                         ));
                     }
+                    CombatLogLine::Attack(combat_log_attack) => todo!(),
+                    CombatLogLine::Effect(effect) => todo!(),
+                    CombatLogLine::Defend(_) => todo!(),
+                    CombatLogLine::CombatResult(combat_log_result) => todo!(),
                 }
             }
         });
