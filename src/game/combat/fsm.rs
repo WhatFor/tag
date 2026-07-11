@@ -1,12 +1,14 @@
-use crate::game::combat::resources::CombatLogDefend;
-use crate::game::events::CombatantTurnStarted;
 use crate::prelude::*;
 use bevy::prelude::*;
 
 use crate::game::combat::move_plan::MovePlan;
+use crate::game::combat::resources::AwaitingPlayerAttackTarget;
 use crate::game::combat::resources::CombatLogAttack;
+use crate::game::combat::resources::CombatLogDefend;
 use crate::game::combat::resources::CombatLogResult;
+use crate::game::combat::resources::HoveredAttackTarget;
 use crate::game::combat::resources::TurnTimer;
+use crate::game::events::CombatantTurnStarted;
 
 pub struct CombatPhasePlugin;
 
@@ -42,6 +44,8 @@ fn init(mut commands: Commands) {
     commands.init_resource::<TurnOrder>();
     commands.init_resource::<CombatLog>();
     commands.init_resource::<AwaitingPlayerAction>();
+    commands.init_resource::<AwaitingPlayerAttackTarget>();
+    commands.init_resource::<HoveredAttackTarget>();
     commands.init_resource::<CombatState>();
 }
 
@@ -326,13 +330,12 @@ fn end_combat(
     combat_state.phase = CombatPhase::LeavingCombat;
 }
 
-fn leave_combat(
-    mut commands: Commands,
-    mut play_state: ResMut<NextState<PlayState>>,
-    combat_state: Res<CombatState>,
-    mut log: ResMut<CombatLog>,
-    area: Single<&CurrentArea, With<Player>>,
-    all_area_content: Query<(&AreaId, &AreaContent), With<Area>>,
+fn leave_combat(// mut commands: Commands,
+    // mut play_state: ResMut<NextState<PlayState>>,
+    // combat_state: Res<CombatState>,
+    // mut log: ResMut<CombatLog>,
+    // area: Single<&CurrentArea, With<Player>>,
+    // all_area_content: Query<(&AreaId, &AreaContent), With<Area>>,
 ) {
     // TODO: looting
     //
@@ -354,26 +357,46 @@ fn on_player_action(
     mut commands: Commands,
     mut log: ResMut<CombatLog>,
     mut awaiting_player: ResMut<AwaitingPlayerAction>,
+    mut awaiting_target: ResMut<AwaitingPlayerAttackTarget>,
     mut turn_order: ResMut<TurnOrder>,
-    player_entity: Single<Entity, With<Player>>,
+    player: Single<(Entity, &EffectiveStats), With<Player>>,
 ) {
     if awaiting_player.0 == false {
         return;
     }
 
+    let (player_entity, stats) = *player;
+
     match *trigger {
-        PlayerCombatAction::Attack => {
-            // TODO: who you attackin?
-            //
-            log.lines
-                .push(CombatLogLine::Text(format!("TODO You atack something.")));
+        PlayerCombatAction::Attack(target) => {
+            let damage_type = DamageType::Stab;
+            let stat_for_type = damage_type.primary_stat(&stats.0);
+
+            // TODO
+            let potency = 1;
+            let total_damage = potency + stat_for_type;
+
+            commands.trigger(Damage {
+                damaged: target,
+                amount: total_damage,
+                damage_type: damage_type,
+            });
+
+            log.lines.push(CombatLogLine::Attack(CombatLogAttack {
+                from: player_entity,
+                to: target,
+                attack_name: String::from("Attack"),
+                attack_type: AttackType::Basic,
+                attack_damage: total_damage,
+                damage_type: damage_type,
+            }));
         }
         PlayerCombatAction::Defend => {
             // TODO: How much does the player defend for?
             let potency = 1;
 
             commands.trigger(ApplyEffect {
-                target: *player_entity,
+                target: player_entity,
                 effect: Effect::Buff {
                     stats: Stats {
                         armour: potency,
@@ -384,7 +407,7 @@ fn on_player_action(
             });
 
             log.lines.push(CombatLogLine::Defend(CombatLogDefend {
-                entity: *player_entity,
+                entity: player_entity,
                 potency: potency,
             }));
         }
@@ -392,6 +415,7 @@ fn on_player_action(
 
     // Move on to next turn in combat
     awaiting_player.0 = false;
+    awaiting_target.0 = false;
     turn_order.cursor += 1;
 }
 
@@ -400,5 +424,7 @@ fn destroy(mut commands: Commands) {
     commands.remove_resource::<TurnOrder>();
     commands.remove_resource::<CombatLog>();
     commands.remove_resource::<AwaitingPlayerAction>();
+    commands.remove_resource::<AwaitingPlayerAttackTarget>();
+    commands.remove_resource::<HoveredAttackTarget>();
     commands.remove_resource::<CombatState>();
 }

@@ -108,6 +108,7 @@
 ### Combat TODO
 - Invent UI for slots
 - The combat log reports damage dealt without taking into account target armour
+- player damage_type on attacks is hard-coded to Stab in FSM. Damage is hardcoded to 1.
 
 ### Half Finished (not tested/used)
 - Items with Effects

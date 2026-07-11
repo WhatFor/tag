@@ -1,9 +1,11 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::game::combat::resources::AwaitingPlayerAttackTarget;
 use crate::game::combat::resources::CombatLogAttack;
 use crate::game::combat::resources::CombatLogDefend;
 use crate::game::combat::resources::CombatLogResult;
+use crate::game::combat::resources::HoveredAttackTarget;
 use crate::ui::layout::GameArea;
 use crate::ui::layout::HudAreaBottomCenter;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
@@ -13,6 +15,9 @@ const BORDER_ACTIVE: Color = Color::srgb(1., 0.85, 0.2);
 
 #[derive(Component)]
 pub struct PlayerCombatButtonContainer;
+
+#[derive(Component)]
+pub struct PlayerAttackTargetButtonContainer;
 
 #[derive(Component)]
 pub struct CombatRoot;
@@ -106,6 +111,11 @@ impl Plugin for CombatUIPlugin {
         app.add_systems(
             Update,
             player_action_buttons.run_if(in_state(PlayState::InCombat)),
+        );
+
+        app.add_systems(
+            Update,
+            player_attack_target_buttons.run_if(in_state(PlayState::InCombat)),
         );
     }
 }
@@ -918,16 +928,21 @@ fn draw_turn_order(
 
 fn highlight_active_combatant(
     turn_order: Res<TurnOrder>,
+    hovered: Res<HoveredAttackTarget>,
     mut panels: Query<(&CombatantPanel, &mut BorderColor)>,
 ) {
     let active = turn_order.queue.get(turn_order.cursor).copied();
 
     for (combatant, mut border) in &mut panels {
-        let desired = BorderColor::all(if Some(combatant.0) == active {
+        let should_highlight = Some(combatant.0) == active || Some(combatant.0) == hovered.0;
+
+        let colour = if should_highlight {
             BORDER_ACTIVE
         } else {
             BORDER_IDLE
-        });
+        };
+
+        let desired = BorderColor::all(colour);
 
         if *border != desired {
             *border = desired;
@@ -1169,15 +1184,24 @@ fn draw_portrait<'a>(
 
 fn player_action_buttons(
     mut commands: Commands,
-    awaiting_player: Res<AwaitingPlayerAction>,
+    awaiting_action: Res<AwaitingPlayerAction>,
+    awaiting_target: Res<AwaitingPlayerAttackTarget>,
     hud_area: Single<Entity, With<HudAreaBottomCenter>>,
     existing: Query<Entity, With<PlayerCombatButtonContainer>>,
 ) {
-    if !awaiting_player.is_changed() {
+    if !awaiting_action.is_changed() && !awaiting_target.is_changed() {
         return;
     }
 
-    if awaiting_player.0 {
+    // Hide when picking a target
+    let show = awaiting_action.0 && !awaiting_target.0;
+
+    if show {
+        if !existing.is_empty() {
+            // Already open
+            return;
+        }
+
         let button_container = commands
             .spawn((
                 PlayerCombatButtonContainer,
@@ -1198,9 +1222,11 @@ fn player_action_buttons(
 
         commands
             .spawn((button("Attack"), ChildOf(button_container)))
-            .observe(|_: On<Pointer<Click>>, mut commands: Commands| {
-                commands.trigger(PlayerCombatAction::Attack);
-            });
+            .observe(
+                |_: On<Pointer<Click>>, mut attack_state: ResMut<AwaitingPlayerAttackTarget>| {
+                    attack_state.0 = true;
+                },
+            );
 
         commands
             .spawn((button("Defend"), ChildOf(button_container)))
@@ -1222,6 +1248,78 @@ fn player_action_buttons(
     } else {
         for e in &existing {
             commands.entity(e).despawn();
+        }
+    }
+}
+
+fn player_attack_target_buttons(
+    mut commands: Commands,
+    awaiting_attack_target: Res<AwaitingPlayerAttackTarget>,
+    hud_area: Single<Entity, With<HudAreaBottomCenter>>,
+    existing: Query<Entity, With<PlayerAttackTargetButtonContainer>>,
+    enemies: Query<(Entity, &DisplayName), With<Enemy>>,
+    mut hovered: ResMut<HoveredAttackTarget>,
+) {
+    if !awaiting_attack_target.is_changed() {
+        return;
+    }
+
+    if awaiting_attack_target.0 {
+        let button_container = commands
+            .spawn((
+                PlayerAttackTargetButtonContainer,
+                Name::new("Attack Target Buttons Container"),
+                ChildOf(hud_area.entity()),
+                GlobalZIndex(LAYER_HUD),
+                Node {
+                    display: Display::Grid,
+                    grid_template_columns: RepeatedGridTrack::flex(2, 1.0),
+                    grid_template_rows: RepeatedGridTrack::flex(2, 1.0),
+                    column_gap: Val::Px(8.),
+                    row_gap: Val::Px(8.),
+                    ..Default::default()
+                },
+                DespawnOnExit(PlayState::InCombat),
+            ))
+            .id();
+
+        for (enemy_entity, enemy_name) in &enemies {
+            commands
+                .spawn((button(enemy_name.0.clone()), ChildOf(button_container)))
+                .observe(move |_: On<Pointer<Click>>, mut commands: Commands| {
+                    commands.trigger(PlayerCombatAction::Attack(enemy_entity));
+                })
+                .observe(
+                    move |_: On<Pointer<Over>>, mut hovered: ResMut<HoveredAttackTarget>| {
+                        hovered.0 = Some(enemy_entity);
+                    },
+                )
+                .observe(
+                    move |_: On<Pointer<Out>>, mut hovered: ResMut<HoveredAttackTarget>| {
+                        if hovered.0 == Some(enemy_entity) {
+                            hovered.0 = None;
+                        }
+                    },
+                );
+        }
+
+        commands
+            .spawn((button("Back"), ChildOf(button_container)))
+            .observe(
+                move |_: On<Pointer<Click>>,
+                      mut attack_state: ResMut<AwaitingPlayerAttackTarget>,
+                      mut action_state: ResMut<AwaitingPlayerAction>| {
+                    attack_state.0 = false;
+                    action_state.0 = true;
+                },
+            );
+    } else {
+        for e in &existing {
+            commands.entity(e).try_despawn();
+        }
+
+        if hovered.0.is_some() {
+            hovered.0 = None;
         }
     }
 }

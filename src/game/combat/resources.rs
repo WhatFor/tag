@@ -4,6 +4,12 @@ use bevy::prelude::*;
 #[derive(Resource, Default)]
 pub struct AwaitingPlayerAction(pub bool);
 
+#[derive(Resource, Default)]
+pub struct AwaitingPlayerAttackTarget(pub bool);
+
+#[derive(Resource, Default)]
+pub struct HoveredAttackTarget(pub Option<Entity>);
+
 #[derive(Default, Debug, Eq, PartialEq)]
 pub enum CombatPhase {
     #[default]
