@@ -15,6 +15,7 @@ pub use crate::game::combat::resources::AwaitingPlayerAction;
 pub use crate::game::combat::resources::CombatLog;
 pub use crate::game::combat::resources::CombatLogLine;
 pub use crate::game::combat::resources::CombatPhase;
+pub use crate::game::combat::resources::CombatResult;
 pub use crate::game::combat::resources::CombatState;
 pub use crate::game::combat::resources::TurnOrder;
 pub use crate::game::events::ApplyEffect;

@@ -12,11 +12,21 @@ pub enum CombatPhase {
     RoundCombat,
     EndOfRound,
     EndOfCombat,
+    LeavingCombat,
+}
+
+#[derive(Default, Debug, Eq, PartialEq)]
+pub enum CombatResult {
+    #[default]
+    Active,
+    PlayerWon,
+    PlayerLost,
 }
 
 #[derive(Resource, Default)]
 pub struct CombatState {
     pub phase: CombatPhase,
+    pub result: CombatResult,
 }
 
 #[derive(Resource, Default)]

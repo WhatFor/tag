@@ -3,7 +3,7 @@
     display_name: "Small Rat",
     max_health: 20,
     stats: Stats(
-        strength: 1,
+        strength: 10,
         agility: 1,
         speed: 1,
         armour: 1,

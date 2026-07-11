@@ -22,6 +22,7 @@ impl Plugin for CombatPhasePlugin {
                 round_combat.run_if(in_phase(CombatPhase::RoundCombat)),
                 end_round.run_if(in_phase(CombatPhase::EndOfRound)),
                 end_combat.run_if(in_phase(CombatPhase::EndOfCombat)),
+                leave_combat.run_if(in_phase(CombatPhase::LeavingCombat)),
             )
                 .run_if(in_state(PlayState::InCombat)),
         );
@@ -127,7 +128,7 @@ fn round_combat(
     mut commands: Commands,
     mut turn_order: ResMut<TurnOrder>,
     mut log: ResMut<CombatLog>,
-    player: Single<Entity, With<Player>>,
+    player: Single<(Entity, &Health), With<Player>>,
     mut enemies: Query<(Entity, &EffectiveStats, &MoveSet, &mut MovePlan), With<Enemy>>,
     mut state: ResMut<CombatState>,
     mut awaiting_player: ResMut<AwaitingPlayerAction>,
@@ -142,12 +143,22 @@ fn round_combat(
         return;
     };
 
+    let (player_entity, player_health) = *player;
+
     // Ticks DoTs, decreases buff durations, etc.
     commands.trigger(CombatantTurnStarted {
         combatant: active_combatant,
     });
 
-    if active_combatant == player.entity() {
+    if player_health.0 <= 0 {
+        // Player has died! Skip directly to end of round and end of combat.
+        state.phase = CombatPhase::EndOfRound;
+        state.result = CombatResult::PlayerLost;
+
+        return;
+    }
+
+    if active_combatant == player_entity.entity() {
         if awaiting_player.0 == false {
             info!("[Combat] Player turn...");
             awaiting_player.0 = true;
@@ -182,14 +193,14 @@ fn round_combat(
                 let total_damage = *potency + stat_for_type;
 
                 commands.trigger(Damage {
-                    damaged: *player,
+                    damaged: player_entity,
                     amount: total_damage,
                     damage_type: *damage_type,
                 });
 
                 log.lines.push(CombatLogLine::Attack(CombatLogAttack {
                     from: entity,
-                    to: player.entity(),
+                    to: player_entity.entity(),
                     attack_name: name.clone(),
                     attack_type: AttackType::Basic,
                     attack_damage: total_damage,
@@ -206,14 +217,14 @@ fn round_combat(
                 let total_damage = *potency + stat_for_type;
 
                 commands.trigger(Damage {
-                    damaged: *player,
+                    damaged: player_entity,
                     amount: total_damage,
                     damage_type: *damage_type,
                 });
 
                 log.lines.push(CombatLogLine::Attack(CombatLogAttack {
                     from: entity,
-                    to: player.entity(),
+                    to: player_entity.entity(),
                     attack_name: name.clone(),
                     attack_type: AttackType::Special,
                     attack_damage: total_damage,
@@ -261,9 +272,12 @@ fn round_combat(
 fn end_round(enemies: Query<(), With<Enemy>>, mut state: ResMut<CombatState>) {
     info!("[Combat] Entered EndRound");
 
-    // TODO: Handle player death
-
-    if enemies.is_empty() {
+    if state.result == CombatResult::PlayerLost {
+        info!("[Combat] Player has lost combat.");
+        state.phase = CombatPhase::EndOfCombat;
+    } else if enemies.is_empty() {
+        info!("[Combat] Player has won combat.");
+        state.result = CombatResult::PlayerWon;
         state.phase = CombatPhase::EndOfCombat;
     } else {
         state.phase = CombatPhase::StartOfRound;
@@ -271,33 +285,68 @@ fn end_round(enemies: Query<(), With<Enemy>>, mut state: ResMut<CombatState>) {
 }
 
 fn end_combat(
-    mut commands: Commands,
-    mut play_state: ResMut<NextState<PlayState>>,
+    mut combat_state: ResMut<CombatState>,
     mut log: ResMut<CombatLog>,
-    area: Single<(&AreaId, &CurrentArea), With<Player>>,
+    area: Single<&CurrentArea, With<Player>>,
     all_area_content: Query<&AreaContent, With<Area>>,
 ) {
     info!("[Combat] Entered EndCombat");
 
-    let Ok(AreaContent::Combat { win_lines, .. }) = all_area_content.get(area.1.0) else {
+    let Ok(AreaContent::Combat {
+        win_lines,
+        lose_lines,
+        ..
+    }) = all_area_content.get(area.0)
+    else {
         return;
     };
 
-    // TODO: pushing 'win_lines", but need to check if player lost or not
-    for line in win_lines {
-        log.lines.push(CombatLogLine::CombatResult(CombatLogResult {
-            message: line.clone(),
-            player_won: true,
-        }));
+    match combat_state.result {
+        CombatResult::Active => {
+            unreachable!("Cannot transition to combat end while CombatResult::Active")
+        }
+        CombatResult::PlayerWon => {
+            for line in win_lines {
+                log.lines.push(CombatLogLine::CombatResult(CombatLogResult {
+                    message: line.clone(),
+                    player_won: true,
+                }));
+            }
+        }
+        CombatResult::PlayerLost => {
+            for line in lose_lines {
+                log.lines.push(CombatLogLine::CombatResult(CombatLogResult {
+                    message: line.clone(),
+                    player_won: false,
+                }));
+            }
+        }
     }
 
+    combat_state.phase = CombatPhase::LeavingCombat;
+}
+
+fn leave_combat(
+    mut commands: Commands,
+    mut play_state: ResMut<NextState<PlayState>>,
+    combat_state: Res<CombatState>,
+    mut log: ResMut<CombatLog>,
+    area: Single<&CurrentArea, With<Player>>,
+    all_area_content: Query<(&AreaId, &AreaContent), With<Area>>,
+) {
     // TODO: looting
+    //
+    // commands.trigger(PlayerDied {
+    //     reason: DeathReason::NoHealth,
+    // });
 
-    play_state.set(PlayState::Exploring);
+    // TODO: need to handle what happens at end of combat
+    // play_state.set(PlayState::Exploring);
 
-    commands.trigger(PlayerContinued {
-        from: area.0.clone(),
-    });
+    // TODO: need to handle what happens at end of combat
+    // commands.trigger(PlayerContinued {
+    //     from: area.0.clone(),
+    // });
 }
 
 fn on_player_action(

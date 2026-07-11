@@ -30,7 +30,6 @@ impl Plugin for CombatPlugin {
         app.add_observer(on_combatant_turn_start);
         app.add_observer(on_heal);
         app.add_observer(on_damage);
-        app.add_observer(on_player_died);
         app.add_observer(on_enemy_died);
         app.add_observer(on_apply_effect);
     }
@@ -138,11 +137,7 @@ fn on_heal(trigger: On<Heal>, mut healths: Query<(&mut Health, &MaxHealth)>) {
     health.0 = min(max_health.0, health.0 + trigger.amount);
 }
 
-fn on_damage(
-    trigger: On<Damage>,
-    mut commands: Commands,
-    mut params: Query<(&mut Health, &Statuses, &EffectiveStats)>,
-) {
+fn on_damage(trigger: On<Damage>, mut params: Query<(&mut Health, &Statuses, &EffectiveStats)>) {
     let Ok((mut health, statuses, stats)) = params.get_mut(trigger.damaged) else {
         return;
     };
@@ -162,22 +157,6 @@ fn on_damage(
     let reduced_damage = max(0, trigger.amount - resistance_amount - stats.0.armour);
 
     health.0 = max(0, health.0 - reduced_damage);
-
-    if health.0 == 0 {
-        commands.trigger(Died {
-            died: trigger.damaged,
-        });
-    }
-}
-
-fn on_player_died(trigger: On<Died>, players: Query<(), With<Player>>, mut commands: Commands) {
-    if players.get(trigger.died).is_err() {
-        return;
-    }
-
-    commands.trigger(PlayerDied {
-        reason: DeathReason::NoHealth,
-    });
 }
 
 fn on_enemy_died(trigger: On<Died>, enemies: Query<(), With<Enemy>>, mut commands: Commands) {
