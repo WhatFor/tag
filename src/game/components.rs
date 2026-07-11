@@ -81,6 +81,12 @@ pub enum DamageKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub enum AttackType {
+    Basic,
+    Special,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 pub enum DamageType {
     None,
     Slash,

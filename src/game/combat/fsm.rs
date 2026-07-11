@@ -187,6 +187,7 @@ fn round_combat(
                     from: entity,
                     to: player.entity(),
                     attack_name: name.clone(),
+                    attack_type: AttackType::Basic,
                     attack_damage: dmg,
                     damage_type: *damage_type,
                 }));
@@ -210,6 +211,7 @@ fn round_combat(
                     from: entity,
                     to: player.entity(),
                     attack_name: name.clone(),
+                    attack_type: AttackType::Special,
                     attack_damage: dmg,
                     damage_type: *damage_type,
                 }));

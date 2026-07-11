@@ -38,6 +38,7 @@ pub use crate::components::Description;
 pub use crate::components::DisplayName;
 pub use crate::game::components::ActiveStatus;
 pub use crate::game::components::ArmourBonus;
+pub use crate::game::components::AttackType;
 pub use crate::game::components::DamageKind;
 pub use crate::game::components::DamageType;
 pub use crate::game::components::DotKind;

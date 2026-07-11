@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::game::combat::resources::CombatLogAttack;
 use crate::ui::layout::GameArea;
 use crate::ui::layout::HudAreaBottomCenter;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
@@ -347,7 +348,11 @@ fn draw_combat_log(
     mut commands: Commands,
     log: Res<CombatLog>,
     container: Single<Entity, With<CombatLogScrollArea>>,
+    enemies: Query<(&DisplayName, &EnemyId), With<Enemy>>,
+    player: Single<Entity, With<Player>>,
     fonts: Res<FontAssets>,
+    enemy_icons: Res<EnemyIconAssets>,
+    ui_icons: Res<UiIconAssets>,
 ) {
     if !log.is_changed() {
         return;
@@ -366,10 +371,116 @@ fn draw_combat_log(
                             fonts.ui_color.clone(),
                         ));
                     }
-                    CombatLogLine::Attack(combat_log_attack) => todo!(),
-                    CombatLogLine::Effect(effect) => todo!(),
-                    CombatLogLine::Defend(_) => todo!(),
-                    CombatLogLine::CombatResult(combat_log_result) => todo!(),
+                    CombatLogLine::Attack(attack) => {
+                        let CombatLogAttack {
+                            attack_name,
+                            attack_type,
+                            attack_damage,
+                            from,
+                            to,
+                            damage_type,
+                        } = attack;
+
+                        // Container
+                        c.spawn((
+                            Node {
+                                flex_direction: FlexDirection::Row,
+                                column_gap: Val::Px(8.),
+                                justify_content: JustifyContent::Stretch,
+                                border: UiRect::all(Val::Px(2.)),
+                                padding: UiRect::all(Val::Px(8.)),
+                                margin: UiRect::all(Val::Px(2.)),
+                                ..default()
+                            },
+                            BorderColor::all(Color::srgb(8., 0.1, 0.1)),
+                        ))
+                        .with_children(|container| {
+                            // From
+                            let (from_name, from_icon) = match enemies.get(*from) {
+                                Ok((name, id)) => (name.0.clone(), id.0.clone()),
+
+                                Err(_) if player.entity() == *from => {
+                                    (String::from("You"), String::from("player"))
+                                }
+
+                                Err(_) => {
+                                    panic!("combat log attack source was neither enemy nor player: {from:?}");
+                                }
+                            };
+
+                            draw_portrait(container, &enemy_icons, &from_name, &from_icon);
+
+                            // Attack Name
+                            container.spawn((
+                                Text::new(format!("{} used {}", from_name, attack_name)),
+                                fonts.ui_font.clone(),
+                                fonts.ui_color,
+                                Node {
+                                    flex_grow: 1.,
+                                    position_type: PositionType::Relative,
+                                    ..default()
+                                },
+                            ));
+
+                            let move_type_icon_id = match attack_type {
+                                AttackType::Basic => "attack",
+                                AttackType::Special => "special",
+                            };
+
+                            let Some(move_type_icon) = ui_icons.icons.get(move_type_icon_id) else {
+                                return;
+                            };
+
+                            container.spawn((
+                                Node {
+                                    flex_direction: FlexDirection::Row,
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    column_gap: Val::Px(4.),
+                                    ..default()
+                                },
+                                children![
+                                    (
+                                        ImageNode::new(move_type_icon.clone()),
+                                        Node {
+                                            width: Val::Px(32.),
+                                            height: Val::Px(32.),
+                                            ..default()
+                                        },
+                                        Pickable::IGNORE,
+                                    ),
+                                    (
+                                        Text::new(attack_damage.to_string()),
+                                        fonts.ui_font.clone(),
+                                        TextColor(Color::WHITE),
+                                        Node {
+                                            position_type: PositionType::Relative,
+                                            bottom: Val::Px(2.), // Bump font up slightly
+                                            ..default()
+                                        },
+                                    )
+                                ],
+                            ));
+
+                            // To
+                            let (to_name, to_icon) = match enemies.get(*to) {
+                                Ok((name, id)) => (name.0.clone(), id.0.clone()),
+
+                                Err(_) if player.entity() == *to => {
+                                    (String::from("You"), String::from("player"))
+                                }
+
+                                Err(_) => {
+                                    panic!("combat log attack target was neither enemy nor player: {from:?}");
+                                }
+                            };
+
+                            draw_portrait(container, &enemy_icons, &to_name, &to_icon);
+                        });
+                    }
+                    CombatLogLine::Effect(effect) => {},
+                    CombatLogLine::Defend(_) => {},
+                    CombatLogLine::CombatResult(combat_log_result) => {},
                 }
             }
         });
@@ -465,33 +576,7 @@ fn draw_enemy_stats(
                                 ..default()
                             })
                             .with_children(|row| {
-                                let Some(icon) = enemy_icons.icons.get(id.0.as_str()) else {
-                                    panic!("NO ICON!");
-                                };
-
-                                row.spawn((
-                                    Node {
-                                        flex_direction: FlexDirection::Row,
-                                        justify_content: JustifyContent::Center,
-                                        align_items: AlignItems::Center,
-                                        border: UiRect::all(Val::Px(2.)),
-                                        border_radius: BorderRadius::all(Val::Percent(100.)),
-                                        padding: UiRect::all(Val::Px(4.)),
-                                        ..default()
-                                    },
-                                    Tooltip::basic(name.0.clone()),
-                                    BackgroundColor(Color::srgb(0.5, 0.5, 0.5)),
-                                    BorderColor::all(Color::srgb(1., 1., 1.)),
-                                    children![(
-                                        ImageNode::new(icon.clone()),
-                                        Node {
-                                            width: Val::Px(32.),
-                                            height: Val::Px(32.),
-                                            ..default()
-                                        },
-                                        Pickable::IGNORE,
-                                    )],
-                                ));
+                                draw_portrait(row, &enemy_icons, &name.0, &id.0);
 
                                 row.spawn((
                                     Text::new(name.0.clone()),
@@ -710,34 +795,7 @@ fn draw_turn_order(
                     return;
                 };
 
-                let Some(icon) = enemy_icons.icons.get(id.as_str()) else {
-                    panic!("NO ICON!");
-                };
-
-                p.spawn((
-                    CombatantTurnIcon(*e),
-                    Node {
-                        flex_direction: FlexDirection::Row,
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        border: UiRect::all(Val::Px(2.)),
-                        border_radius: BorderRadius::all(Val::Percent(100.)),
-                        padding: UiRect::all(Val::Px(4.)),
-                        ..default()
-                    },
-                    Tooltip::basic(name.clone()),
-                    BackgroundColor(Color::srgb(0.5, 0.5, 0.5)),
-                    BorderColor::all(Color::srgb(1., 1., 1.)),
-                    children![(
-                        ImageNode::new(icon.clone()),
-                        Node {
-                            width: Val::Px(32.),
-                            height: Val::Px(32.),
-                            ..default()
-                        },
-                        Pickable::IGNORE,
-                    )],
-                ));
+                draw_portrait(p, &enemy_icons, &name, &id).insert(CombatantTurnIcon(*e));
             }
         });
 }
@@ -942,6 +1000,41 @@ fn draw_stats(
                     );
                 });
         });
+}
+
+fn draw_portrait<'a>(
+    parent: &'a mut RelatedSpawnerCommands<'_, ChildOf>,
+    enemy_icons: &Res<EnemyIconAssets>,
+    name: &String,
+    icon_id: &String,
+) -> EntityCommands<'a> {
+    let Some(icon) = enemy_icons.icons.get(icon_id.as_str()) else {
+        panic!("No icon!");
+    };
+
+    parent.spawn((
+        Node {
+            flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            border: UiRect::all(Val::Px(2.)),
+            border_radius: BorderRadius::all(Val::Percent(100.)),
+            padding: UiRect::all(Val::Px(4.)),
+            ..default()
+        },
+        Tooltip::basic(name.clone()),
+        BackgroundColor(Color::srgb(0.5, 0.5, 0.5)),
+        BorderColor::all(Color::srgb(1., 1., 1.)),
+        children![(
+            ImageNode::new(icon.clone()),
+            Node {
+                width: Val::Px(32.),
+                height: Val::Px(32.),
+                ..default()
+            },
+            Pickable::IGNORE,
+        )],
+    ))
 }
 
 fn player_action_buttons(
