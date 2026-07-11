@@ -27,6 +27,7 @@ impl Plugin for CombatPlugin {
             recompute_effective_enemy_stats.run_if(in_state(PlayState::InCombat)),
         );
 
+        app.add_observer(on_combatant_turn_start);
         app.add_observer(on_heal);
         app.add_observer(on_damage);
         app.add_observer(on_player_died);
@@ -97,6 +98,36 @@ pub fn effective_stats(
     let total = *base + stats_from_equipment + stats_from_statuses;
 
     EffectiveStats(total)
+}
+
+fn on_combatant_turn_start(
+    trigger: On<CombatantTurnStarted>,
+    mut commands: Commands,
+    mut statuses: Query<&mut Statuses>,
+) {
+    // The given entity has just started a turn.
+    //  - Tick DoTs
+    //  - Tick all durations, removing if expired
+    let Ok(mut statuses) = statuses.get_mut(trigger.combatant) else {
+        return;
+    };
+
+    for status in statuses.0.iter_mut() {
+        match status.effect {
+            StatusEffect::DamageOverTime { kind, potency } => {
+                commands.trigger(Damage {
+                    damaged: trigger.combatant,
+                    amount: potency,
+                    damage_type: kind.get_damage_type(),
+                });
+            }
+            _ => { /* No action needed */ }
+        }
+
+        status.turns -= 1;
+    }
+
+    statuses.0.retain(|s| s.turns > 0);
 }
 
 fn on_heal(trigger: On<Heal>, mut healths: Query<(&mut Health, &MaxHealth)>) {

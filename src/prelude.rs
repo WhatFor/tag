@@ -18,6 +18,7 @@ pub use crate::game::combat::resources::CombatPhase;
 pub use crate::game::combat::resources::CombatState;
 pub use crate::game::combat::resources::TurnOrder;
 pub use crate::game::events::ApplyEffect;
+pub use crate::game::events::CombatantTurnStarted;
 pub use crate::game::events::Damage;
 pub use crate::game::events::Died;
 pub use crate::game::events::GiveGold;

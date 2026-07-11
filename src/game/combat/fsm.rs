@@ -1,4 +1,5 @@
 use crate::game::combat::resources::CombatLogDefend;
+use crate::game::events::CombatantTurnStarted;
 use crate::prelude::*;
 use bevy::prelude::*;
 
@@ -142,7 +143,10 @@ fn round_combat(
         return;
     };
 
-    // TODO: Tick dots
+    // Ticks DoTs, decreases buff durations, etc.
+    commands.trigger(CombatantTurnStarted {
+        combatant: active_combatant,
+    });
 
     if active_combatant == player.entity() {
         if awaiting_player.0 == false {

@@ -14,6 +14,12 @@ pub struct PlayerChose {
 }
 
 #[derive(EntityEvent)]
+pub struct CombatantTurnStarted {
+    #[event_target]
+    pub combatant: Entity,
+}
+
+#[derive(EntityEvent)]
 pub struct Heal {
     #[event_target]
     pub healed: Entity,
