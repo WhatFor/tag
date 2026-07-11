@@ -38,6 +38,13 @@ impl Command for GiveItem {
             world.spawn(item(&def)).id()
         };
 
+        if let Some(stats) = def.stats {
+            world
+                .commands()
+                .entity(item_entity)
+                .insert(StatBonus(stats));
+        };
+
         if let Some(slot) = def.slot {
             world
                 .commands()

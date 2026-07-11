@@ -106,7 +106,6 @@
 
 
 ### Combat TODO
-- Show item slot in item tooltip if equippable
 - Invent UI for slots
 
 ### Half Finished (not tested/used)

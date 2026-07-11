@@ -207,6 +207,12 @@ pub struct Equipment(pub HashMap<EquipmentSlot, Entity>);
 #[reflect(Component)]
 pub struct Gold(pub u32);
 
+impl std::iter::Sum for Stats {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Stats::default(), |acc, stats| acc + stats)
+    }
+}
+
 impl std::ops::Add for Stats {
     type Output = Stats;
 

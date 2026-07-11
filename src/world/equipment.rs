@@ -31,6 +31,13 @@ impl Command for EquipItem {
 
         let item_entity = world.spawn((item(&def), Equippable(slot))).id();
 
+        if let Some(stats) = def.stats {
+            world
+                .commands()
+                .entity(item_entity)
+                .insert(StatBonus(stats));
+        };
+
         let mut recipient = world.entity_mut(self.recipient);
 
         match recipient.get_mut::<Equipment>() {

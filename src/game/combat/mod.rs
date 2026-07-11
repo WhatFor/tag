@@ -43,33 +43,60 @@ fn recompute_effective_player_stats(
             Or<(Changed<Stats>, Changed<Equipment>, Changed<Statuses>)>,
         ),
     >,
-    //bonuses: Query<&StatBonus>,
+    bonuses: Query<&StatBonus>,
 ) {
-    for (base, _equipment, _statuses, mut out) in &mut player {
-        // TODO: Real calc
-        let next = *base;
+    // StatBonus comes from items
+    // Statuses may include a Stat bonus, from stuff like potions/defending/etc.
+    for (base, equipment, statuses, mut out) in &mut player {
+        let stats_from_equipment: Vec<&StatBonus> = equipment
+            .0
+            .values()
+            .filter_map(|equipment_entity| bonuses.get(*equipment_entity).ok())
+            .collect();
 
-        if out.0 != next {
-            out.0 = next;
+        let next = effective_stats(base, stats_from_equipment, statuses);
+
+        if out.0 != next.0 {
+            out.0 = next.0;
         }
     }
 }
 
 fn recompute_effective_enemy_stats(
-    mut player: Query<
+    mut enemies: Query<
         (&Stats, &Statuses, &mut EffectiveStats),
         (With<Enemy>, Or<(Changed<Stats>, Changed<Statuses>)>),
     >,
-    //bonuses: Query<&StatBonus>,
 ) {
-    for (base, _statuses, mut out) in &mut player {
-        // TODO: Real calc
-        let next = *base;
+    // Does not include equipment for enemies
+    for (base, statuses, mut out) in &mut enemies {
+        let next = effective_stats(base, vec![], statuses);
 
-        if out.0 != next {
-            out.0 = next;
+        if out.0 != next.0 {
+            out.0 = next.0;
         }
     }
+}
+
+pub fn effective_stats(
+    base: &Stats,
+    equipment_bonuses: Vec<&StatBonus>,
+    statuses: &Statuses,
+) -> EffectiveStats {
+    let stats_from_equipment: Stats = equipment_bonuses.iter().copied().map(|b| b.0).sum();
+
+    let stats_from_statuses: Stats = statuses
+        .0
+        .iter()
+        .filter_map(|status| match status.effect {
+            StatusEffect::StatModifier { stats } => Some(stats),
+            _ => None,
+        })
+        .sum();
+
+    let total = *base + stats_from_equipment + stats_from_statuses;
+
+    EffectiveStats(total)
 }
 
 fn on_heal(trigger: On<Heal>, mut healths: Query<(&mut Health, &MaxHealth)>) {
