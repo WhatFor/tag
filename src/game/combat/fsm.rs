@@ -299,9 +299,11 @@ fn end_combat(
 
 fn on_player_action(
     trigger: On<PlayerCombatAction>,
+    mut commands: Commands,
     mut log: ResMut<CombatLog>,
     mut awaiting_player: ResMut<AwaitingPlayerAction>,
     mut turn_order: ResMut<TurnOrder>,
+    player_entity: Single<Entity, With<Player>>,
 ) {
     if awaiting_player.0 == false {
         return;
@@ -315,9 +317,24 @@ fn on_player_action(
                 .push(CombatLogLine::Text(format!("TODO You atack something.")));
         }
         PlayerCombatAction::Defend => {
-            log.lines.push(CombatLogLine::Text(format!(
-                "TODO You defend, or something."
-            )));
+            // TODO: How much does the player defend for?
+            let potency = 1;
+
+            commands.trigger(ApplyEffect {
+                target: *player_entity,
+                effect: Effect::Buff {
+                    stats: Stats {
+                        armour: potency,
+                        ..default()
+                    },
+                    duration: 1,
+                },
+            });
+
+            log.lines.push(CombatLogLine::Defend(CombatLogDefend {
+                entity: *player_entity,
+                potency: potency,
+            }));
         }
     }
 

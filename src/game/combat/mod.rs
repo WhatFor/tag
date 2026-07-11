@@ -110,9 +110,9 @@ fn on_heal(trigger: On<Heal>, mut healths: Query<(&mut Health, &MaxHealth)>) {
 fn on_damage(
     trigger: On<Damage>,
     mut commands: Commands,
-    mut healths: Query<(&mut Health, &Statuses)>,
+    mut params: Query<(&mut Health, &Statuses, &EffectiveStats)>,
 ) {
-    let Ok((mut health, statuses)) = healths.get_mut(trigger.damaged) else {
+    let Ok((mut health, statuses, stats)) = params.get_mut(trigger.damaged) else {
         return;
     };
 
@@ -128,7 +128,7 @@ fn on_damage(
         })
         .sum();
 
-    let reduced_damage = max(0, trigger.amount - resistance_amount);
+    let reduced_damage = max(0, trigger.amount - resistance_amount - stats.0.armour);
 
     health.0 = max(0, health.0 - reduced_damage);
 

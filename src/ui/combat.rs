@@ -618,6 +618,7 @@ fn draw_enemy_stats(
             Entity,
             &Health,
             &MaxHealth,
+            &Stats,
             &EffectiveStats,
             &DisplayName,
             &EnemyId,
@@ -640,7 +641,17 @@ fn draw_enemy_stats(
         .despawn_children()
         .with_children(|panel| {
             for enemy in enemies {
-                let (entity, health, max, stats, name, id, move_set, move_plan) = enemy;
+                let (
+                    entity,
+                    health,
+                    max,
+                    base_stats,
+                    effective_stats,
+                    name,
+                    id,
+                    move_set,
+                    move_plan,
+                ) = enemy;
 
                 panel
                     .spawn((
@@ -695,7 +706,13 @@ fn draw_enemy_stats(
                             })
                             .with_children(|stats_area| {
                                 draw_hp(stats_area, health.0, max.0, &fonts);
-                                draw_stats(stats_area, stats.0, &ui_icons, &fonts);
+                                draw_stats(
+                                    stats_area,
+                                    effective_stats.0,
+                                    *base_stats,
+                                    &ui_icons,
+                                    &fonts,
+                                );
                             });
 
                         // Moves
@@ -857,7 +874,11 @@ fn draw_player_stats(
         .despawn_children()
         .with_children(|panel| {
             draw_hp(panel, health.0, max.0, &fonts);
-            draw_stats(panel, stats.0, &icons, &fonts);
+            // Passing EffectiveStats for both 'current' and 'base'
+            // because I don't really want the player stats to be highlighted when buffed
+            // as it includes buffs from equipment atm and that's not 'temporary'
+            // so TODO: pass just the 'bonus stats from buffs' to decide to highlight stats.
+            draw_stats(panel, stats.0, stats.0, &icons, &fonts);
         });
 }
 
@@ -980,13 +1001,21 @@ fn draw_hp(
 fn draw_stat(
     parent: &mut RelatedSpawnerCommands<'_, ChildOf>,
     label: &str,
-    value: String,
+    current_value: String,
+    base_value: String,
     icon_key: &str,
     icon_store: &Res<UiIconAssets>,
     font_store: &Res<FontAssets>,
 ) {
     let Some(icon) = icon_store.icons.get(icon_key) else {
         return;
+    };
+
+    // Highlight stats that are buffed
+    let text_colour = if current_value > base_value {
+        TextColor(Color::srgb(0.1, 1.0, 0.1))
+    } else {
+        font_store.ui_color
     };
 
     parent.spawn((
@@ -1000,9 +1029,9 @@ fn draw_stat(
         },
         children![
             (
-                Text::new(value),
+                Text::new(current_value),
                 font_store.ui_font.clone(),
-                font_store.ui_color.clone(),
+                text_colour,
                 Pickable::IGNORE
             ),
             (
@@ -1020,7 +1049,8 @@ fn draw_stat(
 
 fn draw_stats(
     parent: &mut RelatedSpawnerCommands<'_, ChildOf>,
-    stats: Stats,
+    current_stats: Stats,
+    base_stats: Stats,
     icon_store: &Res<UiIconAssets>,
     font_store: &Res<FontAssets>,
 ) {
@@ -1045,7 +1075,8 @@ fn draw_stats(
                     draw_stat(
                         row,
                         "Strength",
-                        stats.strength.to_string(),
+                        current_stats.strength.to_string(),
+                        base_stats.strength.to_string(),
                         "strength",
                         icon_store,
                         font_store,
@@ -1053,7 +1084,8 @@ fn draw_stats(
                     draw_stat(
                         row,
                         "Agility",
-                        stats.agility.to_string(),
+                        current_stats.agility.to_string(),
+                        base_stats.agility.to_string(),
                         "agility",
                         icon_store,
                         font_store,
@@ -1061,7 +1093,8 @@ fn draw_stats(
                     draw_stat(
                         row,
                         "Intelligence",
-                        stats.intelligence.to_string(),
+                        current_stats.intelligence.to_string(),
+                        base_stats.intelligence.to_string(),
                         "intelligence",
                         icon_store,
                         font_store,
@@ -1080,7 +1113,8 @@ fn draw_stats(
                     draw_stat(
                         row,
                         "Speed",
-                        stats.speed.to_string(),
+                        current_stats.speed.to_string(),
+                        base_stats.speed.to_string(),
                         "speed",
                         icon_store,
                         font_store,
@@ -1088,7 +1122,8 @@ fn draw_stats(
                     draw_stat(
                         row,
                         "Armour",
-                        stats.armour.to_string(),
+                        current_stats.armour.to_string(),
+                        base_stats.armour.to_string(),
                         "armour",
                         icon_store,
                         font_store,
