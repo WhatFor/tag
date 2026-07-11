@@ -107,6 +107,7 @@
 
 ### Combat TODO
 - Invent UI for slots
+- The combat log reports damage dealt without taking into account target armour
 
 ### Half Finished (not tested/used)
 - Items with Effects

@@ -278,6 +278,20 @@ impl DotKind {
 }
 
 impl DamageType {
+    pub fn primary_stat(&self, stats: &Stats) -> i32 {
+        match self {
+            DamageType::None => 0,
+            DamageType::Slash => stats.strength,
+            DamageType::Stab => stats.strength,
+            DamageType::Smash => stats.strength,
+            DamageType::Fire => stats.intelligence,
+            DamageType::Ice => stats.intelligence,
+            DamageType::Poison => stats.intelligence,
+            DamageType::Necrotic => stats.intelligence,
+            DamageType::Lightning => stats.intelligence,
+        }
+    }
+
     pub fn get_damage_kind(&self) -> DamageKind {
         match self {
             DamageType::None => DamageKind::None,

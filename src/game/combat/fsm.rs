@@ -128,7 +128,7 @@ fn round_combat(
     mut turn_order: ResMut<TurnOrder>,
     mut log: ResMut<CombatLog>,
     player: Single<Entity, With<Player>>,
-    mut enemies: Query<(Entity, &MoveSet, &mut MovePlan), With<Enemy>>,
+    mut enemies: Query<(Entity, &EffectiveStats, &MoveSet, &mut MovePlan), With<Enemy>>,
     mut state: ResMut<CombatState>,
     mut awaiting_player: ResMut<AwaitingPlayerAction>,
     time: Res<Time>,
@@ -167,7 +167,7 @@ fn round_combat(
         return;
     }
 
-    if let Ok((entity, move_set, mut move_plan)) = enemies.get_mut(active_combatant) {
+    if let Ok((entity, stats, move_set, mut move_plan)) = enemies.get_mut(active_combatant) {
         info!("[Combat] Enemy {:?} turn...", entity);
 
         let next_move_index = *move_plan.queue.front().unwrap();
@@ -178,12 +178,12 @@ fn round_combat(
                 potency,
                 damage_type,
             } => {
-                // TODO: need to take into account buffs and stats
-                let dmg = *potency;
+                let stat_for_type = damage_type.primary_stat(&stats.0);
+                let total_damage = *potency + stat_for_type;
 
                 commands.trigger(Damage {
                     damaged: *player,
-                    amount: dmg,
+                    amount: total_damage,
                     damage_type: *damage_type,
                 });
 
@@ -192,7 +192,7 @@ fn round_combat(
                     to: player.entity(),
                     attack_name: name.clone(),
                     attack_type: AttackType::Basic,
-                    attack_damage: dmg,
+                    attack_damage: total_damage,
                     damage_type: *damage_type,
                 }));
             }
@@ -202,12 +202,12 @@ fn round_combat(
                 damage_type,
                 ..
             } => {
-                // TODO: need to take into account buffs and stats
-                let dmg = *potency;
+                let stat_for_type = damage_type.primary_stat(&stats.0);
+                let total_damage = *potency + stat_for_type;
 
                 commands.trigger(Damage {
                     damaged: *player,
-                    amount: dmg,
+                    amount: total_damage,
                     damage_type: *damage_type,
                 });
 
@@ -216,7 +216,7 @@ fn round_combat(
                     to: player.entity(),
                     attack_name: name.clone(),
                     attack_type: AttackType::Special,
-                    attack_damage: dmg,
+                    attack_damage: total_damage,
                     damage_type: *damage_type,
                 }));
             }
