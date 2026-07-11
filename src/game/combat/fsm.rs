@@ -218,7 +218,16 @@ fn round_combat(
                 }));
             }
             EnemyMove::Defend { potency, .. } => {
-                // TODO: Actually defend (with a buff for 1 turn?)
+                commands.trigger(ApplyEffect {
+                    target: entity,
+                    effect: Effect::Buff {
+                        stats: Stats {
+                            armour: *potency,
+                            ..default()
+                        },
+                        duration: 1,
+                    },
+                });
 
                 log.lines.push(CombatLogLine::Defend(CombatLogDefend {
                     entity: entity,
