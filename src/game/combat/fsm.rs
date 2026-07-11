@@ -92,14 +92,12 @@ fn start_combat(
 }
 
 fn start_round(
-    player: Single<(Entity, &Stats), With<Player>>,
-    enemies: Query<(Entity, &Stats), With<Enemy>>,
+    player: Single<(Entity, &EffectiveStats), With<Player>>,
+    enemies: Query<(Entity, &EffectiveStats), With<Enemy>>,
     mut turn_order: ResMut<TurnOrder>,
     mut state: ResMut<CombatState>,
 ) {
     info!("[Combat] Entered StartRound");
-
-    // TODO: This needs to account for buffs, not just raw Stats
 
     turn_order.queue = {
         let player = (player.0, *player.1);
@@ -109,9 +107,10 @@ fn start_round(
 
         // Fastest first; Tie-break using agility.
         combatants.sort_by(|a, b| {
-            b.1.speed
-                .cmp(&a.1.speed)
-                .then(b.1.agility.cmp(&a.1.agility))
+            b.1.0
+                .speed
+                .cmp(&a.1.0.speed)
+                .then(b.1.0.agility.cmp(&a.1.0.agility))
         });
 
         combatants.into_iter().map(|(e, _)| e).collect()

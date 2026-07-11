@@ -158,7 +158,7 @@ pub struct Stats {
 pub struct StatBonus(pub Stats);
 
 // A 'cached' result of the effective stats (base + equipment + buffs)
-#[derive(Component, Default)]
+#[derive(Component, Clone, Copy, Default)]
 pub struct EffectiveStats(pub Stats);
 
 // Used when an item or effect modifies armour
