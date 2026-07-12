@@ -20,6 +20,8 @@ pub struct EnemyDef {
     pub max_health: i32,
     pub stats: Stats,
     pub moves: Vec<EnemyMove>,
+    pub loot: Vec<EnemyLoot>,
+    pub gold: u32,
 }
 
 #[derive(Resource, Default, Debug, Deref, DerefMut)]
@@ -61,6 +63,8 @@ fn add_resource(
                 max_health: data.max_health,
                 stats: data.stats,
                 moves: data.moves.clone(),
+                loot: data.loot.clone(),
+                gold: data.gold,
             },
         );
     }

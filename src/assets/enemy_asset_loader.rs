@@ -12,6 +12,8 @@ pub struct EnemyData {
     pub max_health: i32,
     pub stats: Stats,
     pub moves: Vec<EnemyMove>,
+    pub loot: Vec<EnemyLoot>,
+    pub gold: u32,
 }
 
 #[derive(Default, TypePath)]

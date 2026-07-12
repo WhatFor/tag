@@ -1,13 +1,16 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::game::combat::in_combat_phase;
 use crate::game::combat::resources::AwaitingPlayerAttackTarget;
 use crate::game::combat::resources::CombatLogAttack;
 use crate::game::combat::resources::CombatLogDefend;
 use crate::game::combat::resources::CombatLogResult;
 use crate::game::combat::resources::HoveredAttackTarget;
+use crate::game::components::CombatSlot;
 use crate::ui::layout::GameArea;
 use crate::ui::layout::HudAreaBottomCenter;
+use crate::ui::layout::ScreenRoot;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
 
 const BORDER_IDLE: Color = Color::srgb(1., 1., 1.);
@@ -48,6 +51,9 @@ pub struct PlayerCombatantContent;
 
 #[derive(Component)]
 pub struct TurnOrderContent;
+
+#[derive(Component)]
+pub struct LeavingContentContainer;
 
 #[derive(Component)]
 pub struct CombatantPanel(pub Entity);
@@ -116,6 +122,13 @@ impl Plugin for CombatUIPlugin {
         app.add_systems(
             Update,
             player_attack_target_buttons.run_if(in_state(PlayState::InCombat)),
+        );
+
+        app.add_systems(
+            Update,
+            draw_leaving_combat.run_if(
+                in_state(PlayState::InCombat).and(in_combat_phase(CombatPhase::LeavingCombat)),
+            ),
         );
     }
 }
@@ -620,6 +633,7 @@ fn draw_enemy_stats(
                 Changed<MaxHealth>,
                 Changed<EffectiveStats>,
                 Changed<MovePlan>,
+                Added<Dead>,
             )>,
         ),
     >,
@@ -634,6 +648,8 @@ fn draw_enemy_stats(
             &EnemyId,
             &MoveSet,
             &MovePlan,
+            Option<&Dead>,
+            &CombatSlot,
         ),
         With<Enemy>,
     >,
@@ -646,11 +662,15 @@ fn draw_enemy_stats(
         return;
     }
 
+    // Sort by CombatSlot
+    let mut ordered: Vec<_> = enemies.iter().collect();
+    ordered.sort_by_key(|enemy| enemy.10.0);
+
     commands
         .entity(*panel)
         .despawn_children()
         .with_children(|panel| {
-            for enemy in enemies {
+            for enemy in ordered {
                 let (
                     entity,
                     health,
@@ -661,6 +681,8 @@ fn draw_enemy_stats(
                     id,
                     move_set,
                     move_plan,
+                    dead,
+                    ..,
                 ) = enemy;
 
                 panel
@@ -727,6 +749,23 @@ fn draw_enemy_stats(
 
                         // Moves
                         draw_enemy_moves(enemy_panel, move_set, move_plan, &fonts, &ui_icons);
+
+                        // Dead overlay
+                        if dead.is_some() {
+                            enemy_panel.spawn((
+                                Node {
+                                    position_type: PositionType::Absolute,
+                                    top: Val::Px(0.),
+                                    left: Val::Px(0.),
+                                    width: Val::Percent(100.),
+                                    height: Val::Percent(100.),
+                                    ..default()
+                                },
+                                BackgroundColor(Color::srgba(0., 0., 0., 0.6)),
+                                GlobalZIndex(1),
+                                Pickable::IGNORE,
+                            ));
+                        }
                     });
             }
         });
@@ -896,7 +935,7 @@ fn draw_turn_order(
     mut commands: Commands,
     turn_order: Res<TurnOrder>,
     panel: Single<Entity, With<TurnOrderContent>>,
-    enemies: Query<(Entity, &DisplayName, &EnemyId), With<Enemy>>,
+    enemies: Query<(Entity, &DisplayName, &EnemyId, Option<&Dead>), With<Enemy>>,
     player: Single<Entity, With<Player>>,
     enemy_icons: Res<EnemyIconAssets>,
 ) {
@@ -909,7 +948,8 @@ fn draw_turn_order(
     combatants.extend(
         enemies
             .iter()
-            .map(|(e, name, id)| (e, name.0.clone(), id.0.clone())),
+            .filter(|c| c.3.is_none()) // Skip dead
+            .map(|(e, name, id, _)| (e, name.0.clone(), id.0.clone())),
     );
 
     commands
@@ -918,7 +958,7 @@ fn draw_turn_order(
         .with_children(|p| {
             for entity in turn_order.queue.iter() {
                 let Some((e, name, id)) = combatants.iter().find(|c| c.0 == *entity) else {
-                    return;
+                    continue; // Dead or removed; No need to draw
                 };
 
                 draw_portrait(p, &enemy_icons, &name, &id).insert(CombatantTurnIcon(*e));
@@ -1257,7 +1297,7 @@ fn player_attack_target_buttons(
     awaiting_attack_target: Res<AwaitingPlayerAttackTarget>,
     hud_area: Single<Entity, With<HudAreaBottomCenter>>,
     existing: Query<Entity, With<PlayerAttackTargetButtonContainer>>,
-    enemies: Query<(Entity, &DisplayName), With<Enemy>>,
+    enemies: Query<(Entity, &DisplayName, Option<&Dead>, &CombatSlot), With<Enemy>>,
     mut hovered: ResMut<HoveredAttackTarget>,
 ) {
     if !awaiting_attack_target.is_changed() {
@@ -1283,7 +1323,15 @@ fn player_attack_target_buttons(
             ))
             .id();
 
-        for (enemy_entity, enemy_name) in &enemies {
+        // Sort by CombatSlot
+        let mut ordered: Vec<_> = enemies.iter().collect();
+        ordered.sort_by_key(|enemy| enemy.3.0);
+
+        for (enemy_entity, enemy_name, enemy_dead, ..) in ordered {
+            if enemy_dead.is_some() {
+                continue;
+            }
+
             commands
                 .spawn((button(enemy_name.0.clone()), ChildOf(button_container)))
                 .observe(move |_: On<Pointer<Click>>, mut commands: Commands| {
@@ -1322,4 +1370,60 @@ fn player_attack_target_buttons(
             hovered.0 = None;
         }
     }
+}
+
+fn draw_leaving_combat(
+    mut commands: Commands,
+    screen_root: Single<Entity, With<ScreenRoot>>,
+    combat_state: Res<CombatState>,
+    enemies: Query<&Gold, With<Enemy>>,
+    // existing: Query<Entity, With<LeavingContentContainer>>,
+) {
+    if !combat_state.is_changed() {
+        return;
+    }
+
+    commands
+        .spawn((
+            LeavingContentContainer,
+            Name::new("Leaving Combat Container"),
+            ChildOf(screen_root.entity()),
+            DespawnOnExit(PlayState::InCombat),
+            BackgroundColor(Color::srgba(0., 0., 0., 0.3)),
+            Node {
+                position_type: PositionType::Absolute,
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                height: Val::Percent(100.),
+                width: Val::Percent(100.),
+                ..default()
+            },
+        ))
+        .with_children(|container| {
+            let title = if combat_state.result == CombatResult::PlayerWon {
+                "Victory"
+            } else {
+                "Defeat"
+            };
+
+            container.spawn(Text::new(title));
+
+            for enemy in &enemies {
+                container.spawn(Text::new(format!("{} Gold", enemy.0)));
+            }
+        });
+
+    // TODO: looting
+    //
+    // commands.trigger(PlayerDied {
+    //     reason: DeathReason::NoHealth,
+    // });
+
+    // TODO: need to handle what happens at end of combat
+    // play_state.set(PlayState::Exploring);
+
+    // TODO: need to handle what happens at end of combat
+    // commands.trigger(PlayerContinued {
+    //     from: area.0.clone(),
+    // });
 }

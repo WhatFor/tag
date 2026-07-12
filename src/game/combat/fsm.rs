@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
+use crate::game::combat::in_combat_phase;
 use crate::game::combat::move_plan::MovePlan;
 use crate::game::combat::resources::AwaitingPlayerAttackTarget;
 use crate::game::combat::resources::CombatLogAttack;
@@ -8,6 +9,7 @@ use crate::game::combat::resources::CombatLogDefend;
 use crate::game::combat::resources::CombatLogResult;
 use crate::game::combat::resources::HoveredAttackTarget;
 use crate::game::combat::resources::TurnTimer;
+use crate::game::components::CombatSlot;
 use crate::game::events::CombatantTurnStarted;
 
 pub struct CombatPhasePlugin;
@@ -19,24 +21,20 @@ impl Plugin for CombatPhasePlugin {
         app.add_systems(
             Update,
             (
-                start_combat.run_if(in_phase(CombatPhase::StartOfCombat)),
-                start_round.run_if(in_phase(CombatPhase::StartOfRound)),
-                round_combat.run_if(in_phase(CombatPhase::RoundCombat)),
-                end_round.run_if(in_phase(CombatPhase::EndOfRound)),
-                end_combat.run_if(in_phase(CombatPhase::EndOfCombat)),
-                leave_combat.run_if(in_phase(CombatPhase::LeavingCombat)),
+                start_combat.run_if(in_combat_phase(CombatPhase::StartOfCombat)),
+                start_round.run_if(in_combat_phase(CombatPhase::StartOfRound)),
+                round_combat.run_if(in_combat_phase(CombatPhase::RoundCombat)),
+                end_round.run_if(in_combat_phase(CombatPhase::EndOfRound)),
+                end_combat.run_if(in_combat_phase(CombatPhase::EndOfCombat)),
             )
                 .run_if(in_state(PlayState::InCombat)),
         );
 
         app.add_observer(on_player_action);
+        app.add_observer(on_enemy_died);
 
         app.add_systems(OnExit(PlayState::InCombat), destroy);
     }
-}
-
-fn in_phase(phase: CombatPhase) -> impl Fn(Option<Res<CombatState>>) -> bool {
-    move |state: Option<Res<CombatState>>| state.is_some_and(|s| s.phase == phase)
 }
 
 fn init(mut commands: Commands) {
@@ -73,13 +71,14 @@ fn start_combat(
         log.lines.push(CombatLogLine::Text(line.clone()));
     }
 
-    for id in enemy_ids {
+    for (slot, id) in enemy_ids.iter().enumerate() {
         let Some(enemy) = enemy_store.0.get(id) else {
             continue;
         };
 
         commands.spawn((
             Enemy,
+            CombatSlot(slot), // Assign a stable order at spawn
             EnemyId(id.clone()),
             Health(enemy.max_health),
             MaxHealth(enemy.max_health),
@@ -89,6 +88,8 @@ fn start_combat(
             EffectiveStats::default(),
             MoveSet(enemy.moves.clone()),
             MovePlan::new(&enemy.moves, &mut rng.0),
+            Gold(enemy.gold),
+            //Inventory(enemy.loot), TODO: How handle enemy loot?
             DespawnOnExit(PlayState::InCombat),
         ));
     }
@@ -133,7 +134,16 @@ fn round_combat(
     mut turn_order: ResMut<TurnOrder>,
     mut log: ResMut<CombatLog>,
     player: Single<(Entity, &Health), With<Player>>,
-    mut enemies: Query<(Entity, &EffectiveStats, &MoveSet, &mut MovePlan), With<Enemy>>,
+    mut enemies: Query<
+        (
+            Entity,
+            &EffectiveStats,
+            &MoveSet,
+            &mut MovePlan,
+            Option<&Dead>,
+        ),
+        With<Enemy>,
+    >,
     mut state: ResMut<CombatState>,
     mut awaiting_player: ResMut<AwaitingPlayerAction>,
     time: Res<Time>,
@@ -177,13 +187,23 @@ fn round_combat(
         return;
     }
 
-    turn_timer.0.tick(time.delta());
-    if !turn_timer.0.is_finished() {
-        return;
-    }
-
-    if let Ok((entity, stats, move_set, mut move_plan)) = enemies.get_mut(active_combatant) {
+    if let Ok((entity, stats, move_set, mut move_plan, is_dead)) = enemies.get_mut(active_combatant)
+    {
         info!("[Combat] Enemy {:?} turn...", entity);
+
+        if is_dead.is_some() {
+            // Enemy may die after turn_order decided at round start,
+            // so need to double check it's not dead.
+            turn_order.cursor += 1;
+            turn_timer.0.reset();
+            return;
+        }
+
+        // A living enemy exists, so tick down the turn_timer to pause UI.
+        turn_timer.0.tick(time.delta());
+        if !turn_timer.0.is_finished() {
+            return;
+        }
 
         let next_move_index = *move_plan.queue.front().unwrap();
 
@@ -273,14 +293,17 @@ fn round_combat(
     }
 }
 
-fn end_round(enemies: Query<(), With<Enemy>>, mut state: ResMut<CombatState>) {
+fn end_round(
+    living_enemies: Query<(), (With<Enemy>, Without<Dead>)>,
+    mut state: ResMut<CombatState>,
+) {
     info!("[Combat] Entered EndRound");
 
     if state.result == CombatResult::PlayerLost {
         info!("[Combat] Player has lost combat.");
         state.phase = CombatPhase::EndOfCombat;
-    } else if enemies.is_empty() {
-        info!("[Combat] Player has won combat.");
+    } else if living_enemies.is_empty() {
+        info!("[Combat] No enemies. Player has won combat.");
         state.result = CombatResult::PlayerWon;
         state.phase = CombatPhase::EndOfCombat;
     } else {
@@ -328,28 +351,6 @@ fn end_combat(
     }
 
     combat_state.phase = CombatPhase::LeavingCombat;
-}
-
-fn leave_combat(// mut commands: Commands,
-    // mut play_state: ResMut<NextState<PlayState>>,
-    // combat_state: Res<CombatState>,
-    // mut log: ResMut<CombatLog>,
-    // area: Single<&CurrentArea, With<Player>>,
-    // all_area_content: Query<(&AreaId, &AreaContent), With<Area>>,
-) {
-    // TODO: looting
-    //
-    // commands.trigger(PlayerDied {
-    //     reason: DeathReason::NoHealth,
-    // });
-
-    // TODO: need to handle what happens at end of combat
-    // play_state.set(PlayState::Exploring);
-
-    // TODO: need to handle what happens at end of combat
-    // commands.trigger(PlayerContinued {
-    //     from: area.0.clone(),
-    // });
 }
 
 fn on_player_action(
@@ -417,6 +418,19 @@ fn on_player_action(
     awaiting_player.0 = false;
     awaiting_target.0 = false;
     turn_order.cursor += 1;
+}
+
+fn on_enemy_died(
+    trigger: On<Died>,
+    enemies: Query<&DisplayName, With<Enemy>>,
+    mut log: ResMut<CombatLog>,
+) {
+    let Ok(enemy) = enemies.get(trigger.died) else {
+        return;
+    };
+
+    log.lines
+        .push(CombatLogLine::Text(format!("{} died", enemy.0.clone())));
 }
 
 fn destroy(mut commands: Commands) {

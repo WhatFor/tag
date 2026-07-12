@@ -7,7 +7,20 @@ use std::collections::HashMap;
 pub struct Enemy;
 
 #[derive(Component)]
+pub struct Dead;
+
+#[derive(Component)]
+pub struct CombatSlot(pub usize);
+
+#[derive(Component)]
 pub struct EnemyId(pub String);
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct EnemyLoot {
+    pub item_id: String,
+    pub quantity: u32,
+    pub chance: f32,
+}
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum EnemyMove {

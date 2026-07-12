@@ -110,6 +110,18 @@
 - The combat log reports damage dealt without taking into account target armour
 - player damage_type on attacks is hard-coded to Stab in FSM. Damage is hardcoded to 1.
 
+### Working on now:
+- enemy died combat log is pretty boring and basic. maybe improve, and include loot + gold.
+- need to flesh out UI to show dead enemies (maybe a nice icon)
+
+- Finish combat screen (win/lose)
+  - lose not tested
+  - working on win:
+    - show money + roll loot from loot pool
+      - offer player chance to take or leave loot, give_item.
+      - give_gold
+      - continue -> back to playing, move to next area
+
 ### Half Finished (not tested/used)
 - Items with Effects
   - Bleed, Burn, Poison, etc.

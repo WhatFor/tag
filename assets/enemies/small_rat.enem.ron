@@ -1,9 +1,9 @@
 (
     id: "small_rat",
     display_name: "Small Rat",
-    max_health: 20,
+    max_health: 1,
     stats: Stats(
-        strength: 10,
+        strength: 1,
         agility: 1,
         speed: 1,
         armour: 1,
@@ -26,5 +26,13 @@
             potency: 1,
             cooldown: 2,
         )
-    ]
+    ],
+    loot: [
+        EnemyLoot(
+            item_id: "strength_potion",
+            quantity: 1,
+            chance: 0.9,
+        )
+    ],
+    gold: 3,
 )
