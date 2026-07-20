@@ -1383,6 +1383,8 @@ fn draw_leaving_combat(
         return;
     }
 
+    let total_gold = enemies.iter().fold(0, |total, enemy| total + enemy.0);
+
     commands
         .spawn((
             LeavingContentContainer,
@@ -1408,22 +1410,40 @@ fn draw_leaving_combat(
 
             container.spawn(Text::new(title));
 
-            for enemy in &enemies {
-                container.spawn(Text::new(format!("{} Gold", enemy.0)));
-            }
+            container.spawn(Text::new(format!("{} Gold", total_gold)));
+        })
+        .with_children(|container| {
+            container.spawn(button("Continue")).observe(
+                move |_: On<Pointer<Click>>,
+                      mut commands: Commands,
+                      query: Single<(Entity, &CurrentArea), With<Player>>,
+                      areas: Query<&AreaId, With<Area>>,
+                      mut play_state: ResMut<NextState<PlayState>>| {
+                    let (player, current_area) = *query;
+                    let player_entity = player.entity();
+
+                    let Ok(area_id) = areas.get(current_area.entity()) else {
+                        // Area not found - shouldn't happen
+                        return;
+                    };
+
+                    commands.trigger(GiveGold {
+                        amount: total_gold,
+                        beneficiary: player_entity,
+                    });
+
+                    play_state.set(PlayState::Exploring);
+
+                    commands.trigger(PlayerContinued {
+                        from: area_id.clone(),
+                    });
+                },
+            );
         });
 
     // TODO: looting
     //
     // commands.trigger(PlayerDied {
     //     reason: DeathReason::NoHealth,
-    // });
-
-    // TODO: need to handle what happens at end of combat
-    // play_state.set(PlayState::Exploring);
-
-    // TODO: need to handle what happens at end of combat
-    // commands.trigger(PlayerContinued {
-    //     from: area.0.clone(),
     // });
 }

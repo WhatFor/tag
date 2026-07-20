@@ -17,5 +17,7 @@
             "How pathetic."
         ],
     ),
-    exits: []
+    exits: [
+        Continue("intro_01")
+    ]
 )
