@@ -1385,60 +1385,58 @@ fn draw_leaving_combat(
 
     let total_gold = enemies.iter().fold(0, |total, enemy| total + enemy.0);
 
+    let title = if combat_state.result == CombatResult::PlayerWon {
+        "Victory"
+    } else {
+        "Defeat"
+    };
+
     commands
         .spawn((
+            Panel::unclosable(title.into()),
             LeavingContentContainer,
             Name::new("Leaving Combat Container"),
             ChildOf(screen_root.entity()),
             DespawnOnExit(PlayState::InCombat),
-            BackgroundColor(Color::srgba(0., 0., 0., 0.3)),
-            Node {
-                position_type: PositionType::Absolute,
-                flex_direction: FlexDirection::Column,
-                align_items: AlignItems::Center,
-                height: Val::Percent(100.),
-                width: Val::Percent(100.),
-                ..default()
-            },
         ))
-        .with_children(|container| {
-            let title = if combat_state.result == CombatResult::PlayerWon {
-                "Victory"
-            } else {
-                "Defeat"
-            };
+        .with_children(|panel| {
+            panel
+                .spawn(Node {
+                    width: Val::Percent(100.),
+                    flex_grow: 1.,
+                    flex_direction: FlexDirection::Column,
+                    ..default()
+                })
+                .with_children(|p| {
+                    p.spawn(Text::new(format!("{} Gold", total_gold)));
 
-            container.spawn(Text::new(title));
+                    p.spawn(button("Continue")).observe(
+                        move |_: On<Pointer<Click>>,
+                            mut commands: Commands,
+                            query: Single<(Entity, &CurrentArea), With<Player>>,
+                            areas: Query<&AreaId, With<Area>>,
+                            mut play_state: ResMut<NextState<PlayState>>| {
+                            let (player, current_area) = *query;
+                            let player_entity = player.entity();
 
-            container.spawn(Text::new(format!("{} Gold", total_gold)));
-        })
-        .with_children(|container| {
-            container.spawn(button("Continue")).observe(
-                move |_: On<Pointer<Click>>,
-                      mut commands: Commands,
-                      query: Single<(Entity, &CurrentArea), With<Player>>,
-                      areas: Query<&AreaId, With<Area>>,
-                      mut play_state: ResMut<NextState<PlayState>>| {
-                    let (player, current_area) = *query;
-                    let player_entity = player.entity();
+                            let Ok(area_id) = areas.get(current_area.entity()) else {
+                                // Area not found - shouldn't happen
+                                return;
+                            };
 
-                    let Ok(area_id) = areas.get(current_area.entity()) else {
-                        // Area not found - shouldn't happen
-                        return;
-                    };
+                            commands.trigger(GiveGold {
+                                amount: total_gold,
+                                beneficiary: player_entity,
+                            });
 
-                    commands.trigger(GiveGold {
-                        amount: total_gold,
-                        beneficiary: player_entity,
-                    });
+                            play_state.set(PlayState::Exploring);
 
-                    play_state.set(PlayState::Exploring);
-
-                    commands.trigger(PlayerContinued {
-                        from: area_id.clone(),
-                    });
-                },
-            );
+                            commands.trigger(PlayerContinued {
+                                from: area_id.clone(),
+                            });
+                        },
+                    );
+                });
         });
 
     // TODO: looting

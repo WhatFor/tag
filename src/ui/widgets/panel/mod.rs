@@ -8,6 +8,7 @@ pub struct Panel {
     pub title: String,
     pub height: Val,
     pub width: Val,
+    pub can_close: bool,
 }
 
 #[derive(EntityEvent)]
@@ -18,11 +19,12 @@ pub struct DespawnPanel {
 const CLOSE_BUTTON_ICON_SIZE: f32 = 32.;
 
 impl Panel {
-    pub fn new(title: String, height: Val, width: Val) -> Self {
+    pub fn new(title: String, height: Val, width: Val, can_close: bool) -> Self {
         Self {
             title,
             height,
             width,
+            can_close,
         }
     }
 
@@ -31,6 +33,16 @@ impl Panel {
             title,
             height: Val::Percent(DEFAULT_SIZE),
             width: Val::Percent(DEFAULT_SIZE),
+            can_close: true,
+        }
+    }
+
+    pub fn unclosable(title: String) -> Self {
+        Self {
+            title,
+            height: Val::Percent(DEFAULT_SIZE),
+            width: Val::Percent(DEFAULT_SIZE),
+            can_close: false,
         }
     }
 }
@@ -137,39 +149,43 @@ pub fn init(
                     )],
                 ));
 
-                h.spawn((
-                    Button,
-                    ImageTint::darken(Color::srgb(1., 1., 1.)),
-                    ClickSfx::from(click_sfx.clone()),
-                    Name::new("Panel Close Button"),
-                    Node {
-                        padding: UiRect {
-                            left: Val::Px(20.),
-                            right: Val::Px(20.),
-                            top: Val::Px(10.),
-                            bottom: Val::Px(10.),
-                        },
-                        flex_direction: FlexDirection::Row,
-                        align_items: AlignItems::Center,
-                        justify_content: JustifyContent::Center,
-                        ..default()
-                    },
-                    children![(
-                        Name::new("Panel Close Button Icon"),
+                if panel.can_close {
+                    h.spawn((
+                        Button,
+                        ImageTint::darken(Color::srgb(1., 1., 1.)),
+                        ClickSfx::from(click_sfx.clone()),
+                        Name::new("Panel Close Button"),
                         Node {
-                            width: Val::Px(CLOSE_BUTTON_ICON_SIZE),
-                            height: Val::Px(CLOSE_BUTTON_ICON_SIZE),
+                            padding: UiRect {
+                                left: Val::Px(20.),
+                                right: Val::Px(20.),
+                                top: Val::Px(10.),
+                                bottom: Val::Px(10.),
+                            },
+                            flex_direction: FlexDirection::Row,
+                            align_items: AlignItems::Center,
+                            justify_content: JustifyContent::Center,
                             ..default()
                         },
-                        Pickable::IGNORE,
-                        ImageNode::new(x_icon.clone()),
-                    )],
-                ))
-                .observe(move |_: On<Pointer<Click>>, mut commands: Commands| {
-                    commands
-                        .entity(panel_entity)
-                        .trigger(|p| DespawnPanel { entity: p });
-                });
+                        children![(
+                            Name::new("Panel Close Button Icon"),
+                            Node {
+                                width: Val::Px(CLOSE_BUTTON_ICON_SIZE),
+                                height: Val::Px(CLOSE_BUTTON_ICON_SIZE),
+                                ..default()
+                            },
+                            Pickable::IGNORE,
+                            ImageNode::new(x_icon.clone()),
+                        )],
+                    ))
+                    .observe(
+                        move |_: On<Pointer<Click>>, mut commands: Commands| {
+                            commands
+                                .entity(panel_entity)
+                                .trigger(|p| DespawnPanel { entity: p });
+                        },
+                    );
+                }
             })
             .id();
 
