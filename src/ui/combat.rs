@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use bevy::ecs::relationship::RelatedSpawner;
 use bevy::prelude::*;
 
 use crate::game::combat::in_combat_phase;
@@ -10,7 +11,6 @@ use crate::game::combat::resources::HoveredAttackTarget;
 use crate::game::components::CombatSlot;
 use crate::ui::layout::GameArea;
 use crate::ui::layout::HudAreaBottomCenter;
-use crate::ui::layout::ScreenRoot;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
 
 const BORDER_IDLE: Color = Color::srgb(1., 1., 1.);
@@ -54,6 +54,9 @@ pub struct TurnOrderContent;
 
 #[derive(Component)]
 pub struct LeavingContentContainer;
+
+#[derive(Component)]
+pub struct LeavingContent;
 
 #[derive(Component)]
 pub struct CombatantPanel(pub Entity);
@@ -126,10 +129,17 @@ impl Plugin for CombatUIPlugin {
 
         app.add_systems(
             Update,
-            draw_leaving_combat.run_if(
+            spawn_leaving_combat.run_if(
                 in_state(PlayState::InCombat).and(in_combat_phase(CombatPhase::LeavingCombat)),
             ),
         );
+
+        // app.add_systems(
+        //     Update,
+        //     refresh_leaving_combat.run_if(
+        //         in_state(PlayState::InCombat).and(in_combat_phase(CombatPhase::LeavingCombat)),
+        //     ),
+        // );
     }
 }
 
@@ -1372,18 +1382,15 @@ fn player_attack_target_buttons(
     }
 }
 
-fn draw_leaving_combat(
+fn spawn_leaving_combat(
     mut commands: Commands,
-    screen_root: Single<Entity, With<ScreenRoot>>,
     combat_state: Res<CombatState>,
     enemies: Query<&Gold, With<Enemy>>,
-    // existing: Query<Entity, With<LeavingContentContainer>>,
+    font_store: Res<FontAssets>,
 ) {
     if !combat_state.is_changed() {
         return;
     }
-
-    let total_gold = enemies.iter().fold(0, |total, enemy| total + enemy.0);
 
     let title = if combat_state.result == CombatResult::PlayerWon {
         "Victory"
@@ -1391,57 +1398,86 @@ fn draw_leaving_combat(
         "Defeat"
     };
 
-    commands
-        .spawn((
-            Panel::unclosable(title.into()),
-            LeavingContentContainer,
-            Name::new("Leaving Combat Container"),
-            ChildOf(screen_root.entity()),
-            DespawnOnExit(PlayState::InCombat),
-        ))
-        .with_children(|panel| {
-            panel
-                .spawn(Node {
-                    width: Val::Percent(100.),
-                    flex_grow: 1.,
-                    flex_direction: FlexDirection::Column,
-                    ..default()
-                })
+    let total_gold = enemies.iter().fold(0, |total, enemy| total + enemy.0);
+    let ui_font = font_store.ui_font.clone();
+    let ui_color = font_store.ui_color;
+
+    commands.spawn((
+        LeavingContentContainer,
+        DespawnOnExit(PlayState::InCombat),
+        panel(
+            PanelProps::new(title),
+            SpawnWith(move |p: &mut RelatedSpawner<ChildOf>| {
+                p.spawn((
+                    LeavingContent,
+                    Node {
+                        width: Val::Percent(100.),
+                        flex_grow: 1.,
+                        flex_direction: FlexDirection::Column,
+                        ..default()
+                    },
+                ))
                 .with_children(|p| {
-                    p.spawn(Text::new(format!("{} Gold", total_gold)));
-
-                    p.spawn(button("Continue")).observe(
-                        move |_: On<Pointer<Click>>,
-                            mut commands: Commands,
-                            query: Single<(Entity, &CurrentArea), With<Player>>,
-                            areas: Query<&AreaId, With<Area>>,
-                            mut play_state: ResMut<NextState<PlayState>>| {
-                            let (player, current_area) = *query;
-                            let player_entity = player.entity();
-
-                            let Ok(area_id) = areas.get(current_area.entity()) else {
-                                // Area not found - shouldn't happen
-                                return;
-                            };
-
-                            commands.trigger(GiveGold {
-                                amount: total_gold,
-                                beneficiary: player_entity,
-                            });
-
-                            play_state.set(PlayState::Exploring);
-
-                            commands.trigger(PlayerContinued {
-                                from: area_id.clone(),
-                            });
-                        },
-                    );
+                    build_combat_end_content(p, total_gold, ui_font, ui_color);
                 });
-        });
+            }),
+        ),
+    ));
 
     // TODO: looting
     //
     // commands.trigger(PlayerDied {
     //     reason: DeathReason::NoHealth,
     // });
+}
+
+// fn refresh_leaving_combat(
+//     mut commands: Commands,
+//     content: Single<Entity, With<LeavingContent>>,
+//     enemies: Query<&Gold, With<Enemy>>,
+//     font_store: Res<FontAssets>,
+// ) {
+//     // Clear existing content
+//     commands.entity(*content).despawn_children();
+
+//     // Replace with new content
+//     commands.entity(*content).with_children(|content| {
+//         build_combat_end_content(content, enemies, font_store);
+//     });
+// }
+
+fn build_combat_end_content(
+    parent: &mut RelatedSpawner<'_, ChildOf>,
+    total_gold: u32,
+    ui_font: TextFont,
+    ui_color: TextColor,
+) {
+    parent.spawn((Text::new(format!("{} Gold", total_gold)), ui_font, ui_color));
+
+    parent.spawn(button("Continue")).observe(
+        move |_: On<Pointer<Click>>,
+              mut commands: Commands,
+              query: Single<(Entity, &CurrentArea), With<Player>>,
+              areas: Query<&AreaId, With<Area>>,
+              mut play_state: ResMut<NextState<PlayState>>| {
+            let (player, current_area) = *query;
+            let player_entity = player.entity();
+
+            let Ok(area_id) = areas.get(current_area.entity()) else {
+                // Area not found - shouldn't happen
+                return;
+            };
+
+            commands.trigger(GiveGold {
+                amount: total_gold,
+                beneficiary: player_entity,
+            });
+
+            play_state.set(PlayState::Exploring);
+
+            commands.trigger(PlayerContinued {
+                from: area_id.clone(),
+            });
+        },
+    );
 }

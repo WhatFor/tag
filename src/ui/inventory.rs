@@ -1,11 +1,11 @@
 use crate::prelude::*;
-use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::prelude::*;
 
 use crate::ui::interaction::image_tint::ImageTint;
 use crate::ui::layout::HudAreaBottomRight;
-use crate::ui::widgets::panel::DespawnPanel;
 use crate::world::equipment::EquipItemExt;
+use bevy::ecs::relationship::RelatedSpawner;
+use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::input::common_conditions::input_just_pressed;
 
 const ITEM_BORDER_COLOUR: Color = Color::srgb(1., 1., 1.);
@@ -206,11 +206,11 @@ fn collect_rows(
 }
 
 fn build_inventory_content(
-    parent: &mut RelatedSpawnerCommands<'_, ChildOf>,
+    parent: &mut RelatedSpawner<'_, ChildOf>,
     rows: Vec<ItemRow>,
-    gold: &Gold,
-    ui_font: &TextFont,
-    ui_color: &TextColor,
+    gold: u32,
+    ui_font: TextFont,
+    ui_color: TextColor,
     player_entity: Entity,
 ) {
     parent.spawn((
@@ -275,7 +275,7 @@ fn build_inventory_content(
         },
         children![(
             Name::new("Gold Count"),
-            Text::new(format!("{} Gold", gold.0)),
+            Text::new(format!("{} Gold", gold)),
             ui_font.clone(),
             ui_color.clone(),
         )],
@@ -284,6 +284,7 @@ fn build_inventory_content(
 
 fn spawn_inventory(
     mut commands: Commands,
+    mut inventory_state: ResMut<NextState<InventoryState>>,
     player: Single<Entity, With<Player>>,
     inventory: Single<&Inventory, With<Player>>,
     gold: Single<&Gold, With<Player>>,
@@ -293,19 +294,37 @@ fn spawn_inventory(
     fonts: Res<FontAssets>,
 ) {
     if inventory.is_empty() {
+        inventory_state.set(InventoryState::Closed);
         return;
     }
 
     let rows = collect_rows(&inventory, items, item_store, icon_store);
 
     let ui_font = fonts.ui_font.clone();
-    let ui_color = fonts.ui_color.clone();
+    let ui_color = fonts.ui_color;
+    let gold = gold.0;
+    let player = player.entity();
 
     commands
         .spawn((
-            Panel::default("Inventory".into()),
             InventoryPanel,
-            Name::new("Inventory Panel"),
+            panel(
+                PanelProps::new("Inventory"),
+                SpawnWith(move |p: &mut RelatedSpawner<ChildOf>| {
+                    p.spawn((
+                        InventoryContent,
+                        Node {
+                            width: Val::Percent(100.),
+                            flex_grow: 1.,
+                            flex_direction: FlexDirection::Column,
+                            ..default()
+                        },
+                    ))
+                    .with_children(|content| {
+                        build_inventory_content(content, rows, gold, ui_font, ui_color, player);
+                    });
+                }),
+            ),
         ))
         .observe(
             // If the panel is despawned, it means the inventory has been closed.
@@ -313,21 +332,7 @@ fn spawn_inventory(
             |_: On<DespawnPanel>, mut next: ResMut<NextState<InventoryState>>| {
                 next.set(InventoryState::Closed);
             },
-        )
-        .with_children(|p| {
-            p.spawn((
-                InventoryContent,
-                Node {
-                    width: Val::Percent(100.),
-                    flex_grow: 1.,
-                    flex_direction: FlexDirection::Column,
-                    ..default()
-                },
-            ))
-            .with_children(|content| {
-                build_inventory_content(content, rows, &gold, &ui_font, &ui_color, player.entity());
-            });
-        });
+        );
 }
 
 fn refresh_inventory(
@@ -343,22 +348,20 @@ fn refresh_inventory(
     content: Single<Entity, With<InventoryContent>>,
 ) {
     let (player_entity, inventory, gold) = *player;
+    let gold = gold.0;
+    let ui_font = fonts.ui_font.clone();
+    let ui_color = fonts.ui_color;
     let rows = collect_rows(inventory, items, item_store, icon_store);
 
     // Clear existing inventory items
     commands.entity(*content).despawn_children();
 
     // Replace with new items
-    commands.entity(*content).with_children(|content| {
-        build_inventory_content(
-            content,
-            rows,
-            gold,
-            &fonts.ui_font.clone(),
-            &fonts.ui_color,
-            player_entity,
-        );
-    });
+    commands.entity(*content).insert(Children::spawn(SpawnWith(
+        move |content: &mut RelatedSpawner<ChildOf>| {
+            build_inventory_content(content, rows, gold, ui_font, ui_color, player_entity);
+        },
+    )));
 }
 
 #[derive(Clone, Debug)]
