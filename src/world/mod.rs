@@ -14,13 +14,11 @@ use crate::player::components::Hardcore;
 use crate::prelude::Health;
 use crate::sets::PlayingSet;
 use crate::state::GameState;
-use crate::world::bundles::default_player;
 use crate::world::components::Area;
 use crate::world::components::AreaId;
 use crate::world::equipment::EquipItemExt;
 use crate::world::events::PlayerEnteredArea;
 
-pub mod bundles;
 pub mod components;
 pub mod equipment;
 pub mod events;
@@ -114,14 +112,17 @@ fn spawn_player(
         .expect("Unable to find last checkpoint area");
 
     let mut player = commands.spawn((
-        default_player(),
+        Player,
+        FullPathTaken(start_data.path_taken.clone()),
+        Name::new("Player"),
+        Health(start_data.health),
+        MaxHealth(100),
+        Inventory(vec![]),
+        Statuses(vec![]),
+        Equipment::default(),
+        DespawnOnEnter(GameState::MainMenu),
         CurrentArea(start_area),
         LastCheckpointArea(checkpoint_area),
-    ));
-
-    // Must insert these after default spawn in order to replace specified components
-    player.insert((
-        Health(start_data.health),
         Stats {
             strength: start_data.strength,
             agility: start_data.agility,
@@ -131,7 +132,6 @@ fn spawn_player(
         },
         EffectiveStats::default(),
         Gold(start_data.gold),
-        FullPathTaken(start_data.path_taken.clone()),
         Hardcore(hardcore.0),
     ));
 
@@ -140,7 +140,7 @@ fn spawn_player(
     }
 
     for item in &start_data.equipped {
-        player.spawn_and_equip(item.item_id.clone());
+        player.equip(item.item_id.clone());
     }
 
     // Write out a save file, just to ensure one exists

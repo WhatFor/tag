@@ -31,10 +31,6 @@ pub use crate::audio::interaction::click_sfx::ClickSfx;
 pub use crate::audio::interaction::hover_sfx::HoverSfx;
 pub use crate::persistence::data::AudioSettings;
 
-// Bundles
-pub use crate::world::bundles::item;
-pub use crate::world::bundles::item_stack;
-
 // Components
 pub use crate::components::Description;
 pub use crate::components::DisplayName;
@@ -53,12 +49,10 @@ pub use crate::game::components::EnemyLoot;
 pub use crate::game::components::EnemyMove;
 pub use crate::game::components::Equipment;
 pub use crate::game::components::EquipmentSlot;
-pub use crate::game::components::Equippable;
 pub use crate::game::components::Gold;
 pub use crate::game::components::Health;
 pub use crate::game::components::MaxHealth;
 pub use crate::game::components::MoveSet;
-pub use crate::game::components::StatBonus;
 pub use crate::game::components::Stats;
 pub use crate::game::components::StatusEffect;
 pub use crate::game::components::Statuses;
@@ -75,7 +69,6 @@ pub use crate::world::components::AreaExits;
 pub use crate::world::components::AreaId;
 pub use crate::world::components::CheckpointArea;
 pub use crate::world::components::Inventory;
-pub use crate::world::components::Item;
 pub use crate::world::components::ItemId;
 pub use crate::world::components::ItemStack;
 

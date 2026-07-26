@@ -47,15 +47,15 @@ fn recompute_effective_player_stats(
             Or<(Changed<Stats>, Changed<Equipment>, Changed<Statuses>)>,
         ),
     >,
-    bonuses: Query<&StatBonus>,
+    item_store: Res<ItemStore>,
 ) {
     // StatBonus comes from items
     // Statuses may include a Stat bonus, from stuff like potions/defending/etc.
     for (base, equipment, statuses, mut out) in &mut player {
-        let stats_from_equipment: Vec<&StatBonus> = equipment
-            .0
+        let stats_from_equipment: Vec<Stats> = equipment
             .values()
-            .filter_map(|equipment_entity| bonuses.get(*equipment_entity).ok())
+            .filter_map(|id| item_store.get(&id.0))
+            .filter_map(|def| def.stats)
             .collect();
 
         let next = effective_stats(base, stats_from_equipment, statuses);
@@ -84,10 +84,10 @@ fn recompute_effective_enemy_stats(
 
 pub fn effective_stats(
     base: &Stats,
-    equipment_bonuses: Vec<&StatBonus>,
+    equipment_bonuses: Vec<Stats>,
     statuses: &Statuses,
 ) -> EffectiveStats {
-    let stats_from_equipment: Stats = equipment_bonuses.iter().copied().map(|b| b.0).sum();
+    let stats_from_equipment: Stats = equipment_bonuses.iter().copied().sum();
 
     let stats_from_statuses: Stats = statuses
         .0

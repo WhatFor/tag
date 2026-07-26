@@ -11,6 +11,7 @@ use crate::game::combat::resources::HoveredAttackTarget;
 use crate::game::combat::resources::TurnTimer;
 use crate::game::components::CombatSlot;
 use crate::game::events::CombatantTurnStarted;
+use rand::RngExt;
 
 pub struct CombatPhasePlugin;
 
@@ -55,6 +56,7 @@ fn start_combat(
     all_area_content: Query<&AreaContent, With<Area>>,
     enemy_store: Res<EnemyStore>,
     mut rng: ResMut<GameRng>,
+    item_store: Res<ItemStore>,
 ) {
     info!("[Combat] Entered StartCombat");
 
@@ -76,6 +78,34 @@ fn start_combat(
             continue;
         };
 
+        let inventory = {
+            let mut items = vec![];
+
+            for possible_item in &enemy.loot {
+                if !rng
+                    .0
+                    .random_bool((possible_item.chance as f64).clamp(0.0, 1.0))
+                {
+                    continue;
+                }
+
+                if item_store.get(&possible_item.item_id).is_none() {
+                    warn!(
+                        "Tried to spawn enemy with item, but item not found: {}",
+                        possible_item.item_id
+                    );
+                    continue;
+                }
+
+                items.push(ItemStack {
+                    item_id: possible_item.item_id.clone().into(),
+                    count: possible_item.quantity,
+                });
+            }
+
+            items
+        };
+
         commands.spawn((
             Enemy,
             CombatSlot(slot), // Assign a stable order at spawn
@@ -89,7 +119,7 @@ fn start_combat(
             MoveSet(enemy.moves.clone()),
             MovePlan::new(&enemy.moves, &mut rng.0),
             Gold(enemy.gold),
-            //Inventory(enemy.loot), TODO: How handle enemy loot?
+            Inventory(inventory),
             DespawnOnExit(PlayState::InCombat),
         ));
     }

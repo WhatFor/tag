@@ -106,6 +106,7 @@
 
 
 ### Combat TODO
+- equip item from invent no longer works after refactor
 - Invent UI for slots
 - The combat log reports damage dealt without taking into account target armour
 - player damage_type on attacks is hard-coded to Stab in FSM. Damage is hardcoded to 1.

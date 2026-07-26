@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 
 use serde::{Deserialize, Serialize};
@@ -166,10 +167,6 @@ pub struct Stats {
     pub armour: i32,
 }
 
-// Used when an item or effect modifies base stats
-#[derive(Component, Clone)]
-pub struct StatBonus(pub Stats);
-
 // A 'cached' result of the effective stats (base + equipment + buffs)
 #[derive(Component, Clone, Copy, Default)]
 pub struct EffectiveStats(pub Stats);
@@ -208,13 +205,9 @@ impl std::fmt::Display for EquipmentSlot {
     }
 }
 
-#[derive(Component, Clone, Copy, Reflect)]
-#[reflect(Component)]
-pub struct Equippable(pub EquipmentSlot);
-
 #[derive(Component, Default, Deref, DerefMut, Reflect)]
 #[reflect(Component)]
-pub struct Equipment(pub HashMap<EquipmentSlot, Entity>);
+pub struct Equipment(pub HashMap<EquipmentSlot, ItemId>);
 
 #[derive(Component, Reflect, Deref)]
 #[reflect(Component)]

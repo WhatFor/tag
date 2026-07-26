@@ -158,20 +158,14 @@ fn on_keybind_open_inventory(
 
 fn collect_rows(
     inventory: &Inventory,
-    items: Query<(&ItemId, Option<&ItemStack>)>,
     item_store: Res<ItemStore>,
     icon_assets: Res<UiIconAssets>,
 ) -> Vec<ItemRow> {
     inventory
         .iter()
-        .filter_map(|&item_entity| {
-            let (id, stack) = items.get(item_entity).ok()?;
-            let store_item = item_store.get(&id.0)?;
-
-            let count = match stack {
-                Some(ItemStack(count)) => Some(count.clone()),
-                None => None,
-            };
+        .filter_map(|item_stack| {
+            let store_item = item_store.get(&item_stack.item_id.0)?;
+            let count = item_stack.count;
 
             let stats = store_item
                 .stats
@@ -193,7 +187,6 @@ fn collect_rows(
 
             Some(ItemRow {
                 id: store_item.id.clone(),
-                entity: item_entity,
                 name: store_item.name.clone(),
                 description: store_item.description.clone(),
                 icon: store_item.icon.clone(),
@@ -234,10 +227,10 @@ fn build_inventory_content(
                         invent_item.with_children(|tile| {
                             tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
 
-                            if let Some(count) = item.count.filter(|&c| c > 0) {
+                            if item.count > 0 {
                                 tile.spawn(item_count(
                                     item.id.clone(),
-                                    count.to_string(),
+                                    item.count.to_string(),
                                     ui_font.clone(),
                                     ui_color,
                                 ));
@@ -245,13 +238,11 @@ fn build_inventory_content(
                         });
 
                         if item.slot.is_some() {
-                            let item_entity = item.entity;
-
                             invent_item.observe(
                                 move |_: On<Pointer<Click>>, mut commands: Commands| {
                                     commands
                                         .entity(player_entity)
-                                        .equip_from_inventory(item_entity);
+                                        .equip_from_inventory(item.id.clone());
                                 },
                             );
                         };
@@ -285,7 +276,6 @@ fn spawn_inventory(
     player: Single<Entity, With<Player>>,
     inventory: Single<&Inventory, With<Player>>,
     gold: Single<&Gold, With<Player>>,
-    items: Query<(&ItemId, Option<&ItemStack>)>,
     item_store: Res<ItemStore>,
     icon_store: Res<UiIconAssets>,
     fonts: Res<FontAssets>,
@@ -295,7 +285,7 @@ fn spawn_inventory(
         return;
     }
 
-    let rows = collect_rows(&inventory, items, item_store, icon_store);
+    let rows = collect_rows(&inventory, item_store, icon_store);
 
     let ui_font = fonts.ui_font.clone();
     let ui_color = fonts.ui_color;
@@ -338,7 +328,6 @@ fn refresh_inventory(
         (Entity, &Inventory, &Gold),
         (With<Player>, Or<(Changed<Inventory>, Changed<Equipment>)>),
     >,
-    items: Query<(&ItemId, Option<&ItemStack>)>,
     item_store: Res<ItemStore>,
     icon_store: Res<UiIconAssets>,
     fonts: Res<FontAssets>,
@@ -348,7 +337,7 @@ fn refresh_inventory(
     let gold = gold.0;
     let ui_font = fonts.ui_font.clone();
     let ui_color = fonts.ui_color;
-    let rows = collect_rows(inventory, items, item_store, icon_store);
+    let rows = collect_rows(inventory, item_store, icon_store);
 
     // Clear existing inventory items
     commands.entity(*content).despawn_children();
@@ -371,10 +360,9 @@ struct StatLine {
 #[derive(Clone, Debug)]
 struct ItemRow {
     id: String,
-    entity: Entity,
     name: String,
     description: String,
-    count: Option<u32>,
+    count: u32,
     icon: Handle<Image>,
     slot: Option<EquipmentSlot>,
     stats: Vec<StatLine>,
@@ -396,9 +384,10 @@ fn inventory_grid() -> impl Bundle {
 }
 
 fn inventory_item(item: ItemRow, font: TextFont, color: TextColor) -> impl Bundle {
-    let tooltip_label = match item.count {
-        Some(count) => format!("{} ({})", item.name, count),
-        None => item.name.clone(),
+    let tooltip_label = if item.count > 0 {
+        format!("{} ({})", item.name, item.count)
+    } else {
+        item.name.clone()
     };
 
     (

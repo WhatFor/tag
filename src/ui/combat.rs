@@ -56,6 +56,15 @@ pub struct TurnOrderContent;
 pub struct LeavingContentContainer;
 
 #[derive(Component)]
+pub struct LootContent;
+
+#[derive(Resource, Default)]
+struct PendingLoot {
+    gold: u32,
+    items: Vec<ItemStack>,
+}
+
+#[derive(Component)]
 pub struct CombatantPanel(pub Entity);
 
 #[derive(Component)]
@@ -65,6 +74,8 @@ pub struct CombatUIPlugin;
 
 impl Plugin for CombatUIPlugin {
     fn build(&self, app: &mut App) {
+        app.init_resource::<PendingLoot>();
+
         app.add_systems(
             OnEnter(PlayState::InCombat),
             (
@@ -126,10 +137,12 @@ impl Plugin for CombatUIPlugin {
 
         app.add_systems(
             Update,
-            spawn_leaving_combat.run_if(
+            (spawn_leaving_combat, refresh_loot).chain().run_if(
                 in_state(PlayState::InCombat).and(in_combat_phase(CombatPhase::LeavingCombat)),
             ),
         );
+
+        app.add_systems(OnExit(PlayState::InCombat), destroy);
     }
 }
 
@@ -1376,67 +1389,67 @@ fn spawn_leaving_combat(
     mut commands: Commands,
     combat_state: Res<CombatState>,
     existing: Query<(), With<LeavingContentContainer>>,
-    enemies: Query<&Gold, With<Enemy>>,
-    font_store: Res<FontAssets>,
+    enemies: Query<(&Gold, &Inventory), With<Enemy>>,
 ) {
-    if !combat_state.is_changed() {
+    if !combat_state.is_changed() || !existing.is_empty() {
         return;
     }
 
-    if !existing.is_empty() {
-        return;
+    let won = combat_state.result == CombatResult::PlayerWon;
+
+    let mut loot = PendingLoot::default();
+
+    if won {
+        for (gold, inventory) in &enemies {
+            loot.gold += gold.0;
+            loot.items.extend(inventory.0.iter().cloned());
+        }
     }
 
-    let title = if combat_state.result == CombatResult::PlayerWon {
-        "Victory"
-    } else {
-        "Defeat"
-    };
-
-    let total_gold = enemies.iter().fold(0, |total, enemy| total + enemy.0);
-    let ui_font = font_store.ui_font.clone();
-    let ui_color = font_store.ui_color;
+    commands.insert_resource(loot);
 
     commands.spawn((
         LeavingContentContainer,
         DespawnOnExit(PlayState::InCombat),
         panel(
-            PanelProps::new(title).unclosable(),
+            PanelProps::new(if won { "Victory" } else { "Defeat" }).unclosable(),
             SpawnWith(move |p: &mut RelatedSpawner<ChildOf>| {
-                p.spawn(Node {
-                    width: Val::Percent(100.),
-                    flex_grow: 1.,
-                    flex_direction: FlexDirection::Column,
-                    ..default()
-                })
-                .with_children(|p| {
-                    build_combat_end_content(p, total_gold, ui_font, ui_color);
-                });
+                build_combat_end_content(p);
             }),
         ),
     ));
 
-    // TODO: looting
-    //
     // commands.trigger(PlayerDied {
     //     reason: DeathReason::NoHealth,
     // });
 }
 
-fn build_combat_end_content(
-    parent: &mut RelatedSpawner<'_, ChildOf>,
-    total_gold: u32,
-    ui_font: TextFont,
-    ui_color: TextColor,
-) {
-    parent.spawn((Text::new(format!("{} Gold", total_gold)), ui_font, ui_color));
+fn build_combat_end_content(parent: &mut RelatedSpawner<'_, ChildOf>) {
+    // parent.spawn((Text::new(format!("{} Gold", total_gold)), ui_font, ui_color));
+
+    // parent.spawn(scroll_area(move |p| {
+    //     for item in {
+    //         p.spawn(Text::new(item.name));
+    //     }
+    // }));
+
+    parent.spawn((
+        LootContent,
+        Node {
+            width: Val::Percent(100.),
+            flex_grow: 1.,
+            flex_direction: FlexDirection::Column,
+            ..default()
+        },
+    ));
 
     parent.spawn(button("Continue")).observe(
-        move |_: On<Pointer<Click>>,
-              mut commands: Commands,
-              query: Single<(Entity, &CurrentArea), With<Player>>,
-              areas: Query<&AreaId, With<Area>>,
-              mut play_state: ResMut<NextState<PlayState>>| {
+        |_: On<Pointer<Click>>,
+         mut commands: Commands,
+         query: Single<(Entity, &CurrentArea), With<Player>>,
+         areas: Query<&AreaId, With<Area>>,
+         pending_loot: Res<PendingLoot>,
+         mut play_state: ResMut<NextState<PlayState>>| {
             let (player, current_area) = *query;
             let player_entity = player.entity();
 
@@ -1446,7 +1459,7 @@ fn build_combat_end_content(
             };
 
             commands.trigger(GiveGold {
-                amount: total_gold,
+                amount: pending_loot.gold,
                 beneficiary: player_entity,
             });
 
@@ -1457,4 +1470,24 @@ fn build_combat_end_content(
             });
         },
     );
+}
+
+fn refresh_loot(
+    mut commands: Commands,
+    loot: Res<PendingLoot>,
+    content: Single<Entity, With<LootContent>>,
+    item_store: Res<ItemStore>,
+    icon_assets: Res<UiIconAssets>,
+    font_store: Res<FontAssets>,
+    player: Single<Entity, With<Player>>,
+) {
+    if !loot.is_changed() {
+        return;
+    }
+
+    // TODO:
+}
+
+fn destroy(mut commands: Commands) {
+    commands.remove_resource::<PendingLoot>();
 }

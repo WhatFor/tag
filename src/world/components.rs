@@ -57,18 +57,28 @@ pub enum AreaContent {
     },
 }
 
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct Item;
-
-#[derive(Component, Clone, Deserialize, Reflect, Deref, PartialEq, Eq)]
-#[reflect(Component)]
+#[derive(Clone, Debug, Deserialize, Reflect, Deref, PartialEq, Eq, Hash)]
 pub struct ItemId(pub String);
 
-#[derive(Component, Reflect, Deref)]
+impl Into<String> for ItemId {
+    fn into(self) -> String {
+        self.0
+    }
+}
+
+impl Into<ItemId> for String {
+    fn into(self) -> ItemId {
+        ItemId(self)
+    }
+}
+
+#[derive(Component, Reflect, Clone)]
 #[reflect(Component)]
-pub struct ItemStack(pub u32);
+pub struct ItemStack {
+    pub item_id: ItemId,
+    pub count: u32,
+}
 
 #[derive(Component, Reflect, Deref, DerefMut)]
 #[reflect(Component)]
-pub struct Inventory(pub Vec<Entity>);
+pub struct Inventory(pub Vec<ItemStack>);

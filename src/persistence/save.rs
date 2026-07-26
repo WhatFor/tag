@@ -36,8 +36,6 @@ fn on_save_requested(
         With<Player>,
     >,
     areas: Query<&AreaId, With<Area>>,
-    items: Query<(&ItemId, Option<&ItemStack>), With<Item>>,
-    equippable_items: Query<(&ItemId, &Equippable), With<Item>>,
 ) -> Result {
     info!("Saving game...");
 
@@ -59,27 +57,19 @@ fn on_save_requested(
 
     let inventory = inventory
         .iter()
-        .map(|&e| {
-            let (id, stack) = items.get(e)?;
-
-            Ok(SavedItem {
-                item_id: (**id).clone(),
-                count: stack.map_or(1, |s| **s),
-            })
+        .map(|item| SavedItem {
+            item_id: item.item_id.clone().into(),
+            count: item.count,
         })
-        .collect::<Result<Vec<_>, BevyError>>()?;
+        .collect::<Vec<_>>();
 
     let equipped = equipment
         .iter()
-        .map(|(_slot, entity)| {
-            let (id, slot) = equippable_items.get(*entity)?;
-
-            Ok(EquippedItem {
-                item_id: (**id).clone(),
-                slot: slot.0,
-            })
+        .map(|(slot, item_id)| EquippedItem {
+            item_id: item_id.0.clone(),
+            slot: *slot,
         })
-        .collect::<Result<Vec<_>, BevyError>>()?;
+        .collect::<Vec<_>>();
 
     let save_data = {
         let save_data = SaveData {

@@ -15,7 +15,7 @@ pub struct ItemIconAssets {
             "icons/_placeholder.png",
             "icons/items/bronze_sword.png",
             "icons/items/iron_sword.png",
-            "icons/items/potion.png"
+            "icons/items/potion.png",
         ),
         collection(typed, mapped)
     )]
@@ -29,7 +29,9 @@ pub struct ItemAssets {
             "items/bronze_sword.item.ron",
             "items/iron_sword.item.ron",
             "items/potion.item.ron",
-            "items/potato.item.ron"
+            "items/potato.item.ron",
+            "items/strength_potion.item.ron",
+            "items/sword_of_fire.item.ron",
         ),
         collection(typed)
     )]
