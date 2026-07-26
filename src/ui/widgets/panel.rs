@@ -210,9 +210,9 @@ where
 
             if let Some(border) = border_texture {
                 frame.insert(ImageNode {
-                    image: border.clone(),
+                    image: border,
                     color: FRAME_COLOUR,
-                    image_mode: NodeImageMode::Sliced(border_slicer.clone()),
+                    image_mode: NodeImageMode::Sliced(border_slicer),
                     ..default()
                 });
             } else {

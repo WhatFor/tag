@@ -56,9 +56,6 @@ pub struct TurnOrderContent;
 pub struct LeavingContentContainer;
 
 #[derive(Component)]
-pub struct LeavingContent;
-
-#[derive(Component)]
 pub struct CombatantPanel(pub Entity);
 
 #[derive(Component)]
@@ -133,13 +130,6 @@ impl Plugin for CombatUIPlugin {
                 in_state(PlayState::InCombat).and(in_combat_phase(CombatPhase::LeavingCombat)),
             ),
         );
-
-        // app.add_systems(
-        //     Update,
-        //     refresh_leaving_combat.run_if(
-        //         in_state(PlayState::InCombat).and(in_combat_phase(CombatPhase::LeavingCombat)),
-        //     ),
-        // );
     }
 }
 
@@ -403,7 +393,7 @@ fn draw_combat_log(
                         c.spawn((
                             Text::new(text.clone()),
                             fonts.ui_font.clone(),
-                            fonts.ui_color.clone(),
+                            fonts.ui_color,
                         ));
                     }
                     CombatLogLine::Attack(attack) => {
@@ -1040,7 +1030,7 @@ fn draw_hp(
                 Text::new(current.to_string()),
                 Tooltip::basic("Current Health"),
                 font_store.ui_font.clone(),
-                font_store.ui_color.clone(),
+                font_store.ui_color,
             ));
 
             // Divider
@@ -1058,7 +1048,7 @@ fn draw_hp(
                 Text::new(max.to_string()),
                 Tooltip::basic("Maximum Health"),
                 font_store.ui_font.clone(),
-                font_store.ui_color.clone(),
+                font_store.ui_color,
             ));
         });
 }
@@ -1385,10 +1375,15 @@ fn player_attack_target_buttons(
 fn spawn_leaving_combat(
     mut commands: Commands,
     combat_state: Res<CombatState>,
+    existing: Query<(), With<LeavingContentContainer>>,
     enemies: Query<&Gold, With<Enemy>>,
     font_store: Res<FontAssets>,
 ) {
     if !combat_state.is_changed() {
+        return;
+    }
+
+    if !existing.is_empty() {
         return;
     }
 
@@ -1406,17 +1401,14 @@ fn spawn_leaving_combat(
         LeavingContentContainer,
         DespawnOnExit(PlayState::InCombat),
         panel(
-            PanelProps::new(title),
+            PanelProps::new(title).unclosable(),
             SpawnWith(move |p: &mut RelatedSpawner<ChildOf>| {
-                p.spawn((
-                    LeavingContent,
-                    Node {
-                        width: Val::Percent(100.),
-                        flex_grow: 1.,
-                        flex_direction: FlexDirection::Column,
-                        ..default()
-                    },
-                ))
+                p.spawn(Node {
+                    width: Val::Percent(100.),
+                    flex_grow: 1.,
+                    flex_direction: FlexDirection::Column,
+                    ..default()
+                })
                 .with_children(|p| {
                     build_combat_end_content(p, total_gold, ui_font, ui_color);
                 });
@@ -1430,21 +1422,6 @@ fn spawn_leaving_combat(
     //     reason: DeathReason::NoHealth,
     // });
 }
-
-// fn refresh_leaving_combat(
-//     mut commands: Commands,
-//     content: Single<Entity, With<LeavingContent>>,
-//     enemies: Query<&Gold, With<Enemy>>,
-//     font_store: Res<FontAssets>,
-// ) {
-//     // Clear existing content
-//     commands.entity(*content).despawn_children();
-
-//     // Replace with new content
-//     commands.entity(*content).with_children(|content| {
-//         build_combat_end_content(content, enemies, font_store);
-//     });
-// }
 
 fn build_combat_end_content(
     parent: &mut RelatedSpawner<'_, ChildOf>,

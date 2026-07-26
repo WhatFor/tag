@@ -223,16 +223,13 @@ fn build_inventory_content(
         },
         children![scroll_area({
             let ui_font = ui_font.clone();
-            let ui_color = ui_color.clone();
+            let ui_color = ui_color;
 
             move |p| {
                 p.spawn(inventory_grid()).with_children(|grid| {
                     for item in rows {
-                        let mut invent_item = grid.spawn(inventory_item(
-                            item.clone(),
-                            ui_font.clone(),
-                            ui_color.clone(),
-                        ));
+                        let mut invent_item =
+                            grid.spawn(inventory_item(item.clone(), ui_font.clone(), ui_color));
 
                         invent_item.with_children(|tile| {
                             tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
@@ -242,7 +239,7 @@ fn build_inventory_content(
                                     item.id.clone(),
                                     count.to_string(),
                                     ui_font.clone(),
-                                    ui_color.clone(),
+                                    ui_color,
                                 ));
                             }
                         });
@@ -277,7 +274,7 @@ fn build_inventory_content(
             Name::new("Gold Count"),
             Text::new(format!("{} Gold", gold)),
             ui_font.clone(),
-            ui_color.clone(),
+            ui_color,
         )],
     ));
 }
