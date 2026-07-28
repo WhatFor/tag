@@ -1425,51 +1425,55 @@ fn spawn_leaving_combat(
 }
 
 fn build_combat_end_content(parent: &mut RelatedSpawner<'_, ChildOf>) {
-    // parent.spawn((Text::new(format!("{} Gold", total_gold)), ui_font, ui_color));
+    let mut container = parent.spawn((Node {
+        width: Val::Percent(100.),
+        flex_grow: 1.,
+        flex_direction: FlexDirection::Column,
+        padding: UiRect::all(Val::Px(20.)),
+        ..default()
+    },));
 
-    // parent.spawn(scroll_area(move |p| {
-    //     for item in {
-    //         p.spawn(Text::new(item.name));
-    //     }
-    // }));
+    container.with_children(|p| {
+        p.spawn((
+            LootContent,
+            Node {
+                width: Val::Percent(100.),
+                flex_grow: 1.,
+                flex_direction: FlexDirection::Column,
+                ..default()
+            },
+        ));
+    });
 
-    parent.spawn((
-        LootContent,
-        Node {
-            width: Val::Percent(100.),
-            flex_grow: 1.,
-            flex_direction: FlexDirection::Column,
-            ..default()
-        },
-    ));
+    container.with_children(|p| {
+        p.spawn(button("Continue")).observe(
+            |_: On<Pointer<Click>>,
+             mut commands: Commands,
+             query: Single<(Entity, &CurrentArea), With<Player>>,
+             areas: Query<&AreaId, With<Area>>,
+             pending_loot: Res<PendingLoot>,
+             mut play_state: ResMut<NextState<PlayState>>| {
+                let (player, current_area) = *query;
+                let player_entity = player.entity();
 
-    parent.spawn(button("Continue")).observe(
-        |_: On<Pointer<Click>>,
-         mut commands: Commands,
-         query: Single<(Entity, &CurrentArea), With<Player>>,
-         areas: Query<&AreaId, With<Area>>,
-         pending_loot: Res<PendingLoot>,
-         mut play_state: ResMut<NextState<PlayState>>| {
-            let (player, current_area) = *query;
-            let player_entity = player.entity();
+                let Ok(area_id) = areas.get(current_area.entity()) else {
+                    // Area not found - shouldn't happen
+                    return;
+                };
 
-            let Ok(area_id) = areas.get(current_area.entity()) else {
-                // Area not found - shouldn't happen
-                return;
-            };
+                commands.trigger(GiveGold {
+                    amount: pending_loot.gold,
+                    beneficiary: player_entity,
+                });
 
-            commands.trigger(GiveGold {
-                amount: pending_loot.gold,
-                beneficiary: player_entity,
-            });
+                play_state.set(PlayState::Exploring);
 
-            play_state.set(PlayState::Exploring);
-
-            commands.trigger(PlayerContinued {
-                from: area_id.clone(),
-            });
-        },
-    );
+                commands.trigger(PlayerContinued {
+                    from: area_id.clone(),
+                });
+            },
+        );
+    });
 }
 
 fn refresh_loot(
@@ -1485,7 +1489,381 @@ fn refresh_loot(
         return;
     }
 
-    // TODO:
+    let rows = collect_loot_rows(&loot.items, &item_store, &icon_assets);
+    let gold = loot.gold;
+    let ui_font = font_store.ui_font.clone();
+    let ui_color = font_store.ui_color;
+    let player_entity = player.entity();
+
+    commands
+        .entity(*content)
+        .despawn_children()
+        .insert(Children::spawn(SpawnWith(
+            move |p: &mut RelatedSpawner<ChildOf>| {
+                build_loot_grid(p, rows, gold, ui_font, ui_color, player_entity);
+            },
+        )));
+}
+
+// TODO: duplicated from inventory
+#[derive(Clone, Debug)]
+struct StatLine {
+    label: String,
+    value: String,
+    icon: Handle<Image>,
+}
+
+// TODO: duplicated from inventory
+#[derive(Clone, Debug)]
+struct ItemRow {
+    id: String,
+    name: String,
+    description: String,
+    count: u32,
+    icon: Handle<Image>,
+    slot: Option<EquipmentSlot>,
+    stats: Vec<StatLine>,
+}
+
+// TODO: duplicated from inventory
+fn collect_loot_rows(
+    inventory: &Vec<ItemStack>,
+    item_store: &Res<ItemStore>,
+    icon_assets: &Res<UiIconAssets>,
+) -> Vec<ItemRow> {
+    inventory
+        .iter()
+        .filter_map(|item_stack| {
+            let store_item = item_store.get(&item_stack.item_id.0)?;
+            let count = item_stack.count;
+
+            let stats = store_item
+                .stats
+                .map(|stats| {
+                    stats
+                        .non_zero_stats()
+                        .into_iter()
+                        .filter_map(|(label, value, icon)| {
+                            let icon = icon_assets.icons.get(icon)?.clone();
+                            Some(StatLine {
+                                label: label.to_string(),
+                                value,
+                                icon,
+                            })
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+
+            Some(ItemRow {
+                id: store_item.id.clone(),
+                name: store_item.name.clone(),
+                description: store_item.description.clone(),
+                icon: store_item.icon.clone(),
+                slot: store_item.slot,
+                stats: stats,
+                count: count,
+            })
+        })
+        .collect()
+}
+
+// TODO: duplicated from inventory
+fn build_loot_grid(
+    parent: &mut RelatedSpawner<'_, ChildOf>,
+    rows: Vec<ItemRow>,
+    gold: u32,
+    ui_font: TextFont,
+    ui_color: TextColor,
+    player_entity: Entity,
+) {
+    let has_loot = !rows.is_empty();
+
+    // Top Row
+    parent.spawn((
+        Node {
+            display: Display::Flex,
+            justify_content: JustifyContent::Center,
+            width: Val::Percent(100.),
+            flex_shrink: 0.,
+            padding: UiRect::all(Val::Px(10.)),
+            ..default()
+        },
+        children![(Text::new("You find..."), ui_font.clone(), ui_color,)],
+    ));
+
+    parent.spawn((
+        Node {
+            display: Display::Flex,
+            width: Val::Percent(100.),
+            flex_grow: 1.,
+            padding: UiRect::all(Val::Px(20.)),
+            ..default()
+        },
+        children![scroll_area({
+            let ui_font = ui_font.clone();
+            let ui_color = ui_color;
+
+            move |p| {
+                p.spawn(inventory_grid()).with_children(|grid| {
+                    for item in rows {
+                        let mut invent_item =
+                            grid.spawn(inventory_item(item.clone(), ui_font.clone(), ui_color));
+
+                        invent_item.with_children(|tile| {
+                            tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
+
+                            if item.count > 0 {
+                                tile.spawn(item_count(
+                                    item.id.clone(),
+                                    item.count.to_string(),
+                                    ui_font.clone(),
+                                    ui_color,
+                                ));
+                            }
+                        });
+
+                        invent_item.observe(
+                            move |_: On<Pointer<Click>>,
+                                  mut commands: Commands,
+                                  mut loot: ResMut<PendingLoot>| {
+                                commands
+                                    .entity(player_entity)
+                                    .give(item.id.clone(), item.count);
+
+                                if let Some(pos) = loot
+                                    .items
+                                    .iter()
+                                    .position(|s| s.item_id.0 == item.id.clone())
+                                {
+                                    loot.items.remove(pos);
+                                }
+                            },
+                        );
+                    }
+                });
+            }
+        })],
+    ));
+
+    // Loot all
+    if has_loot {
+        parent.spawn(button("Take all")).observe(
+            move |_: On<Pointer<Click>>, mut commands: Commands, mut loot: ResMut<PendingLoot>| {
+                for item in loot.items.drain(..) {
+                    commands
+                        .entity(player_entity)
+                        .give(item.item_id.clone(), item.count);
+                }
+            },
+        );
+    }
+
+    // Bottom row
+    if gold > 0 {
+        parent.spawn((
+            Node {
+                display: Display::Flex,
+                justify_content: JustifyContent::Center,
+                width: Val::Percent(100.),
+                flex_shrink: 0.,
+                padding: UiRect::all(Val::Px(10.)),
+                ..default()
+            },
+            children![(
+                Name::new("Gold Count"),
+                Text::new(format!("You find {} gold!", gold)),
+                ui_font.clone(),
+                ui_color,
+            )],
+        ));
+    }
+}
+
+// TODO: duplicated from inventory
+const ITEM_BORDER_COLOUR: Color = Color::srgb(1., 1., 1.);
+const ITEM_BORDER_SIZE: f32 = 4.;
+const ITEM_SIZE: f32 = 100.;
+const ITEM_PADDING: f32 = 10.;
+const GRID_GAP: f32 = 10.;
+
+const TOOLTIP_SIZE: f32 = 400.;
+const TOOLTIP_ITEM_SIZE: f32 = 32.;
+
+const TOOLTIP_LABEL_FONT_SIZE: f32 = 26.;
+const TOOLTIP_DESC_FONT_SIZE: f32 = 18.;
+
+// TODO: duplicated from inventory
+fn inventory_grid() -> impl Bundle {
+    (
+        Name::new("Inventory Grid"),
+        Node {
+            display: Display::Grid,
+            row_gap: Val::Px(GRID_GAP),
+            column_gap: Val::Px(GRID_GAP),
+            grid_template_columns: RepeatedGridTrack::px(8, ITEM_SIZE),
+            grid_auto_rows: vec![GridTrack::px(ITEM_SIZE)],
+            grid_auto_flow: GridAutoFlow::Column,
+            ..default()
+        },
+    )
+}
+
+// TODO: duplicated from inventory
+fn inventory_item(item: ItemRow, font: TextFont, color: TextColor) -> impl Bundle {
+    let tooltip_label = if item.count > 0 {
+        format!("{} ({})", item.name, item.count)
+    } else {
+        item.name.clone()
+    };
+
+    (
+        Name::new(format!("Inventory Item '{}' (ID: {})", item.name, item.id)),
+        Node {
+            border: UiRect::all(Val::Px(ITEM_BORDER_SIZE)),
+            padding: UiRect::all(Val::Px(ITEM_PADDING)),
+            ..default()
+        },
+        BorderColor::all(ITEM_BORDER_COLOUR),
+        Tooltip::new_sized(
+            move |p| {
+                build_tooltip(
+                    p,
+                    item.id.clone(),
+                    tooltip_label.clone(),
+                    item.description.clone(),
+                    item.icon.clone(),
+                    item.slot,
+                    item.stats.clone(),
+                    font.clone(),
+                    color.clone(),
+                );
+            },
+            TOOLTIP_SIZE,
+        ),
+    )
+}
+
+// TODO: duplicated from inventory
+fn item_icon(item_id: String, item_icon: Handle<Image>) -> impl Bundle {
+    (
+        Name::new(format!("Inventory Item Icon (ID: {})", item_id)),
+        ImageNode::new(item_icon),
+        Pickable::IGNORE,
+    )
+}
+
+// TODO: duplicated from inventory
+fn item_count(item_id: String, count: String, font: TextFont, color: TextColor) -> impl Bundle {
+    (
+        Name::new(format!("Inventory Item Count (ID: {})", item_id)),
+        Node {
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(5.),
+            right: Val::Px(10.),
+            ..default()
+        },
+        font,
+        color,
+        Text::new(count),
+        Pickable::IGNORE,
+    )
+}
+
+// TODO: duplicated from inventory
+fn build_tooltip(
+    parent: &mut RelatedSpawnerCommands<'_, ChildOf>,
+    tooltip_id: String,
+    label: String,
+    description: String,
+    icon: Handle<Image>,
+    slot: Option<EquipmentSlot>,
+    stats: Vec<StatLine>,
+    font: TextFont,
+    color: TextColor,
+) {
+    parent
+        .spawn((
+            Name::new(format!("Inventory Item Tooltip (ID: {})", tooltip_id)),
+            // -- Column of toolip (1st row + description)
+            Node {
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(5.),
+                ..default()
+            },
+        ))
+        .with_children(|p| {
+            // -- First row of tooltip (icon + label)
+            p.spawn((Node {
+                display: Display::Flex,
+                flex_direction: FlexDirection::Row,
+                column_gap: Val::Px(10.),
+                align_items: AlignItems::Center,
+                ..default()
+            },))
+                .with_children(|row| {
+                    // Icon
+                    row.spawn((
+                        Node {
+                            width: Val::Px(TOOLTIP_ITEM_SIZE),
+                            height: Val::Px(TOOLTIP_ITEM_SIZE),
+                            ..default()
+                        },
+                        ImageNode::new(icon),
+                    ));
+
+                    // Label
+                    row.spawn((
+                        font.clone().with_font_size(TOOLTIP_LABEL_FONT_SIZE),
+                        color.clone(),
+                        Text::new(label),
+                    ));
+                });
+
+            // -- Description
+            p.spawn((
+                font.clone().with_font_size(TOOLTIP_DESC_FONT_SIZE),
+                color,
+                Text::new(description),
+            ));
+
+            // Slot
+            if let Some(slot) = slot {
+                p.spawn((
+                    font.clone().with_font_size(TOOLTIP_DESC_FONT_SIZE),
+                    color,
+                    Text::new(slot.to_string()),
+                ));
+            }
+
+            // Stats
+            for stat in stats {
+                p.spawn((
+                    Node {
+                        flex_direction: FlexDirection::Row,
+                        align_items: AlignItems::Center,
+                        column_gap: Val::Px(8.),
+                        ..default()
+                    },
+                    children![
+                        (
+                            Node {
+                                width: Val::Px(16.),
+                                height: Val::Px(16.),
+                                ..default()
+                            },
+                            ImageNode::new(stat.icon),
+                        ),
+                        (
+                            font.clone().with_font_size(TOOLTIP_DESC_FONT_SIZE),
+                            color,
+                            Text::new(format!("{} {}", stat.value, stat.label)),
+                        )
+                    ],
+                ));
+            }
+        });
 }
 
 fn destroy(mut commands: Commands) {
