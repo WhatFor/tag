@@ -32,10 +32,10 @@ impl Command for EquipItem {
 
         match recipient.get_mut::<Equipment>() {
             Some(mut equipment) => {
-                if let Some(_previous) = equipment.insert(slot, ItemId(def.id.clone())) {
+                if let Some(previous) = equipment.insert(slot, ItemId(def.id.clone())) {
                     // If there was something already equipped, move
                     // it back to inventory
-                    world.commands().entity(self.recipient).give(def.id, 1);
+                    world.commands().entity(self.recipient).give(previous.0, 1);
                 }
             }
             None => {

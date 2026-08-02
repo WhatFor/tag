@@ -116,12 +116,7 @@
 - need to flesh out UI to show dead enemies (maybe a nice icon)
 
 - Finish combat screen (win/lose)
-  - lose not tested
-  - working on win:
-    - show money + roll loot from loot pool
-      - offer player chance to take or leave loot, give_item.
-      - give_gold
-      - continue -> back to playing, move to next area
+  - lose
 
 ### Half Finished (not tested/used)
 - Items with Effects
