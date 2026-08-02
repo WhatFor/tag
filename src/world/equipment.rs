@@ -11,9 +11,15 @@ pub struct EquipFromInventory {
     pub item_id: ItemId,
 }
 
+pub struct UnequipItem {
+    pub target: Entity,
+    pub slot: EquipmentSlot,
+}
+
 pub trait EquipItemExt {
     fn equip(&mut self, item_id: impl Into<ItemId>) -> &mut Self;
     fn equip_from_inventory(&mut self, item_id: impl Into<ItemId>) -> &mut Self;
+    fn unequip(&mut self, slot: EquipmentSlot) -> &mut Self;
 }
 
 impl Command for EquipItem {
@@ -54,6 +60,23 @@ impl Command for EquipFromInventory {
     }
 }
 
+impl Command for UnequipItem {
+    fn apply(self, world: &mut World) -> () {
+        let mut target = world.entity_mut(self.target);
+
+        match target.get_mut::<Equipment>() {
+            Some(mut equipment) => {
+                if let Some(previous) = equipment.remove(&self.slot) {
+                    world.commands().entity(self.target).give(previous.0, 1);
+                }
+            }
+            None => {
+                panic!("Entity doesn't have an inventory.");
+            }
+        }
+    }
+}
+
 impl EquipItemExt for EntityCommands<'_> {
     fn equip(&mut self, item_id: impl Into<ItemId>) -> &mut Self {
         let recipient = self.id();
@@ -73,6 +96,14 @@ impl EquipItemExt for EntityCommands<'_> {
             recipient,
             item_id: item_id.into(),
         });
+
+        self
+    }
+
+    fn unequip(&mut self, slot: EquipmentSlot) -> &mut Self {
+        let target = self.id();
+
+        self.commands().queue(UnequipItem { slot, target });
 
         self
     }
