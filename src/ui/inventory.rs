@@ -205,52 +205,88 @@ fn build_inventory_content(
     ui_font: TextFont,
     ui_color: TextColor,
     player_entity: Entity,
+    health: i32,
+    max_health: i32,
+    stats: Vec<(String, Handle<Image>, i32)>,
 ) {
-    parent.spawn((
+    let mut inventory_content = parent.spawn((
+        Name::new("Inventory Content"),
         Node {
-            display: Display::Flex,
+            flex_direction: FlexDirection::Row,
             width: Val::Percent(100.),
             flex_grow: 1.,
-            padding: UiRect::all(Val::Px(20.)),
+            column_gap: Val::Px(8.),
             ..default()
         },
-        children![scroll_area({
-            let ui_font = ui_font.clone();
-            let ui_color = ui_color;
-
-            move |p| {
-                p.spawn(inventory_grid()).with_children(|grid| {
-                    for item in rows {
-                        let mut invent_item =
-                            grid.spawn(inventory_item(item.clone(), ui_font.clone(), ui_color));
-
-                        invent_item.with_children(|tile| {
-                            tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
-
-                            if item.count > 0 {
-                                tile.spawn(item_count(
-                                    item.id.clone(),
-                                    item.count.to_string(),
-                                    ui_font.clone(),
-                                    ui_color,
-                                ));
-                            }
-                        });
-
-                        if item.slot.is_some() {
-                            invent_item.observe(
-                                move |_: On<Pointer<Click>>, mut commands: Commands| {
-                                    commands
-                                        .entity(player_entity)
-                                        .equip_from_inventory(item.id.clone());
-                                },
-                            );
-                        };
-                    }
-                });
-            }
-        })],
     ));
+
+    // Spawn left: The inventory
+    inventory_content.with_children(|p| {
+        p.spawn((
+            Node {
+                display: Display::Flex,
+                width: Val::Percent(50.),
+                flex_grow: 1.,
+                padding: UiRect::all(Val::Px(20.)),
+                ..default()
+            },
+            children![scroll_area({
+                let ui_font = ui_font.clone();
+                let ui_color = ui_color;
+
+                move |p| {
+                    p.spawn(inventory_grid()).with_children(|grid| {
+                        for item in rows {
+                            let mut invent_item =
+                                grid.spawn(inventory_item(item.clone(), ui_font.clone(), ui_color));
+
+                            invent_item.with_children(|tile| {
+                                tile.spawn(item_icon(item.id.clone(), item.icon.clone()));
+
+                                if item.count > 0 {
+                                    tile.spawn(item_count(
+                                        item.id.clone(),
+                                        item.count.to_string(),
+                                        ui_font.clone(),
+                                        ui_color,
+                                    ));
+                                }
+                            });
+
+                            if item.slot.is_some() {
+                                invent_item.observe(
+                                    move |_: On<Pointer<Click>>, mut commands: Commands| {
+                                        commands
+                                            .entity(player_entity)
+                                            .equip_from_inventory(item.id.clone());
+                                    },
+                                );
+                            };
+                        }
+                    });
+                }
+            })],
+        ));
+    });
+
+    // Spawn Right: player stats + equipment
+    inventory_content.with_children(|p| {
+        p.spawn((
+            Node {
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(8.),
+                width: Val::Percent(50.),
+                flex_grow: 1.,
+                padding: UiRect::all(Val::Px(20.)),
+                ..default()
+            },
+            children![
+                equipment_status_bar(health, max_health, stats, ui_font.clone(), ui_color),
+                equipment_slots()
+            ],
+        ));
+    });
 
     // Bottom row
     parent.spawn((
@@ -273,7 +309,7 @@ fn build_inventory_content(
 fn spawn_inventory(
     mut commands: Commands,
     mut inventory_state: ResMut<NextState<InventoryState>>,
-    player: Single<Entity, With<Player>>,
+    player: Single<(Entity, &Health, &MaxHealth, &EffectiveStats), With<Player>>,
     inventory: Single<&Inventory, With<Player>>,
     gold: Single<&Gold, With<Player>>,
     item_store: Res<ItemStore>,
@@ -285,18 +321,35 @@ fn spawn_inventory(
         return;
     }
 
+    let gold = gold.0;
+
+    let (player_entity, health, max_health, stats) = *player;
+    let health = health.0;
+    let max_health = max_health.0;
+
+    let stats: Vec<(String, Handle<Image>, i32)> = [
+        ("Strength", "strength", stats.0.strength),
+        ("Agility", "agility", stats.0.agility),
+        ("Intelligence", "intelligence", stats.0.intelligence),
+        ("Speed", "speed", stats.0.speed),
+        ("Armour", "armour", stats.0.armour),
+    ]
+    .into_iter()
+    .filter_map(|(label, key, value)| {
+        Some((label.to_string(), icon_store.icons.get(key)?.clone(), value))
+    })
+    .collect();
+
     let rows = collect_rows(&inventory, item_store, icon_store);
 
     let ui_font = fonts.ui_font.clone();
     let ui_color = fonts.ui_color;
-    let gold = gold.0;
-    let player = player.entity();
 
     commands
         .spawn((
             InventoryPanel,
             panel(
-                PanelProps::new("Inventory"),
+                PanelProps::new("Inventory").sized(Val::Percent(80.), Val::Percent(70.)),
                 SpawnWith(move |p: &mut RelatedSpawner<ChildOf>| {
                     p.spawn((
                         InventoryContent,
@@ -308,7 +361,17 @@ fn spawn_inventory(
                         },
                     ))
                     .with_children(|content| {
-                        build_inventory_content(content, rows, gold, ui_font, ui_color, player);
+                        build_inventory_content(
+                            content,
+                            rows,
+                            gold,
+                            ui_font,
+                            ui_color,
+                            player_entity,
+                            health,
+                            max_health,
+                            stats,
+                        );
                     });
                 }),
             ),
@@ -325,18 +388,52 @@ fn spawn_inventory(
 fn refresh_inventory(
     mut commands: Commands,
     player: Single<
-        (Entity, &Inventory, &Gold),
-        (With<Player>, Or<(Changed<Inventory>, Changed<Equipment>)>),
+        (
+            Entity,
+            &Inventory,
+            &Gold,
+            &Health,
+            &MaxHealth,
+            &EffectiveStats,
+        ),
+        (
+            With<Player>,
+            Or<(
+                Changed<Inventory>,
+                Changed<Gold>,
+                Changed<Equipment>,
+                Changed<Health>,
+                Changed<MaxHealth>,
+                Changed<EffectiveStats>,
+            )>,
+        ),
     >,
     item_store: Res<ItemStore>,
     icon_store: Res<UiIconAssets>,
     fonts: Res<FontAssets>,
     content: Single<Entity, With<InventoryContent>>,
 ) {
-    let (player_entity, inventory, gold) = *player;
+    let (player_entity, inventory, gold, health, max_health, stats) = *player;
+
+    let stats: Vec<(String, Handle<Image>, i32)> = [
+        ("Strength", "strength", stats.0.strength),
+        ("Agility", "agility", stats.0.agility),
+        ("Intelligence", "intelligence", stats.0.intelligence),
+        ("Speed", "speed", stats.0.speed),
+        ("Armour", "armour", stats.0.armour),
+    ]
+    .into_iter()
+    .filter_map(|(label, key, value)| {
+        Some((label.to_string(), icon_store.icons.get(key)?.clone(), value))
+    })
+    .collect();
+
+    let health = health.0;
+    let max_health = max_health.0;
     let gold = gold.0;
     let ui_font = fonts.ui_font.clone();
     let ui_color = fonts.ui_color;
+
     let rows = collect_rows(inventory, item_store, icon_store);
 
     // Clear existing inventory items
@@ -345,9 +442,116 @@ fn refresh_inventory(
     // Replace with new items
     commands.entity(*content).insert(Children::spawn(SpawnWith(
         move |content: &mut RelatedSpawner<ChildOf>| {
-            build_inventory_content(content, rows, gold, ui_font, ui_color, player_entity);
+            build_inventory_content(
+                content,
+                rows,
+                gold,
+                ui_font,
+                ui_color,
+                player_entity,
+                health,
+                max_health,
+                stats,
+            );
         },
     )));
+}
+
+const STAT_ICON_SIZE: f32 = 32.;
+
+fn equipment_status_bar(
+    health: i32,
+    max_health: i32,
+    stats: Vec<(String, Handle<Image>, i32)>,
+    font: TextFont,
+    color: TextColor,
+) -> impl Bundle {
+    (
+        Name::new("Equipment Status Bar"),
+        Node {
+            display: Display::Flex,
+            flex_direction: FlexDirection::Row,
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::End,
+            column_gap: Val::Px(20.),
+            padding: UiRect::all(Val::Px(15.)),
+            ..default()
+        },
+        Children::spawn(SpawnWith(move |p: &mut RelatedSpawner<ChildOf>| {
+            // Health
+            p.spawn((
+                Name::new("Health"),
+                Node {
+                    flex_direction: FlexDirection::Column,
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    row_gap: Val::Px(8.),
+                    padding: UiRect::all(Val::Px(8.)),
+                    ..default()
+                },
+                // TODO: deduplicate with combat UI
+                children![
+                    // Current HP
+                    (
+                        Text::new(health.to_string()),
+                        Tooltip::basic("Current Health"),
+                        font.clone(),
+                        color,
+                    ),
+                    // Divider
+                    (
+                        Node {
+                            width: Val::Percent(80.),
+                            height: Val::Px(2.),
+                            ..default()
+                        },
+                        BackgroundColor(Color::srgb(1., 1., 1.)),
+                    ),
+                    // Max HP
+                    (
+                        Text::new(max_health.to_string()),
+                        Tooltip::basic("Maximum Health"),
+                        font.clone(),
+                        color,
+                    )
+                ],
+            ));
+
+            // Stats
+            for (label, icon, value) in stats {
+                p.spawn((
+                    Tooltip::basic(label),
+                    Node {
+                        flex_direction: FlexDirection::Column,
+                        align_items: AlignItems::Center,
+                        row_gap: Val::Px(4.),
+                        ..default()
+                    },
+                    children![
+                        (
+                            Node {
+                                width: Val::Px(STAT_ICON_SIZE),
+                                height: Val::Px(STAT_ICON_SIZE),
+                                ..default()
+                            },
+                            ImageNode::new(icon),
+                            Pickable::IGNORE
+                        ),
+                        (
+                            font.clone(),
+                            color,
+                            Text::new(value.to_string()),
+                            Pickable::IGNORE
+                        ),
+                    ],
+                ));
+            }
+        })),
+    )
+}
+
+fn equipment_slots() -> impl Bundle {
+    ()
 }
 
 #[derive(Clone, Debug)]
@@ -375,7 +579,7 @@ fn inventory_grid() -> impl Bundle {
             display: Display::Grid,
             row_gap: Val::Px(GRID_GAP),
             column_gap: Val::Px(GRID_GAP),
-            grid_template_columns: RepeatedGridTrack::px(8, ITEM_SIZE),
+            grid_template_columns: RepeatedGridTrack::px(4, ITEM_SIZE),
             grid_auto_rows: vec![GridTrack::px(ITEM_SIZE)],
             grid_auto_flow: GridAutoFlow::Column,
             ..default()

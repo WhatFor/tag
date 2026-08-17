@@ -106,17 +106,17 @@
 
 
 ### Combat TODO
-- equip item from invent no longer works after refactor
-- Invent UI for slots
 - The combat log reports damage dealt without taking into account target armour
 - player damage_type on attacks is hard-coded to Stab in FSM. Damage is hardcoded to 1.
-
-### Working on now:
-- enemy died combat log is pretty boring and basic. maybe improve, and include loot + gold.
-- need to flesh out UI to show dead enemies (maybe a nice icon)
-
 - Finish combat screen (win/lose)
   - lose
+- de-duplicate grid used between invent and loot screen
+
+### Working on now:
+- Invent UI for slots
+
+- enemy died combat log is pretty boring and basic. maybe improve, and include loot + gold.
+- need to flesh out UI to show dead enemies (maybe a nice icon)
 
 ### Half Finished (not tested/used)
 - Items with Effects
