@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::prelude::*;
 use bevy::prelude::*;
 
@@ -208,6 +210,7 @@ fn build_inventory_content(
     health: i32,
     max_health: i32,
     stats: Vec<(String, Handle<Image>, i32)>,
+    equipped: HashMap<EquipmentSlot, EquippedView>,
 ) {
     let mut inventory_content = parent.spawn((
         Name::new("Inventory Content"),
@@ -283,7 +286,7 @@ fn build_inventory_content(
             },
             children![
                 equipment_status_bar(health, max_health, stats, ui_font.clone(), ui_color),
-                equipment_slots()
+                equipment_slots(equipped, player_entity)
             ],
         ));
     });
@@ -309,7 +312,7 @@ fn build_inventory_content(
 fn spawn_inventory(
     mut commands: Commands,
     mut inventory_state: ResMut<NextState<InventoryState>>,
-    player: Single<(Entity, &Health, &MaxHealth, &EffectiveStats), With<Player>>,
+    player: Single<(Entity, &Health, &MaxHealth, &Equipment, &EffectiveStats), With<Player>>,
     inventory: Single<&Inventory, With<Player>>,
     gold: Single<&Gold, With<Player>>,
     item_store: Res<ItemStore>,
@@ -323,7 +326,7 @@ fn spawn_inventory(
 
     let gold = gold.0;
 
-    let (player_entity, health, max_health, stats) = *player;
+    let (player_entity, health, max_health, equipment, stats) = *player;
     let health = health.0;
     let max_health = max_health.0;
 
@@ -339,6 +342,20 @@ fn spawn_inventory(
         Some((label.to_string(), icon_store.icons.get(key)?.clone(), value))
     })
     .collect();
+
+    let equipped: HashMap<EquipmentSlot, EquippedView> = equipment
+        .iter()
+        .filter_map(|(slot, item_id)| {
+            let def = item_store.get(&item_id.0)?;
+            Some((
+                *slot,
+                EquippedView {
+                    name: def.name.clone(),
+                    icon: def.icon.clone(),
+                },
+            ))
+        })
+        .collect();
 
     let rows = collect_rows(&inventory, item_store, icon_store);
 
@@ -371,6 +388,7 @@ fn spawn_inventory(
                             health,
                             max_health,
                             stats,
+                            equipped,
                         );
                     });
                 }),
@@ -394,6 +412,7 @@ fn refresh_inventory(
             &Gold,
             &Health,
             &MaxHealth,
+            &Equipment,
             &EffectiveStats,
         ),
         (
@@ -413,7 +432,7 @@ fn refresh_inventory(
     fonts: Res<FontAssets>,
     content: Single<Entity, With<InventoryContent>>,
 ) {
-    let (player_entity, inventory, gold, health, max_health, stats) = *player;
+    let (player_entity, inventory, gold, health, max_health, equipment, stats) = *player;
 
     let stats: Vec<(String, Handle<Image>, i32)> = [
         ("Strength", "strength", stats.0.strength),
@@ -427,6 +446,20 @@ fn refresh_inventory(
         Some((label.to_string(), icon_store.icons.get(key)?.clone(), value))
     })
     .collect();
+
+    let equipped: HashMap<EquipmentSlot, EquippedView> = equipment
+        .iter()
+        .filter_map(|(slot, item_id)| {
+            let def = item_store.get(&item_id.0)?;
+            Some((
+                *slot,
+                EquippedView {
+                    name: def.name.clone(),
+                    icon: def.icon.clone(),
+                },
+            ))
+        })
+        .collect();
 
     let health = health.0;
     let max_health = max_health.0;
@@ -452,6 +485,7 @@ fn refresh_inventory(
                 health,
                 max_health,
                 stats,
+                equipped,
             );
         },
     )));
@@ -550,8 +584,91 @@ fn equipment_status_bar(
     )
 }
 
-fn equipment_slots() -> impl Bundle {
-    ()
+const SLOT_LAYOUT: [&[EquipmentSlot]; 4] = [
+    &[EquipmentSlot::Helm, EquipmentSlot::Cloak],
+    &[
+        EquipmentSlot::MainHand,
+        EquipmentSlot::Chest,
+        EquipmentSlot::OffHand,
+    ],
+    &[EquipmentSlot::Ring, EquipmentSlot::Legs],
+    &[EquipmentSlot::Boots],
+];
+
+#[derive(Clone)]
+struct EquippedView {
+    icon: Handle<Image>,
+    name: String,
+}
+
+fn equipment_slots(
+    equipped: std::collections::HashMap<EquipmentSlot, EquippedView>,
+    player_entity: Entity,
+) -> impl Bundle {
+    (
+        Name::new("Equipment Slots"),
+        Node {
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            row_gap: Val::Px(GRID_GAP),
+            flex_grow: 1.,
+            padding: UiRect::all(Val::Px(20.)),
+            ..default()
+        },
+        Children::spawn(SpawnWith(move |p: &mut RelatedSpawner<ChildOf>| {
+            for row in SLOT_LAYOUT {
+                p.spawn(Node {
+                    flex_direction: FlexDirection::Row,
+                    column_gap: Val::Px(GRID_GAP),
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                })
+                .with_children(|row_node| {
+                    for &slot in row {
+                        let view = equipped.get(&slot).cloned();
+                        let mut tile = row_node.spawn(equipped_slot_tile(slot, view.clone()));
+
+                        if let Some(view) = view {
+                            tile.insert(Tooltip::basic(view.name));
+                            tile.observe(move |_: On<Pointer<Click>>, mut commands: Commands| {
+                                commands.entity(player_entity).unequip(slot);
+                            });
+                        }
+                    }
+                });
+            }
+        })),
+    )
+}
+
+fn equipped_slot_tile(slot: EquipmentSlot, equipped: Option<EquippedView>) -> impl Bundle {
+    (
+        Name::new(format!("Equipment Slot ({slot})")),
+        Node {
+            width: Val::Px(ITEM_SIZE),
+            height: Val::Px(ITEM_SIZE),
+            border: UiRect::all(Val::Px(ITEM_BORDER_SIZE)),
+            padding: UiRect::all(Val::Px(ITEM_PADDING)),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        BorderColor::all(ITEM_BORDER_COLOUR),
+        Children::spawn(SpawnWith(move |p: &mut RelatedSpawner<ChildOf>| {
+            match equipped {
+                Some(view) => {
+                    p.spawn((
+                        Name::new(format!("Equipped Icon ({slot})")),
+                        ImageNode::new(view.icon),
+                        Pickable::IGNORE,
+                    ));
+                }
+                None => {
+                    // Do nothing
+                }
+            }
+        })),
+    )
 }
 
 #[derive(Clone, Debug)]
